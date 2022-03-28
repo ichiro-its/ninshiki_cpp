@@ -77,7 +77,58 @@ void Yolo::pass_image_to_network(cv::Mat image)
 
 void Yolo::detection(float conf_threshold, float nms_threshold)
 {
+  std::vector<int> class_ids;
+  std::vector<float> confidences;
+  std::vector<cv::Rect> boxes;
 
+  for (size_t i = 0; i < outs.size(); ++i)
+  {
+    // Network produces output blob with a shape NxC where N is a number of
+    // detected objects and C is a number of classes + 4 where the first 4
+    // numbers are [center_x, center_y, width, height]
+    float* detection = (float*)outs[i].data;
+    for (int j = 0; j < outs[i].rows; ++j, detection += outs[i].cols)
+    {
+      cv::Mat scores = outs[i].row(j).colRange(5, outs[i].cols);
+      cv::Point class_id_point;
+      double confidence;
+      minMaxLoc(scores, 0, &confidence, 0, &class_id_point);
+
+      if (confidence > conf_threshold)
+      {
+        int centerX = (int)(detection[0] * width);
+        int centerY = (int)(detection[1] * height);
+        int width = (int)(detection[2] * width);
+        int height = (int)(detection[3] * height);
+        int left = centerX - width / 2;
+        int top = centerY - height / 2;
+
+        class_ids.push_back(class_id_point.x);
+        confidences.push_back((float)confidence);
+        boxes.push_back(cv::Rect(left, top, width, height));
+      }
+    }
+  }
+
+  if (boxes.size()) {
+    for (size_t i = 0; i < boxes.size(); ++i) {
+
+      cv::Rect box = boxes[i];
+      if (!box.empty()) {
+        // Add detected object into vector
+        ninshiki_interfaces::msg::DetectedObject detection_object;
+
+        detection_object.label = classes[class_ids[i]];
+        detection_object.score = confidences[i];
+        detection_object.left = box.x / width;
+        detection_object.top = box.y / height;
+        detection_object.right = (box.x + box.width) / width;
+        detection_object.bottom = (box.y + box.height) / height;
+
+        detection_result.detected_objects.push_back(detection_object);
+      }
+    }
+  }
 }
 
 }  // namespace ninshiki_cpp::detector

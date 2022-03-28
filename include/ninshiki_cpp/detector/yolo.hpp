@@ -29,6 +29,7 @@
 #include <vector>
 
 #include "ninshiki_interfaces/msg/detected_object.hpp"
+#include "ninshiki_interfaces/msg/detected_objects.hpp"
 
 namespace ninshiki_cpp::detector
 {
@@ -36,7 +37,7 @@ namespace ninshiki_cpp::detector
 class Yolo
 {
 public:
-  std::vector<ninshiki_interfaces::msg::DetectedObject> detection_result;
+  ninshiki_interfaces::msg::DetectedObjects detection_result;
 
   Yolo(bool gpu = false, bool myriad = false);
   void pass_image_to_network(cv::Mat image);
