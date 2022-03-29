@@ -20,7 +20,8 @@ find_package(rclcpp REQUIRED)
 find_package(shisen_interfaces REQUIRED)
 
 add_library(${PROJECT_NAME} SHARED
-  "src/${PROJECT_NAME}/detector/yolo.cpp")
+  "src/${PROJECT_NAME}/detector/yolo.cpp"
+  "src/${PROJECT_NAME}/node/ninshiki_cpp_node.cpp")
 
 target_include_directories(${PROJECT_NAME} PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -31,6 +32,7 @@ ament_target_dependencies(${PROJECT_NAME}
   OpenCV
   rclcpp
   shisen_interfaces)
+
 install(DIRECTORY "include" DESTINATION ".")
 
 install(TARGETS ${PROJECT_NAME}
@@ -38,6 +40,16 @@ install(TARGETS ${PROJECT_NAME}
   ARCHIVE DESTINATION "lib"
   LIBRARY DESTINATION "lib"
   RUNTIME DESTINATION "bin")
+
+add_executable(detector "src/ninshiki_cpp_detector.cpp")
+target_include_directories(detector PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
+target_link_libraries(detector ${PROJECT_NAME})
+
+install(TARGETS
+  detector
+  DESTINATION lib/${PROJECT_NAME})
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
