@@ -93,6 +93,7 @@ int main(int argc, char ** argv)
     std::cout << "Invalid arguments!\n\n" << help_message << std::endl;
     return 1;
   }
+  std::cout << "OpenCV version : " << CV_VERSION << std::endl;
 
   auto node = std::make_shared<rclcpp::Node>("ninshiki_cpp");
   auto ninshiki_cpp_node = std::make_shared<ninshiki_cpp::node::NinshikiCppNode>(node, topic_name);

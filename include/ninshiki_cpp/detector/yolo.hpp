@@ -40,9 +40,7 @@ public:
   ninshiki_interfaces::msg::DetectedObjects detection_result;
 
   Yolo(bool gpu = false, bool myriad = false);
-  void pass_image_to_network(cv::Mat image);
-  void detection(float conf_threshold, float nms_threshold);
-
+  void detection(const cv::Mat& image, float conf_threshold, float nms_threshold);
 private:
   std::string file_name;
   std::vector<std::string> classes;
@@ -50,7 +48,7 @@ private:
   bool gpu;
   bool myriad;
 
-  cv::dnn::Net net;
+  std::shared_ptr<cv::dnn::Net> net;
   std::vector<cv::Mat> outs;
 
   int width;

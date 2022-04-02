@@ -47,8 +47,15 @@ target_include_directories(detector PUBLIC
   $<INSTALL_INTERFACE:include>)
 target_link_libraries(detector ${PROJECT_NAME})
 
+add_executable(detector1 "src/object_detection.cpp")
+target_include_directories(detector1 PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
+target_link_libraries(detector1 ${PROJECT_NAME})
+
 install(TARGETS
   detector
+  detector1
   DESTINATION lib/${PROJECT_NAME})
 
 if(BUILD_TESTING)
