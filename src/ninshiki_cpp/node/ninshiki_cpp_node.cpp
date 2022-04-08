@@ -35,9 +35,7 @@ NinshikiCppNode::NinshikiCppNode(rclcpp::Node::SharedPtr node, std::string topic
   image_subscriber = node->create_subscription<Image>(
     topic_name, 10,
     [this](const Image::SharedPtr message) {
-      std::cout << "is message->data not empty" << !message->data.empty() << std::endl;
 
-      std::cout << "quality&channels " << message->quality<<" " << message->channels << std::endl;
       if (!message->data.empty()) {
         // Determine whether the image is compressed or not
         if (message->quality < 0) {
@@ -50,7 +48,6 @@ NinshikiCppNode::NinshikiCppNode(rclcpp::Node::SharedPtr node, std::string topic
           } else if (message->channels == 4) {
             type = CV_8UC4;
           }
-          std::cout << "type: " << type << std::endl;
           received_frame = cv::Mat(message->rows, message->cols, type);
 
           // Copy the mat data from the raw image
@@ -79,7 +76,7 @@ NinshikiCppNode::NinshikiCppNode(rclcpp::Node::SharedPtr node, std::string topic
   );
 
   node_timer = node->create_wall_timer(
-    8ms,
+    96ms,
     [this]() {
 
       if (!received_frame.empty()) {
@@ -91,12 +88,11 @@ NinshikiCppNode::NinshikiCppNode(rclcpp::Node::SharedPtr node, std::string topic
 
 void NinshikiCppNode::publish()
 {
-  // if (received_frame.size()) {
-    detection->detection(received_frame, 0.4, 0.3);
-    detected_object_publisher->publish(detection->detection_result);
-  // }
+  detection->detection(received_frame, 0.4, 0.3);
+  detected_object_publisher->publish(detection->detection_result);
 
   // Clear detection_result
+  // received_frame.release();
   detection->detection_result.detected_objects.clear();
 }
 

@@ -48,7 +48,7 @@ private:
   bool gpu;
   bool myriad;
 
-  std::shared_ptr<cv::dnn::Net> net;
+  cv::dnn::Net net;
   std::vector<cv::Mat> outs;
 
   int width;
