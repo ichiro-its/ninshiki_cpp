@@ -21,10 +21,11 @@
 #ifndef NINSHIKI_CPP__DETECTOR__YOLO_HPP_
 #define NINSHIKI_CPP__DETECTOR__YOLO_HPP_
 
-#include <fstream>
 #include <opencv2/dnn.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/highgui.hpp>
+
+#include <fstream>
 #include <string>
 #include <vector>
 
@@ -39,8 +40,9 @@ class Yolo
 public:
   ninshiki_interfaces::msg::DetectedObjects detection_result;
 
-  Yolo(bool gpu = false, bool myriad = false);
-  void detection(const cv::Mat& image, float conf_threshold, float nms_threshold);
+  explicit Yolo(bool gpu = false, bool myriad = false);
+  void detection(const cv::Mat & image, float conf_threshold, float nms_threshold);
+
 private:
   std::string file_name;
   std::vector<std::string> classes;

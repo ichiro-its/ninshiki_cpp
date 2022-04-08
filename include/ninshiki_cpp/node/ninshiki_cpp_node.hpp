@@ -24,9 +24,11 @@
 #include <opencv2/dnn.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/highgui.hpp>
-#include <string>
-#include "rclcpp/rclcpp.hpp"
 
+#include <memory>
+#include <string>
+
+#include "rclcpp/rclcpp.hpp"
 #include "ninshiki_cpp/detector/yolo.hpp"
 #include "ninshiki_interfaces/msg/detected_objects.hpp"
 #include "shisen_interfaces/msg/image.hpp"
@@ -41,7 +43,6 @@ public:
   void publish();
   void set_detection(std::shared_ptr<ninshiki_cpp::detector::Yolo> detection);
 
-
 private:
   using DetectedObjects = ninshiki_interfaces::msg::DetectedObjects;
   using Image = shisen_interfaces::msg::Image;
@@ -53,7 +54,7 @@ private:
   rclcpp::Publisher<DetectedObjects>::SharedPtr detected_object_publisher;
 
   std::shared_ptr<ninshiki_cpp::detector::Yolo> detection;
-  
+
   cv::Mat received_frame;
 
   static std::string get_node_prefix();

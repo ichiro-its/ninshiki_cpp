@@ -20,7 +20,7 @@
 
 #include <ninshiki_cpp/ninshiki_cpp.hpp>
 #include <rclcpp/rclcpp.hpp>
-
+#include <memory>
 #include <string>
 
 int main(int argc, char ** argv)
@@ -34,7 +34,7 @@ int main(int argc, char ** argv)
   int myriad = 0;
 
   const char * help_message =
-    "Usage: ros2 run ninshiki_cpp detector\n" 
+    "Usage: ros2 run ninshiki_cpp detector\n"
     "[topic] [--detector DETECTOR] [--GPU {0,1}] [--MYRIAD {0,1}]\n"
     "\n"
     "Positional arguments:\n"
@@ -77,7 +77,8 @@ int main(int argc, char ** argv)
           if (value == 0 || value == 1) {
             myriad = value;
           } else {
-            std::cout << "Unknown option for MYRIAD `" << arg << "`!\n\n" << help_message << std::endl;
+            std::cout << "Unknown option for MYRIAD `" << arg << "`!\n\n" <<
+              help_message << std::endl;
             return 1;
           }
         } else {
@@ -98,7 +99,7 @@ int main(int argc, char ** argv)
   auto node = std::make_shared<rclcpp::Node>("ninshiki_cpp");
   auto ninshiki_cpp_node = std::make_shared<ninshiki_cpp::node::NinshikiCppNode>(node, topic_name);
 
-  auto detection = std::make_shared<ninshiki_cpp::detector::Yolo>(gpu, myriad); 
+  auto detection = std::make_shared<ninshiki_cpp::detector::Yolo>(gpu, myriad);
 
   ninshiki_cpp_node->set_detection(detection);
 
@@ -107,4 +108,3 @@ int main(int argc, char ** argv)
 
   return 0;
 }
-

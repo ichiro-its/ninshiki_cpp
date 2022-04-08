@@ -18,7 +18,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#include <iostream>
+#include <memory>
+#include <string>
+#include <vector>
 #include "ninshiki_cpp/node/ninshiki_cpp_node.hpp"
 
 using namespace std::chrono_literals;
@@ -31,11 +33,10 @@ NinshikiCppNode::NinshikiCppNode(rclcpp::Node::SharedPtr node, std::string topic
 {
   detected_object_publisher = node->create_publisher<DetectedObjects>(
     get_node_prefix() + "/detection", 10);
-  
+
   image_subscriber = node->create_subscription<Image>(
     topic_name, 10,
     [this](const Image::SharedPtr message) {
-
       if (!message->data.empty()) {
         // Determine whether the image is compressed or not
         if (message->quality < 0) {
@@ -56,29 +57,13 @@ NinshikiCppNode::NinshikiCppNode(rclcpp::Node::SharedPtr node, std::string topic
           // Decode the compressed image
           received_frame = cv::imdecode(message->data, cv::IMREAD_UNCHANGED);
         }
-
-        // static const std::string kWinName = "Deep learning object detection in OpenCV";
-        // cv::namedWindow(kWinName, cv::WINDOW_NORMAL);
-        // cv::imshow(kWinName, received_frame);
-        // cv::waitKey(1);
       }
-      // Show From Image
-      // std::string image_path = static_cast<std::string>(getenv("HOME")) + "/example_img/goalpost.jpg";
-      // received_frame = cv::imread(image_path, cv::IMREAD_COLOR);
-      
-      
-
-      // Save To Image
-      // cv::imwrite(static_cast<std::string>(getenv("HOME")) + "/example_img/1.jpg", received_frame);
-      // exit(0);
-
     }
   );
 
   node_timer = node->create_wall_timer(
     96ms,
     [this]() {
-
       if (!received_frame.empty()) {
         publish();
       }
