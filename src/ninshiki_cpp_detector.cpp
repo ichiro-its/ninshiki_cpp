@@ -32,6 +32,7 @@ int main(int argc, char ** argv)
   std::string detection_method = "yolo";
   int gpu = 0;
   int myriad = 0;
+  int frequency = 96;
 
   const char * help_message =
     "Usage: ros2 run ninshiki_cpp detector\n"
@@ -44,7 +45,8 @@ int main(int argc, char ** argv)
     "-h, --help           show this help message and exit\n"
     "--detector DETECTOR  chose detector we want to use (yolo / tflite)\n"
     "--GPU {0,1}          if we chose the computation using GPU\n"
-    "--MYRIAD {0,1}       if we chose the computation using Compute Stick";
+    "--MYRIAD {0,1}       if we chose the computation using Compute Stick\n"
+    "--frequency          specify publisher frequency";
 
   // Handle arguments
   try {
@@ -81,6 +83,8 @@ int main(int argc, char ** argv)
               help_message << std::endl;
             return 1;
           }
+        } else if (arg == "--frequency") {
+          frequency = atoi(argv[i++]);
         } else {
           std::cout << "Unknown argument `" << arg << "`!\n\n" << help_message << std::endl;
           return 1;
@@ -94,10 +98,10 @@ int main(int argc, char ** argv)
     std::cout << "Invalid arguments!\n\n" << help_message << std::endl;
     return 1;
   }
-  std::cout << "OpenCV version : " << CV_VERSION << std::endl;
 
   auto node = std::make_shared<rclcpp::Node>("ninshiki_cpp");
-  auto ninshiki_cpp_node = std::make_shared<ninshiki_cpp::node::NinshikiCppNode>(node, topic_name);
+  auto ninshiki_cpp_node = std::make_shared<ninshiki_cpp::node::NinshikiCppNode>(
+    node, topic_name, frequency);
 
   auto detection = std::make_shared<ninshiki_cpp::detector::Yolo>(gpu, myriad);
 

@@ -28,7 +28,8 @@ using namespace std::chrono_literals;
 namespace ninshiki_cpp::node
 {
 
-NinshikiCppNode::NinshikiCppNode(rclcpp::Node::SharedPtr node, std::string topic_name)
+NinshikiCppNode::NinshikiCppNode(
+  rclcpp::Node::SharedPtr node, std::string topic_name, int frequency)
 : node(node), detection(nullptr)
 {
   detected_object_publisher = node->create_publisher<DetectedObjects>(
@@ -62,7 +63,7 @@ NinshikiCppNode::NinshikiCppNode(rclcpp::Node::SharedPtr node, std::string topic
   );
 
   node_timer = node->create_wall_timer(
-    96ms,
+    std::chrono::milliseconds(frequency),
     [this]() {
       if (!received_frame.empty()) {
         publish();

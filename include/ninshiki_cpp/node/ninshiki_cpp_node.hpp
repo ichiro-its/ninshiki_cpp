@@ -39,7 +39,8 @@ namespace ninshiki_cpp::node
 class NinshikiCppNode
 {
 public:
-  NinshikiCppNode(rclcpp::Node::SharedPtr node, std::string topic_name);
+  NinshikiCppNode(
+    rclcpp::Node::SharedPtr node, std::string topic_name, int frequency);
   void publish();
   void set_detection(std::shared_ptr<ninshiki_cpp::detector::Yolo> detection);
 
