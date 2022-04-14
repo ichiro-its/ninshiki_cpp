@@ -22,12 +22,12 @@
 #include <string>
 #include <vector>
 
-#include "ninshiki_cpp/detector/yolo.hpp"
+#include "ninshiki_cpp/detector/detector.hpp"
 
 namespace ninshiki_cpp::detector
 {
 
-Yolo::Yolo(bool gpu, bool myriad)
+Detector::Detector(bool gpu, bool myriad)
 {
   file_name = static_cast<std::string>(getenv("HOME")) + "/yolo_model/obj.names";
   std::string config = static_cast<std::string>(getenv("HOME")) + "/yolo_model/config.cfg";
@@ -57,7 +57,7 @@ Yolo::Yolo(bool gpu, bool myriad)
   }
 }
 
-void Yolo::detection(const cv::Mat & image, float conf_threshold, float nms_threshold)
+void Detector::detection(const cv::Mat & image, float conf_threshold, float nms_threshold)
 {
   std::vector<cv::String> layer_output = net.getUnconnectedOutLayersNames();
 

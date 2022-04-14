@@ -29,7 +29,7 @@
 #include <string>
 
 #include "rclcpp/rclcpp.hpp"
-#include "ninshiki_cpp/detector/yolo.hpp"
+#include "ninshiki_cpp/detector/detector.hpp"
 #include "ninshiki_interfaces/msg/detected_objects.hpp"
 #include "shisen_interfaces/msg/image.hpp"
 
@@ -42,7 +42,7 @@ public:
   NinshikiCppNode(
     rclcpp::Node::SharedPtr node, std::string topic_name, int frequency);
   void publish();
-  void set_detection(std::shared_ptr<ninshiki_cpp::detector::Yolo> detection);
+  void set_detection(std::shared_ptr<ninshiki_cpp::detector::Detector> detection);
 
 private:
   using DetectedObjects = ninshiki_interfaces::msg::DetectedObjects;
@@ -54,7 +54,7 @@ private:
   rclcpp::Subscription<shisen_interfaces::msg::Image>::SharedPtr image_subscriber;
   rclcpp::Publisher<DetectedObjects>::SharedPtr detected_object_publisher;
 
-  std::shared_ptr<ninshiki_cpp::detector::Yolo> detection;
+  std::shared_ptr<ninshiki_cpp::detector::Detector> detection;
 
   cv::Mat received_frame;
 

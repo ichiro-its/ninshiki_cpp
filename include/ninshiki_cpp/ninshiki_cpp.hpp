@@ -21,7 +21,7 @@
 #ifndef NINSHIKI_CPP__NINSHIKI_CPP_HPP_
 #define NINSHIKI_CPP__NINSHIKI_CPP_HPP_
 
-#include "./detector/yolo.hpp"
+#include "./detector/detector.hpp"
 #include "./node/ninshiki_cpp_node.hpp"
 
 #endif  // NINSHIKI_CPP__NINSHIKI_CPP_HPP_

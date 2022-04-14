@@ -103,7 +103,7 @@ int main(int argc, char ** argv)
   auto ninshiki_cpp_node = std::make_shared<ninshiki_cpp::node::NinshikiCppNode>(
     node, topic_name, frequency);
 
-  auto detection = std::make_shared<ninshiki_cpp::detector::Yolo>(gpu, myriad);
+  auto detection = std::make_shared<ninshiki_cpp::detector::Detector>(gpu, myriad);
 
   ninshiki_cpp_node->set_detection(detection);
 

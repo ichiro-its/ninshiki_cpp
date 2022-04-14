@@ -82,7 +82,7 @@ void NinshikiCppNode::publish()
   detection->detection_result.detected_objects.clear();
 }
 
-void NinshikiCppNode::set_detection(std::shared_ptr<ninshiki_cpp::detector::Yolo> detection)
+void NinshikiCppNode::set_detection(std::shared_ptr<ninshiki_cpp::detector::Detector> detection)
 {
   this->detection = detection;
 }
