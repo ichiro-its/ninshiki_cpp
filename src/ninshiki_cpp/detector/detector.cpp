@@ -31,9 +31,9 @@ Detector::Detector(bool gpu, bool myriad)
 {
   file_name = static_cast<std::string>(getenv("HOME")) + "/yolo_model/obj.names";
   std::string config = static_cast<std::string>(getenv("HOME")) + "/yolo_model/config.cfg";
-  std::string weights = static_cast<std::string>(getenv("HOME")) +
+  std::string model = static_cast<std::string>(getenv("HOME")) +
     "/yolo_model/yolo_weights.weights";
-  net = cv::dnn::readNet(weights, config, "");
+  net = cv::dnn::readNet(model, config, "");
 
   this->gpu = gpu;
   this->myriad = myriad;
@@ -71,15 +71,15 @@ void Detector::detection(const cv::Mat & image, float conf_threshold, float nms_
   net.forward(outs, layer_output);
 
   // Get width and height from image
-  width = image.cols;
-  height = image.rows;
+  img_width = static_cast<double>(image.cols);
+  img_height = static_cast<double>(image.rows);
 
   static std::vector<int> out_layers = net.getUnconnectedOutLayers();
   static std::string out_layer_type = net.getLayer(out_layers[0])->type;
 
   std::vector<int> class_ids;
   std::vector<float> confidences;
-  std::vector<cv::Rect> boxes;
+  std::vector<cv::Rect2d> boxes;
 
   if (out_layer_type == "Region") {
     for (size_t i = 0; i < outs.size(); ++i) {
@@ -89,20 +89,20 @@ void Detector::detection(const cv::Mat & image, float conf_threshold, float nms_
       float * data = reinterpret_cast<float *>(outs[i].data);
       for (int j = 0; j < outs[i].rows; ++j, data += outs[i].cols) {
         cv::Mat scores = outs[i].row(j).colRange(5, outs[i].cols);
-        cv::Point classIdPoint;
+        cv::Point class_id_point;
         double confidence;
-        cv::minMaxLoc(scores, 0, &confidence, 0, &classIdPoint);
+        cv::minMaxLoc(scores, 0, &confidence, 0, &class_id_point);
         if (confidence > conf_threshold) {
-          int centerX = static_cast<int>((data[0] * image.cols));
-          int centerY = static_cast<int>((data[1] * image.rows));
-          int width = static_cast<int>((data[2] * image.cols));
-          int height = static_cast<int>((data[3] * image.rows));
-          int left = centerX - width / 2;
-          int top = centerY - height / 2;
+          double centerX = data[0] * img_width;
+          double centerY = data[1] * img_height;
+          double width = data[2] * img_width;
+          double height = data[3] * img_height;
+          double left = centerX - width / 2;
+          double top = centerY - height / 2;
 
-          class_ids.push_back(classIdPoint.x);
+          class_ids.push_back(class_id_point.x);
           confidences.push_back(static_cast<float>(confidence));
-          boxes.push_back(cv::Rect(left, top, width, height));
+          boxes.push_back(cv::Rect2d(left, top, width, height));
         }
       }
     }
@@ -117,31 +117,31 @@ void Detector::detection(const cv::Mat & image, float conf_threshold, float nms_
         class2indices[class_ids[i]].push_back(i);
       }
     }
-    std::vector<cv::Rect> nmsBoxes;
-    std::vector<float> nmsConfidences;
-    std::vector<int> nmsClassIds;
+    std::vector<cv::Rect2d> nms_boxes;
+    std::vector<float> nms_confidences;
+    std::vector<int> nms_class_ids;
     for (std::map<int, std::vector<size_t>>::iterator it = class2indices.begin();
       it != class2indices.end(); ++it)
     {
-      std::vector<cv::Rect> localBoxes;
-      std::vector<float> localConfidences;
-      std::vector<size_t> classIndices = it->second;
-      for (size_t i = 0; i < classIndices.size(); i++) {
-        localBoxes.push_back(boxes[classIndices[i]]);
-        localConfidences.push_back(confidences[classIndices[i]]);
+      std::vector<cv::Rect2d> local_boxes;
+      std::vector<float> local_confidences;
+      std::vector<size_t> class_indices = it->second;
+      for (size_t i = 0; i < class_indices.size(); i++) {
+        local_boxes.push_back(boxes[class_indices[i]]);
+        local_confidences.push_back(confidences[class_indices[i]]);
       }
       std::vector<int> nmsIndices;
-      cv::dnn::NMSBoxes(localBoxes, localConfidences, conf_threshold, nms_threshold, nmsIndices);
+      cv::dnn::NMSBoxes(local_boxes, local_confidences, conf_threshold, nms_threshold, nmsIndices);
       for (size_t i = 0; i < nmsIndices.size(); i++) {
         size_t idx = nmsIndices[i];
-        nmsBoxes.push_back(localBoxes[idx]);
-        nmsConfidences.push_back(localConfidences[idx]);
-        nmsClassIds.push_back(it->first);
+        nms_boxes.push_back(local_boxes[idx]);
+        nms_confidences.push_back(local_confidences[idx]);
+        nms_class_ids.push_back(it->first);
       }
     }
-    boxes = nmsBoxes;
-    class_ids = nmsClassIds;
-    confidences = nmsConfidences;
+    boxes = nms_boxes;
+    class_ids = nms_class_ids;
+    confidences = nms_confidences;
   }
 
   if (boxes.size()) {
@@ -150,15 +150,12 @@ void Detector::detection(const cv::Mat & image, float conf_threshold, float nms_
       if (box.width * box.height != 0) {
         // Add detected object into vector
         ninshiki_interfaces::msg::DetectedObject detection_object;
-
         detection_object.label = classes[class_ids[i]];
         detection_object.score = confidences[i];
-        detection_object.left = static_cast<float>(box.x) / static_cast<float>(image.cols);
-        detection_object.top = static_cast<float>(box.y) / static_cast<float>(image.rows);
-        detection_object.right = static_cast<float>(box.x + box.width) /
-          static_cast<float>(image.cols);
-        detection_object.bottom = static_cast<float>(box.y + box.height) /
-          static_cast<float>(image.rows);
+        detection_object.left = box.x / img_width;
+        detection_object.top = box.y / img_height;
+        detection_object.right = (box.x + box.width) / img_width;
+        detection_object.bottom = (box.y + box.height) / img_height;
 
         detection_result.detected_objects.push_back(detection_object);
       }

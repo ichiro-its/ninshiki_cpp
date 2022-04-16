@@ -53,8 +53,8 @@ private:
   cv::dnn::Net net;
   std::vector<cv::Mat> outs;
 
-  int width;
-  int height;
+  double img_width;
+  double img_height;
 };
 
 }  // namespace ninshiki_cpp::detector
