@@ -24,7 +24,9 @@
 
 #include "ninshiki_cpp/detector/detector.hpp"
 
-namespace ninshiki_cpp::detector
+namespace ninshiki_cpp
+{
+namespace detector
 {
 
 Detector::Detector(bool gpu, bool myriad)
@@ -33,6 +35,7 @@ Detector::Detector(bool gpu, bool myriad)
   std::string config = static_cast<std::string>(getenv("HOME")) + "/yolo_model/config.cfg";
   std::string model = static_cast<std::string>(getenv("HOME")) +
     "/yolo_model/yolo_weights.weights";
+  model_suffix = utils::split_string(model, ".");
   net = cv::dnn::readNet(model, config, "");
 
   this->gpu = gpu;
@@ -162,4 +165,6 @@ void Detector::detection(const cv::Mat & image, float conf_threshold, float nms_
     }
   }
 }
-}  // namespace ninshiki_cpp::detector
+
+}  // mamespace detector
+}  // namespace ninshiki_cpp
