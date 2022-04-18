@@ -22,7 +22,7 @@
 #define NINSHIKI_CPP__UTILS__UTILS_HPP_
 
 #include <iostream>
-
+#include <string>
 namespace ninshiki_cpp::utils
 {
 

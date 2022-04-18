@@ -42,7 +42,10 @@ public:
   ninshiki_interfaces::msg::DetectedObjects detection_result;
 
   explicit Detector(bool gpu = false, bool myriad = false);
+
   void detection(const cv::Mat & image, float conf_threshold, float nms_threshold);
+  void detect_darknet(const cv::Mat & image, float conf_threshold, float nms_threshold);
+  void detect_tensorflow(const cv::Mat & image, float conf_threshold, float nms_threshold);
 
 private:
   std::string file_name;
