@@ -22,12 +22,12 @@
 #include <string>
 #include <vector>
 
-#include "ninshiki_cpp/detector/detector.hpp"
+#include "ninshiki_cpp/detector/dnn_detector.hpp"
 
 namespace ninshiki_cpp::detector
 {
 
-Detector::Detector(bool gpu, bool myriad)
+DnnDetector::DnnDetector(bool gpu, bool myriad)
 {
   file_name = static_cast<std::string>(getenv("HOME")) + "/yolo_model/obj.names";
   std::string config = static_cast<std::string>(getenv("HOME")) + "/yolo_model/config.cfg";
@@ -57,7 +57,7 @@ Detector::Detector(bool gpu, bool myriad)
   }
 }
 
-void Detector::detection(const cv::Mat & image, float conf_threshold, float nms_threshold)
+void DnnDetector::detection(const cv::Mat & image, float conf_threshold, float nms_threshold)
 {
   std::vector<cv::String> layer_output = net.getUnconnectedOutLayersNames();
 

@@ -20,7 +20,7 @@ find_package(rclcpp REQUIRED)
 find_package(shisen_interfaces REQUIRED)
 
 add_library(${PROJECT_NAME} SHARED
-  "src/${PROJECT_NAME}/detector/detector.cpp"
+  "src/${PROJECT_NAME}/detector/dnn_detector.cpp"
   "src/${PROJECT_NAME}/node/ninshiki_cpp_node.cpp")
 
 target_include_directories(${PROJECT_NAME} PUBLIC
