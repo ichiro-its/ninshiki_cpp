@@ -51,7 +51,6 @@ private:
   bool myriad;
 
   cv::dnn::Net net;
-  std::vector<cv::Mat> outs;
 
   double img_width;
   double img_height;

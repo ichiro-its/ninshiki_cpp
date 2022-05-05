@@ -30,8 +30,8 @@
 #include <map>
 
 #include "keisan/geometry/point_2.hpp"
-// #include "ninshiki_interfaces/msg/detected_object.hpp"
-// #include "ninshiki_interfaces/msg/detected_objects.hpp"
+#include "ninshiki_interfaces/msg/point.hpp"
+#include "ninshiki_interfaces/msg/contour.hpp"
 
 namespace ninshiki_cpp::detector
 {
@@ -39,6 +39,9 @@ namespace ninshiki_cpp::detector
 class ColorDetector
 {
 public:
+	static const int YUV_PIXEL_SIZE = 4;
+	static const int RGB_PIXEL_SIZE = 3;
+	static const int HSV_PIXEL_SIZE = 4;
 
   enum
   {
@@ -84,10 +87,20 @@ public:
   void set_max_saturation(int value) { max_saturation = keisan::clamp(value, 0, 100); }
   void set_min_value(int value) { min_value = keisan::clamp(value, 0, 100); }
   void set_max_value(int value) { max_value = keisan::clamp(value, 0, 100); }
-  // ninshiki_interfaces::msg::DetectedObjects detection_result;
 
-  // explicit ColorDetector(bool gpu = false, bool myriad = false);
-  // void detection(const cv::Mat & image, float conf_threshold, float nms_threshold);
+	void filter_mat(uint8_t r, uint8_t g, uint8_t b);
+
+  // contours
+  void find();
+  void filter_smaller_than(float value);
+  void filter_larger_than(float value);
+  void filter_largest();
+  void join_all();
+  void convex_hull();
+
+  void detection(cv::Mat image);
+
+  ninshiki_interfaces::msg::Contour detection_result;
 
 private:
 
@@ -102,17 +115,14 @@ private:
   int max_saturation;
   int min_value;
   int max_value;
-  // std::string file_name;
-  // std::vector<std::string> classes;
 
-  // bool gpu;
-  // bool myriad;
+  int img_width;
+  int img_height;
+  int number_of_pixels;
 
-  // cv::dnn::Net net;
-  // std::vector<cv::Mat> outs;
+  cv::Mat field_binary_mat;
+  std::vector<std::vector<cv::Point>> contours;
 
-  // double img_width;
-  // double img_height;
 };
 
 }  // namespace ninshiki_cpp::detector

@@ -21,6 +21,7 @@
 #ifndef NINSHIKI_CPP__NINSHIKI_CPP_HPP_
 #define NINSHIKI_CPP__NINSHIKI_CPP_HPP_
 
+#include "./detector/color_detector.hpp"
 #include "./detector/dnn_detector.hpp"
 #include "./node/ninshiki_cpp_node.hpp"
 

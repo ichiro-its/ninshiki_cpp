@@ -53,6 +53,8 @@ ColorDetector::ColorDetector(int classifier_type)
     case CLASSIFIER_TYPE_LINE: name = "line"; break;
   }
 
+  number_of_pixels = img_width * img_height;
+
   sync_configuration();
 }
 
@@ -206,6 +208,142 @@ cv::Mat ColorDetector::classify_gray(cv::Mat input)
   }
 
   return output;
+}
+
+void ColorDetector::filter_mat(uint8_t r, uint8_t g, uint8_t b)
+{
+  int j = -1;
+  for (int i = 0; i < number_of_pixels; i++)
+  {        
+    if (i % img_width == 0)
+      j++;
+  
+    if (field_binary_mat.at<uint8_t>(cv::Point(i % img_width, j)) > 0)
+    {
+      field_binary_mat.data[i * RGB_PIXEL_SIZE + 0] = r;
+      field_binary_mat.data[i * RGB_PIXEL_SIZE + 1] = g;
+      field_binary_mat.data[i * RGB_PIXEL_SIZE + 2] = b;
+    }
+  }
+}
+
+void ColorDetector::find()
+{
+  std::vector<cv::Vec4i> hierarchy;
+
+  contours.clear();
+  cv::findContours(field_binary_mat, contours, hierarchy, cv::RETR_LIST, cv::CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
+}
+
+void ColorDetector::filter_smaller_than(float value)
+{
+  if (contours.size() <= 0)
+    return;
+
+  std::vector<std::vector<cv::Point>> large_contours;
+  for (std::vector<cv::Point> &contour : contours)
+  {
+    if (cv::contourArea(contour) < (double)value)
+    {
+      large_contours.push_back(contour);
+    }
+  }
+
+  contours = large_contours;
+}
+
+void ColorDetector::filter_larger_than(float value)
+{
+  if (contours.size() <= 0)
+    return;
+
+  std::vector<std::vector<cv::Point>> large_contours;
+  for (std::vector<cv::Point> &contour : contours)
+  {
+    if (cv::contourArea(contour) > (double)value)
+    {
+      large_contours.push_back(contour);
+    }
+  }
+
+  contours = large_contours;
+}
+
+void ColorDetector::filter_largest()
+{
+  if (contours.size() <= 0)
+    return;
+
+  std::vector<cv::Point> largest_contour;
+  double largest_contour_area = 0.0;
+  for (std::vector<cv::Point> &contour : contours)
+  {
+    double contour_area = cv::contourArea(contour);
+    if (contour_area > largest_contour_area)
+    {
+      largest_contour_area = contour_area;
+      largest_contour = contour;
+    }
+  }
+
+  if (largest_contour_area > 0.0)
+  {
+    contours.clear();
+    contours.push_back(largest_contour);
+  }
+}
+
+void ColorDetector::join_all()
+{
+  if (contours.size() <= 0)
+    return;
+
+  std::vector<cv::Point> join_contour;
+  for (std::vector<cv::Point> &contour : contours)
+  {
+    for (unsigned int i = 0; i < contour.size(); i++)
+    {
+      join_contour.push_back(contour[i]);
+    }
+  }
+
+  contours.clear();
+  contours.push_back(join_contour);
+}
+
+void ColorDetector::convex_hull()
+{
+  if (contours.size() <= 0)
+    return;
+
+  std::vector<std::vector<cv::Point>> convex_hulls;
+  for (std::vector<cv::Point> &contour : contours)
+  {
+    std::vector<int> hull;
+    cv::convexHull(cv::Mat(contour), hull, true);
+
+    std::vector<cv::Point> convex_hull;
+    convex_hull.push_back(contour[hull[hull.size() - 1]]);
+    for (unsigned int i = 0; i < hull.size(); i++)
+    {
+      convex_hull.push_back(contour[hull[i]]);
+    }
+
+    convex_hulls.push_back(convex_hull);
+  }
+
+  contours = convex_hulls;
+}
+
+void ColorDetector::detection(cv::Mat image)
+{
+  field_binary_mat = image;
+
+  filter_mat(0, 128, 255);
+  find();
+  filter_larger_than(200.0);
+  join_all();
+  convex_hull();
 }
 
 }  // namespace detector
