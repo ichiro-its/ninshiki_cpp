@@ -10,6 +10,7 @@
   <depend>keisan</depend>
   <depend>libopencv-dev</depend>
   <depend>ninshiki_interfaces</depend>
+  <depend>nlohmann-json-dev</depend>
   <depend>rclcpp</depend>
   <depend>shisen_interfaces</depend>
   <test_depend>ament_lint_auto</test_depend>

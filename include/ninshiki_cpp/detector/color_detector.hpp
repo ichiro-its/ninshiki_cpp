@@ -65,8 +65,8 @@ public:
 
   std::string get_config_name();
   bool load_configuration();
-  // bool save_configuration();
-  // bool sync_configuration();
+  bool save_configuration();
+  bool sync_configuration();
 
   cv::Mat classify(cv::Mat input);
   cv::Mat classify_gray(cv::Mat input);

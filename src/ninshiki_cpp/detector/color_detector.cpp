@@ -53,7 +53,7 @@ ColorDetector::ColorDetector(int classifier_type)
     case CLASSIFIER_TYPE_LINE: name = "line"; break;
   }
 
-  // sync_configuration();
+  sync_configuration();
 }
 
 ColorDetector::~ColorDetector()
@@ -84,19 +84,19 @@ bool ColorDetector::load_configuration()
 {
 	std::string ss = "../../data/" + utils::get_host_name() + "/" + get_config_name();
 
-  // if (utils::is_file_exist(ss) == false)
-  // {
-  //   if (save_configuration() == false)
-  //     return false;
-  // }
+  if (utils::is_file_exist(ss) == false)
+  {
+    if (save_configuration() == false)
+      return false;
+  }
 
   std::ifstream input(ss, std::ifstream::in);
   if (input.is_open() == false)
     return false;
 
-  nlohmann::json walking_data = nlohmann::json::parse(input);
+  nlohmann::json config = nlohmann::json::parse(input);
 
-  for (auto &[key, val] : walking_data.items()) {
+  for (auto &[key, val] : config.items()) {
     if (key == "Color") {
       try {
         val.at("min_hue").get_to(min_hue);
@@ -113,46 +113,47 @@ bool ColorDetector::load_configuration()
   return true;
 }
 
-// bool ColorDetector::save_configuration()
-// {
-//   std::string ss = "../../data/" + utils::get_host_name() + "/" + get_config_name();
+bool ColorDetector::save_configuration()
+{
+  std::string ss = "../../data/" + utils::get_host_name() + "/" + get_config_name();
   
-//   if (linux::isFileExist(ss) == false)
-//   {
-//     if (linux::createFile(ss) == false)
-//       return false;
-//   }
+  if (utils::is_file_exist(ss) == false)
+  {
+    if (utils::create_file(ss) == false)
+      return false;
+  }
 
-//   YAML::Node config; 
+  nlohmann::json config = {
+    {"Color", {
+      {"min_hue", min_hue},
+      {"max_hue", max_hue},
+      {"min_saturation", min_saturation},
+      {"max_saturation", max_saturation},
+      {"min_value", min_value},
+      {"max_value", max_value}
+    }}
+  };
 
-//   YAML::Node color_section = config["Color"];
-//   color_section["hue"] = hue_;
-//   color_section["hue_tolerance"] = hue_tolerance_;
-//   color_section["min_saturation"] = min_saturation_;
-//   color_section["max_saturation"] = max_saturation_;
-//   color_section["min_value"] = min_value_;
-//   color_section["max_value"] = max_value_;
+  std::ofstream output(ss, std::ofstream::out);
+  if (output.is_open() == false)
+    return false;
 
-//   std::ofstream output(ss, std::ofstream::out);
-//   if (output.is_open() == false)
-//     return false;
+  output << config.dump(2);
+  output.close();
 
-// 	output << config;
-//   output.close();
+  return true;
+}
 
-//   return true;
-// }
+bool ColorDetector::sync_configuration()
+{
+  if (!load_configuration())
+    return false;
 
-// bool ColorDetector::sync_configuration()
-// {
-//   if (!load_configuration())
-//     return false;
+  if (!save_configuration())
+    return false;
 
-//   if (!save_configuration())
-//     return false;
-
-//   return true;
-// }
+  return true;
+}
 
 std::string ColorDetector::get_config_name()
 {
