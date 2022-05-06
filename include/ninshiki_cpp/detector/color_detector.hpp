@@ -21,6 +21,7 @@
 #ifndef NINSHIKI_CPP__DETECTOR__COLOR_DETECTOR_HPP_
 #define NINSHIKI_CPP__DETECTOR__COLOR_DETECTOR_HPP_
 
+#include <cmath>
 #include <opencv2/opencv.hpp>
 
 #include <sstream>
@@ -32,6 +33,7 @@
 #include "keisan/geometry/point_2.hpp"
 #include "ninshiki_interfaces/msg/point.hpp"
 #include "ninshiki_interfaces/msg/contour.hpp"
+#include "ninshiki_interfaces/msg/contours.hpp"
 
 namespace ninshiki_cpp::detector
 {
@@ -88,19 +90,13 @@ public:
   void set_min_value(int value) { min_value = keisan::clamp(value, 0, 100); }
   void set_max_value(int value) { max_value = keisan::clamp(value, 0, 100); }
 
-	void filter_mat(uint8_t r, uint8_t g, uint8_t b);
-
-  // contours
-  void find();
-  void filter_smaller_than(float value);
-  void filter_larger_than(float value);
-  void filter_largest();
+  // Function for Contours
+  void find(cv::Mat binary_mat);
   void join_all();
-  void convex_hull();
 
   void detection(cv::Mat image);
 
-  ninshiki_interfaces::msg::Contour detection_result;
+  ninshiki_interfaces::msg::Contours detection_result;
 
 private:
 
@@ -120,7 +116,6 @@ private:
   int img_height;
   int number_of_pixels;
 
-  cv::Mat field_binary_mat;
   std::vector<std::vector<cv::Point>> contours;
 
 };
