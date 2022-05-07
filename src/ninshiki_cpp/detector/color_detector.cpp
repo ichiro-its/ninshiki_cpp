@@ -263,6 +263,7 @@ void ColorDetector::detection(cv::Mat image)
         point_msg.x = point.x;
         point_msg.y = point.y;
 
+        contour_msg.name = name;
         contour_msg.contour.push_back(point_msg);
       }
       detection_result.contours.push_back(contour_msg);
