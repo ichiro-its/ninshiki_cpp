@@ -24,6 +24,7 @@ add_library(${PROJECT_NAME} SHARED
   "src/${PROJECT_NAME}/detector/color_detector.cpp"
   "src/${PROJECT_NAME}/detector/dnn_detector.cpp"
   "src/${PROJECT_NAME}/node/ninshiki_cpp_node.cpp"
+  "src/${PROJECT_NAME}/utils/color.cpp"
   "src/${PROJECT_NAME}/utils/utils.cpp")
 
 target_include_directories(${PROJECT_NAME} PUBLIC

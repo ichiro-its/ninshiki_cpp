@@ -33,10 +33,7 @@ NinshikiCppNode::NinshikiCppNode(
 : node(node), dnn_detection(nullptr), color_detection(nullptr)
 {
   detected_object_publisher = node->create_publisher<DetectedObjects>(
-    get_node_prefix() + "/detection", 10);
-  
-  field_segmentation_publisher = node->create_publisher<Contours>(
-    get_node_prefix() + "/field_segmentation", 10);
+    get_node_prefix() + "/dnn_detection", 10);
 
   image_subscriber = node->create_subscription<Image>(
     topic_name, 10,
@@ -94,6 +91,11 @@ void NinshikiCppNode::set_detection(std::shared_ptr<DnnDetector> dnn_detection, 
 {
   this->dnn_detection = dnn_detection;
   this->color_detection = color_detection;
+
+  if (this->color_detection != nullptr) {
+    field_segmentation_publisher = node->create_publisher<Contours>(
+      get_node_prefix() + "/" + this->color_detection->name , 10);
+  }
 }
 
 std::string NinshikiCppNode::get_node_prefix()

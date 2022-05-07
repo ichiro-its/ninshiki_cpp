@@ -34,6 +34,8 @@
 #include "ninshiki_interfaces/msg/point.hpp"
 #include "ninshiki_interfaces/msg/contour.hpp"
 #include "ninshiki_interfaces/msg/contours.hpp"
+#include "ninshiki_cpp/utils/color.hpp"
+#include "ninshiki_cpp/utils/utils.hpp"
 
 namespace ninshiki_cpp::detector
 {
@@ -41,10 +43,6 @@ namespace ninshiki_cpp::detector
 class ColorDetector
 {
 public:
-	static const int YUV_PIXEL_SIZE = 4;
-	static const int RGB_PIXEL_SIZE = 3;
-	static const int HSV_PIXEL_SIZE = 4;
-
   enum
   {
     CLASSIFIER_TYPE_RED         = 0,
@@ -68,8 +66,8 @@ public:
   static ColorDetector *get_instance(int classifier_type);
   static ColorDetector *get_instance(std::string name);
 
-  std::string get_config_name();
-  bool load_configuration();
+  bool load_configuration(const std::string & path);
+  bool load_configuration() { load_configuration(config_path); }
   bool save_configuration();
   bool sync_configuration();
 
@@ -97,13 +95,13 @@ public:
   void detection(cv::Mat image);
 
   ninshiki_interfaces::msg::Contours detection_result;
+  std::string name;
 
 private:
 
   static std::map<int, ColorDetector *> unique_instances;
 
   int classifier_type;
-  std::string name;
 
   int min_hue;
   int max_hue;
@@ -112,11 +110,10 @@ private:
   int min_value;
   int max_value;
 
-  int img_width;
-  int img_height;
-  int number_of_pixels;
+  std::string config_path;
 
   std::vector<std::vector<cv::Point>> contours;
+  std::vector<utils::Color> colors;
 
 };
 

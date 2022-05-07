@@ -22,7 +22,6 @@
 #include <unistd.h>
 
 #include "ninshiki_cpp/detector/color_detector.hpp"
-#include "ninshiki_cpp/utils/utils.hpp"
 
 namespace ninshiki_cpp
 {
@@ -32,6 +31,7 @@ namespace detector
 std::map<int, ColorDetector *> ColorDetector::unique_instances;
 
 ColorDetector::ColorDetector(int classifier_type)
+: config_path("")
 {
   this->classifier_type = classifier_type;
   unique_instances.insert(std::pair<int, ColorDetector *>(this->classifier_type, this));
@@ -53,9 +53,8 @@ ColorDetector::ColorDetector(int classifier_type)
     case CLASSIFIER_TYPE_LINE: name = "line"; break;
   }
 
-  number_of_pixels = img_width * img_height;
-
-  sync_configuration();
+  // sync_configuration();
+  colors.clear();
 }
 
 ColorDetector::~ColorDetector()
@@ -82,9 +81,10 @@ ColorDetector *ColorDetector::get_instance(std::string name)
   return nullptr;
 }
 
-bool ColorDetector::load_configuration()
+bool ColorDetector::load_configuration(const std::string & path)
 {
-	std::string ss = "../../data/" + utils::get_host_name() + "/" + get_config_name();
+  config_path = path;
+	std::string ss = config_path + "/color_classifier.json";
 
   if (utils::is_file_exist(ss) == false)
   {
@@ -97,27 +97,40 @@ bool ColorDetector::load_configuration()
     return false;
 
   nlohmann::json config = nlohmann::json::parse(input);
+  for (auto &item : config.items()) {
+    // Get all config
+    try {
+      utils::Color color(
+        item.value().at("name"),
+        item.value().at("min_hsv")[0],
+        item.value().at("min_hsv")[1],
+        item.value().at("min_hsv")[2],
+        item.value().at("max_hsv")[0],
+        item.value().at("max_hsv")[1],
+        item.value().at("max_hsv")[2]
+      );
 
-  for (auto &[key, val] : config.items()) {
-    if (key == "Color") {
-      try {
-        val.at("min_hue").get_to(min_hue);
-        val.at("max_hue").get_to(max_hue);
-        val.at("min_saturation").get_to(min_saturation);
-        val.at("max_saturation").get_to(max_saturation);
-        val.at("min_value").get_to(min_value);
-        val.at("max_value").get_to(max_value);
-      } catch (nlohmann::json::parse_error & ex) {
-        std::cerr << "parse error at byte " << ex.byte << std::endl;
+      // Assign hsv value based on name
+      if (item.value().at("name") == name) {
+        min_hue = color.min_hue;
+        max_hue = color.max_hue;
+        min_saturation = color.min_saturation;
+        max_saturation = color.max_saturation;
+        min_value = color.min_value;
+        max_value = color.max_value;
       }
+      colors.push_back(color);
+    } catch (nlohmann::json::parse_error & ex) {
+      std::cerr << "parse error at byte " << ex.byte << std::endl;
     }
   }
+
   return true;
 }
 
 bool ColorDetector::save_configuration()
 {
-  std::string ss = "../../data/" + utils::get_host_name() + "/" + get_config_name();
+  std::string ss = config_path + "/color_classifier.json";
   
   if (utils::is_file_exist(ss) == false)
   {
@@ -125,16 +138,20 @@ bool ColorDetector::save_configuration()
       return false;
   }
 
-  nlohmann::json config = {
-    {"Color", {
-      {"min_hue", min_hue},
-      {"max_hue", max_hue},
-      {"min_saturation", min_saturation},
-      {"max_saturation", max_saturation},
-      {"min_value", min_value},
-      {"max_value", max_value}
-    }}
-  };
+  nlohmann::json config = nlohmann::json::array();
+
+  for (auto &item : colors) {
+    int min_hsv[] = {item.min_hue, item.min_saturation, item.min_value};
+    int max_hsv[] = {item.max_hue, item.max_saturation, item.max_value};
+
+    nlohmann::json color = {
+      {"name", item.name},
+      {"min_hsv", min_hsv},
+      {"max_hsv", max_hsv},
+    };
+
+    config.push_back(color);
+  }
 
   std::ofstream output(ss, std::ofstream::out);
   if (output.is_open() == false)
@@ -155,14 +172,6 @@ bool ColorDetector::sync_configuration()
     return false;
 
   return true;
-}
-
-std::string ColorDetector::get_config_name()
-{
-  std::stringstream config_name;
-  config_name << "color_classifier/" << name << ".json";
-
-  return config_name.str();
 }
 
 cv::Mat ColorDetector::classify(cv::Mat input)
