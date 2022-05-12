@@ -85,6 +85,7 @@ void NinshikiCppNode::publish()
   // Clear detection_result
   // received_frame.release();
   dnn_detection->detection_result.detected_objects.clear();
+  color_detection->detection_result.contours.clear();
 }
 
 void NinshikiCppNode::set_detection(std::shared_ptr<DnnDetector> dnn_detection, std::shared_ptr<ColorDetector> color_detection)

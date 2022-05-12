@@ -90,7 +90,6 @@ public:
 
   // Function for Contours
   void find(cv::Mat binary_mat);
-  void join_all();
 
   void detection(cv::Mat image);
 

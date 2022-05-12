@@ -103,10 +103,10 @@ bool ColorDetector::load_configuration(const std::string & path)
       utils::Color color(
         item.value().at("name"),
         item.value().at("min_hsv")[0],
-        item.value().at("min_hsv")[1],
-        item.value().at("min_hsv")[2],
         item.value().at("max_hsv")[0],
+        item.value().at("min_hsv")[1],
         item.value().at("max_hsv")[1],
+        item.value().at("min_hsv")[2],
         item.value().at("max_hsv")[2]
       );
 
@@ -176,8 +176,8 @@ bool ColorDetector::sync_configuration()
 
 cv::Mat ColorDetector::classify(cv::Mat input)
 {
-  int h_min = (min_hue * 255) / 360;
-  int h_max = (max_hue * 255) / 360;
+  int h_min = (min_hue * 180) / 360;
+  int h_max = (max_hue * 180) / 360;
 
   int s_min = (min_saturation * 255) / 100;
   int s_max = (max_saturation * 255) / 100;
@@ -227,29 +227,10 @@ void ColorDetector::find(cv::Mat binary_mat)
   cv::findContours(binary_mat, contours, hierarchy, cv::RETR_LIST, cv::CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
 }
 
-void ColorDetector::join_all()
-{
-  if (contours.size() <= 0)
-    return;
-
-  std::vector<cv::Point> join_contour;
-  for (std::vector<cv::Point> &contour : contours)
-  {
-    for (unsigned int i = 0; i < contour.size(); i++)
-    {
-      join_contour.push_back(contour[i]);
-    }
-  }
-
-  contours.clear();
-  contours.push_back(join_contour);
-}
-
 void ColorDetector::detection(cv::Mat image)
 {
   cv::Mat field_binary_mat = classify(image);
   find(field_binary_mat);
-  // join_all();
 
   // Copy contours to ros2 msg
   if (contours.size() >= 0) {

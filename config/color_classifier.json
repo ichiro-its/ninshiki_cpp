@@ -5,7 +5,7 @@
   {"name": "cyan", "min_hsv": [35,60,0], "max_hsv": [65,100,100]},
   {"name": "magenta", "min_hsv": [35,60,0], "max_hsv": [65,100,100]},
   {"name": "ball", "min_hsv": [156,44,70], "max_hsv": [172,92,99]},
-  {"name": "field", "min_hsv": [42,31,33], "max_hsv": [90,90,100]},
+  {"name": "field", "min_hsv": [90,27,30], "max_hsv": [180,100,100]},
   {"name": "goal", "min_hsv": [129,45,52], "max_hsv": [133,100,91]},
   {"name": "marathon", "min_hsv": [0,0,0], "max_hsv": [100,100,100]},
   {"name": "black", "min_hsv": [21,40,3], "max_hsv": [379,50,42]},
