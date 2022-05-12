@@ -21,6 +21,11 @@
 #include <nlohmann/json.hpp>
 #include <unistd.h>
 
+#include <string>
+#include <map>
+#include <utility>
+#include <vector>
+
 #include "ninshiki_cpp/detector/color_detector.hpp"
 
 namespace ninshiki_cpp
@@ -36,8 +41,7 @@ ColorDetector::ColorDetector(int classifier_type)
   this->classifier_type = classifier_type;
   unique_instances.insert(std::pair<int, ColorDetector *>(this->classifier_type, this));
 
-  switch (this->classifier_type)
-  {
+  switch (this->classifier_type) {
     case CLASSIFIER_TYPE_RED: name = "red"; break;
     case CLASSIFIER_TYPE_BLUE: name = "blue"; break;
     case CLASSIFIER_TYPE_YELLOW: name = "yellow"; break;
@@ -62,20 +66,20 @@ ColorDetector::~ColorDetector()
   unique_instances.erase(classifier_type);
 }
 
-ColorDetector *ColorDetector::get_instance(int classifier_type)
+ColorDetector * ColorDetector::get_instance(int classifier_type)
 {
-  if (unique_instances.find(classifier_type) != unique_instances.end())
+  if (unique_instances.find(classifier_type) != unique_instances.end()) {
     return unique_instances[classifier_type];
-
-  return (new ColorDetector(classifier_type));
+  }
+  return new ColorDetector(classifier_type);
 }
 
-ColorDetector *ColorDetector::get_instance(std::string name)
+ColorDetector * ColorDetector::get_instance(std::string name)
 {
-  for (const std::pair<int, ColorDetector*> &keyval: unique_instances)
-  {
-    if (keyval.second->name == name)
+  for (const std::pair<int, ColorDetector *> & keyval : unique_instances) {
+    if (keyval.second->name == name) {
       return keyval.second;
+    }
   }
 
   return nullptr;
@@ -84,20 +88,21 @@ ColorDetector *ColorDetector::get_instance(std::string name)
 bool ColorDetector::load_configuration(const std::string & path)
 {
   config_path = path;
-	std::string ss = config_path + "/color_classifier.json";
+  std::string ss = config_path + "/color_classifier.json";
 
-  if (utils::is_file_exist(ss) == false)
-  {
-    if (save_configuration() == false)
+  if (utils::is_file_exist(ss) == false) {
+    if (save_configuration() == false) {
       return false;
+    }
   }
 
   std::ifstream input(ss, std::ifstream::in);
-  if (input.is_open() == false)
+  if (input.is_open() == false) {
     return false;
+  }
 
   nlohmann::json config = nlohmann::json::parse(input);
-  for (auto &item : config.items()) {
+  for (auto & item : config.items()) {
     // Get all config
     try {
       utils::Color color(
@@ -131,16 +136,16 @@ bool ColorDetector::load_configuration(const std::string & path)
 bool ColorDetector::save_configuration()
 {
   std::string ss = config_path + "/color_classifier.json";
-  
-  if (utils::is_file_exist(ss) == false)
-  {
-    if (utils::create_file(ss) == false)
+
+  if (utils::is_file_exist(ss) == false) {
+    if (utils::create_file(ss) == false) {
       return false;
+    }
   }
 
   nlohmann::json config = nlohmann::json::array();
 
-  for (auto &item : colors) {
+  for (auto & item : colors) {
     int min_hsv[] = {item.min_hue, item.min_saturation, item.min_value};
     int max_hsv[] = {item.max_hue, item.max_saturation, item.max_value};
 
@@ -154,8 +159,9 @@ bool ColorDetector::save_configuration()
   }
 
   std::ofstream output(ss, std::ofstream::out);
-  if (output.is_open() == false)
+  if (output.is_open() == false) {
     return false;
+  }
 
   output << config.dump(2);
   output.close();
@@ -165,11 +171,13 @@ bool ColorDetector::save_configuration()
 
 bool ColorDetector::sync_configuration()
 {
-  if (!load_configuration())
+  if (!load_configuration()) {
     return false;
+  }
 
-  if (!save_configuration())
+  if (!save_configuration()) {
     return false;
+  }
 
   return true;
 }
@@ -200,20 +208,21 @@ cv::Mat ColorDetector::classify(cv::Mat input)
 
 cv::Mat ColorDetector::classify_gray(cv::Mat input)
 {
-  int v_min = (min_value* 255) / 100;
-  int v_max = (max_value* 255) / 100;
+  int v_min = (min_value * 255) / 100;
+  int v_max = (max_value * 255) / 100;
 
   cv::Mat output = input.clone();
 
   int pixel_num = input.cols * input.rows;
   int j = -1;
-  for (int i = 0; i < pixel_num; i++)
-  {
-    if (i % input.cols == 0)
+  for (int i = 0; i < pixel_num; i++) {
+    if (i % input.cols == 0) {
       j++;
+    }
 
     cv::Point pixel(i % input.cols, j);
-    output.at<uint8_t>(pixel) = (input.at<uint8_t>(pixel) > v_min && input.at<uint8_t>(pixel) < v_max);
+    output.at<uint8_t>(pixel) = (input.at<uint8_t>(pixel) > v_min &&
+      input.at<uint8_t>(pixel) < v_max);
   }
 
   return output;
@@ -224,25 +233,29 @@ void ColorDetector::find(cv::Mat binary_mat)
   std::vector<cv::Vec4i> hierarchy;
 
   contours.clear();
-  cv::findContours(binary_mat, contours, hierarchy, cv::RETR_LIST, cv::CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
+  cv::findContours(
+    binary_mat, contours, hierarchy, cv::RETR_LIST,
+    cv::CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
 }
 
 void ColorDetector::detection(cv::Mat image)
 {
+  // Get width and height from image
+  float img_width = static_cast<float>(image.cols);
+  float img_height = static_cast<float>(image.rows);
+
   cv::Mat field_binary_mat = classify(image);
   find(field_binary_mat);
 
   // Copy contours to ros2 msg
   if (contours.size() >= 0) {
-    for (std::vector<cv::Point> &contour : contours)
-    {
+    for (std::vector<cv::Point> & contour : contours) {
       ninshiki_interfaces::msg::Contour contour_msg;
 
-      for (cv::Point &point : contour)
-      {
+      for (cv::Point & point : contour) {
         ninshiki_interfaces::msg::Point point_msg;
-        point_msg.x = point.x;
-        point_msg.y = point.y;
+        point_msg.x = static_cast<float>(point.x) / img_width;
+        point_msg.y = static_cast<float>(point.y) / img_height;
 
         contour_msg.name = name;
         contour_msg.contour.push_back(point_msg);
@@ -251,7 +264,6 @@ void ColorDetector::detection(cv::Mat image)
     }
   }
 }
-
 }  // namespace detector
 
 }  // namespace ninshiki_cpp

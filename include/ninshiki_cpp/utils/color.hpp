@@ -40,7 +40,6 @@ public:
   int max_saturation;
   int min_value;
   int max_value;
-
 };
 
 }  // namespace ninshiki_cpp::utils

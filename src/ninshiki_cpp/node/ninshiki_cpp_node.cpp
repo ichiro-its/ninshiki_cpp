@@ -58,7 +58,7 @@ NinshikiCppNode::NinshikiCppNode(
           // Decode the compressed image
           received_frame = cv::imdecode(message->data, cv::IMREAD_UNCHANGED);
         }
-        
+
         cv::cvtColor(received_frame, hsv_frame, cv::COLOR_BGR2HSV);
       }
     }
@@ -88,14 +88,16 @@ void NinshikiCppNode::publish()
   color_detection->detection_result.contours.clear();
 }
 
-void NinshikiCppNode::set_detection(std::shared_ptr<DnnDetector> dnn_detection, std::shared_ptr<ColorDetector> color_detection)
+void NinshikiCppNode::set_detection(
+  std::shared_ptr<DnnDetector> dnn_detection,
+  std::shared_ptr<ColorDetector> color_detection)
 {
   this->dnn_detection = dnn_detection;
   this->color_detection = color_detection;
 
   if (this->color_detection != nullptr) {
     field_segmentation_publisher = node->create_publisher<Contours>(
-      get_node_prefix() + "/" + this->color_detection->name , 10);
+      get_node_prefix() + "/" + this->color_detection->name, 10);
   }
 }
 

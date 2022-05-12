@@ -25,15 +25,15 @@
 
 namespace ninshiki_cpp::utils
 {
-  std::string get_host_name();
-  std::string get_env(std::string env);
-  bool is_root();
+std::string get_host_name();
+std::string get_env(std::string env);
+bool is_root();
 
-  bool is_directory_exist(std::string path);
-  bool create_directory(std::string path);
+bool is_directory_exist(std::string path);
+bool create_directory(std::string path);
 
-  bool is_file_exist(std::string path);
-  bool create_file(std::string path);
+bool is_file_exist(std::string path);
+bool create_file(std::string path);
 
 }  // namespace ninshiki_cpp::utils
 
