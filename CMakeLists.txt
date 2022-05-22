@@ -21,7 +21,8 @@ find_package(shisen_interfaces REQUIRED)
 
 add_library(${PROJECT_NAME} SHARED
   "src/${PROJECT_NAME}/detector/detector.cpp"
-  "src/${PROJECT_NAME}/node/ninshiki_cpp_node.cpp")
+  "src/${PROJECT_NAME}/node/ninshiki_cpp_node.cpp"
+  "src/${PROJECT_NAME}/utils/utils.cpp")
 
 target_include_directories(${PROJECT_NAME} PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
