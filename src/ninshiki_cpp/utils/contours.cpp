@@ -21,6 +21,7 @@
 #include <string>
 #include <vector>
 #include <limits>
+#include <math.h>
 #include <algorithm>
 
 #include "ninshiki_cpp/utils/contours.hpp"
@@ -263,10 +264,10 @@ namespace ninshiki_cpp::utils
     {
       for (cv::Point & point : contour)
       {
-        if (point.y < min_y_point.y)
+        if (point.y < min_y_point[1])
         {
-          min_y_point.x = point.x;
-          min_y_point.y = point.y;
+          min_y_point[0] = point.x;
+          min_y_point[1] = point.y;
         }
       }
     }
@@ -281,10 +282,10 @@ namespace ninshiki_cpp::utils
     {
       for (cv::Point & point : contour)
       {
-        if (point.y > max_y_point.y)
+        if (point.y > max_y_point[1])
         {
-          max_y_point.x = point.x;
-          max_y_point.y = point.y;
+          max_y_point[0] = point.x;
+          max_y_point[1] = point.y;
         }
       }
     }
@@ -313,7 +314,7 @@ namespace ninshiki_cpp::utils
 
       for (cv::Point & point : contour)
       {
-        float range = alg::distance(point.x - center_x, point.y - center_y); // need to be changed
+        float range = std::sqrt(std::pow(point.x - center_x, 2) + std::pow(point.y - center_y, 2));
 
         point.x = center_x + ((point.x - center_x) * (range + value) / range);
         point.y = center_y + ((point.y - center_y) * (range + value) / range);
@@ -361,11 +362,11 @@ namespace ninshiki_cpp::utils
         {
           int x1 = contour[i].x;
           int x2 = contour[(i + 1) % contour.size()].x;
-          if (x == keisan::clamp(x, (x1 < x2) ? x1 : x2, (x1 > x2) ? x1 : x2))
+          if (x == keisan::clamp<float>(x, (x1 < x2) ? x1 : x2, (x1 > x2) ? x1 : x2))
           {
             int y1 = contour[i].y;
             int y2 = contour[(i + 1) % contour.size()].y;
-            left_contour.push_back(cv::Point(x, keisan::map(x, x1, x2, y1, y2)));
+            left_contour.push_back(cv::Point(x, keisan::map<float>(x, x1, x2, y1, y2)));
           }
         }
       }
@@ -390,11 +391,11 @@ namespace ninshiki_cpp::utils
         {
           int x1 = contour[i].x;
           int x2 = contour[(i + 1) % contour.size()].x;
-          if (x == keisan::clamp(x, (x1 < x2) ? x1 : x2, (x1 > x2) ? x1 : x2))
+          if (x == keisan::clamp<float>(x, (x1 < x2) ? x1 : x2, (x1 > x2) ? x1 : x2))
           {
             int y1 = contour[i].y;
             int y2 = contour[(i + 1) % contour.size()].y;
-            right_contour.push_back(cv::Point(x, keisan::map(x, x1, x2, y1, y2)));
+            right_contour.push_back(cv::Point(x, keisan::map<float>(x, x1, x2, y1, y2)));
           }
         }
       }
