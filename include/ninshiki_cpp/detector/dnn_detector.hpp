@@ -31,6 +31,7 @@
 
 #include "ninshiki_interfaces/msg/detected_object.hpp"
 #include "ninshiki_interfaces/msg/detected_objects.hpp"
+#include "ninshiki_cpp/utils/utils.hpp"
 
 namespace ninshiki_cpp::detector
 {
@@ -41,10 +42,14 @@ public:
   ninshiki_interfaces::msg::DetectedObjects detection_result;
 
   explicit DnnDetector(bool gpu = false, bool myriad = false);
+
   void detection(const cv::Mat & image, float conf_threshold, float nms_threshold);
+  void detect_darknet(const cv::Mat & image, float conf_threshold, float nms_threshold);
+  void detect_tensorflow(const cv::Mat & image, float conf_threshold, float nms_threshold);
 
 private:
   std::string file_name;
+  std::string model_suffix;
   std::vector<std::string> classes;
 
   bool gpu;

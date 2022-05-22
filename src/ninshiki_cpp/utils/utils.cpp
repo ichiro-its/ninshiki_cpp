@@ -124,4 +124,18 @@ bool create_file(std::string path)
   return true;
 }
 
+std::string split_string(std::string s, std::string del)
+{
+  int start = 0;
+  int end = s.find(del);
+
+  while (end != -1) {
+    // cout << s.substr(start, end - start) << endl;
+    start = end + del.size();
+    end = s.find(del, start);
+  }
+
+  return s.substr(start, end - start);
+}
+
 }  // namespace ninshiki_cpp::utils

@@ -21,6 +21,7 @@
 #ifndef NINSHIKI_CPP__UTILS__UTILS_HPP_
 #define NINSHIKI_CPP__UTILS__UTILS_HPP_
 
+#include <iostream>
 #include <string>
 
 namespace ninshiki_cpp::utils
@@ -34,6 +35,8 @@ bool create_directory(std::string path);
 
 bool is_file_exist(std::string path);
 bool create_file(std::string path);
+
+std::string split_string(std::string s, std::string del = " ");
 
 }  // namespace ninshiki_cpp::utils
 

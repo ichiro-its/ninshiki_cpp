@@ -24,7 +24,9 @@
 
 #include "ninshiki_cpp/detector/dnn_detector.hpp"
 
-namespace ninshiki_cpp::detector
+namespace ninshiki_cpp
+{
+namespace detector
 {
 
 DnnDetector::DnnDetector(bool gpu, bool myriad)
@@ -33,6 +35,7 @@ DnnDetector::DnnDetector(bool gpu, bool myriad)
   std::string config = static_cast<std::string>(getenv("HOME")) + "/yolo_model/config.cfg";
   std::string model = static_cast<std::string>(getenv("HOME")) +
     "/yolo_model/yolo_weights.weights";
+  model_suffix = utils::split_string(model, ".");
   net = cv::dnn::readNet(model, config, "");
 
   this->gpu = gpu;
@@ -58,6 +61,15 @@ DnnDetector::DnnDetector(bool gpu, bool myriad)
 }
 
 void DnnDetector::detection(const cv::Mat & image, float conf_threshold, float nms_threshold)
+{
+  if (model_suffix == "weight") {
+    detect_darknet(image, conf_threshold, nms_threshold);
+  } else {
+    detect_tensorflow(image, conf_threshold, nms_threshold);
+  }
+}
+
+void DnnDetector::detect_darknet(const cv::Mat & image, float conf_threshold, float nms_threshold)
 {
   std::vector<cv::String> layer_output = net.getUnconnectedOutLayersNames();
 
@@ -162,4 +174,63 @@ void DnnDetector::detection(const cv::Mat & image, float conf_threshold, float n
     }
   }
 }
-}  // namespace ninshiki_cpp::detector
+
+void DnnDetector::detect_tensorflow(const cv::Mat & image, float conf_threshold, float nms_threshold)
+{
+  static cv::Mat blob;
+  cv::Size input_size = cv::Size(300, 300);
+  cv::dnn::blobFromImage(image, blob, 1.0, input_size, cv::Scalar(), true, false, CV_8U);
+
+  net.setInput(blob);
+  cv::Mat output = net.forward();
+  cv::Mat detection_mat(output.size[2], output.size[3], CV_32F, output.ptr<float>());
+
+  std::vector<int> class_ids;
+  std::vector<float> confidences;
+  std::vector<cv::Rect2f> boxes;
+
+  // Get width and height from image
+  img_width = static_cast<double>(image.cols);
+  img_height = static_cast<double>(image.rows);
+
+  // check detection_mat not NULL
+  if (detection_mat.cols * detection_mat.rows != 0) {
+    for (int i = 0; i < detection_mat.rows; i++) {
+      int class_id = detection_mat.at<float>(i, 1);
+      float confidence = detection_mat.at<float>(i, 2);
+
+      // Check if the detection is of good quality
+      if (confidence > conf_threshold) {
+        float left = detection_mat.at<float>(i, 3) * img_width;
+        float top = detection_mat.at<float>(i, 4) * img_height;
+        float width = detection_mat.at<float>(i, 5) * img_width - left;
+        float height = detection_mat.at<float>(i, 6) * img_height - top;
+
+        class_ids.push_back(class_id - 1);
+        confidences.push_back(confidence);
+        boxes.push_back(cv::Rect2f(left, top, width, height));
+      }
+    }
+  }
+
+  if (boxes.size()) {
+    for (size_t i = 0; i < boxes.size(); ++i) {
+      cv::Rect box = boxes[i];
+      if (box.width * box.height != 0) {
+        // Add detected object into vector
+        ninshiki_interfaces::msg::DetectedObject detection_object;
+        detection_object.label = classes[class_ids[i]];
+        detection_object.score = confidences[i];
+        detection_object.left = box.x / img_width;
+        detection_object.top = box.y / img_height;
+        detection_object.right = (box.x + box.width) / img_width;
+        detection_object.bottom = (box.y + box.height) / img_height;
+
+        detection_result.detected_objects.push_back(detection_object);
+      }
+    }
+  }
+}
+
+}  // namespace detector
+}  // namespace ninshiki_cpp
