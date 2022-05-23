@@ -108,7 +108,7 @@ int main(int argc, char ** argv)
 
   using ColorDetector = ninshiki_cpp::detector::ColorDetector;
   auto dnn_detection = std::make_shared<ninshiki_cpp::detector::DnnDetector>(gpu, myriad);
-  auto color_detection = std::make_shared<ColorDetector>(ColorDetector::CLASSIFIER_TYPE_FIELD);
+  auto color_detection = std::make_shared<ColorDetector>();
   color_detection->load_configuration(path);
 
   ninshiki_cpp_node->set_detection(dnn_detection, color_detection);

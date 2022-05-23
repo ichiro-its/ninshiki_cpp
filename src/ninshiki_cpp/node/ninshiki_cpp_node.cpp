@@ -34,6 +34,8 @@ NinshikiCppNode::NinshikiCppNode(
 {
   detected_object_publisher = node->create_publisher<DetectedObjects>(
     get_node_prefix() + "/dnn_detection", 10);
+  field_segmentation_publisher = node->create_publisher<Contours>(
+    get_node_prefix() + "/" + "color_detection", 10);
 
   image_subscriber = node->create_subscription<Image>(
     topic_name, 10,
@@ -96,8 +98,7 @@ void NinshikiCppNode::set_detection(
   this->color_detection = color_detection;
 
   if (this->color_detection != nullptr) {
-    field_segmentation_publisher = node->create_publisher<Contours>(
-      get_node_prefix() + "/" + this->color_detection->name, 10);
+
   }
 }
 

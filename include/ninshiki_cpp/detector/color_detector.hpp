@@ -43,28 +43,9 @@ namespace ninshiki_cpp::detector
 class ColorDetector
 {
 public:
-  enum
-  {
-    CLASSIFIER_TYPE_RED         = 0,
-    CLASSIFIER_TYPE_BLUE        = 1,
-    CLASSIFIER_TYPE_YELLOW      = 2,
-    CLASSIFIER_TYPE_CYAN        = 3,
-    CLASSIFIER_TYPE_MAGENTA     = 4,
-    CLASSIFIER_TYPE_BALL        = 11,
-    CLASSIFIER_TYPE_FIELD       = 12,
-    CLASSIFIER_TYPE_GOAL        = 13,
-    CLASSIFIER_TYPE_MARATHON    = 14,
-    CLASSIFIER_TYPE_BLACK       = 15,
-    CLASSIFIER_TYPE_WHITE       = 16,
-    CLASSIFIER_TYPE_BASKETBALL  = 17,
-    CLASSIFIER_TYPE_LINE        = 18
-  };
 
-  explicit ColorDetector(int classifier_type);
+  explicit ColorDetector();
   ~ColorDetector();
-
-  static ColorDetector * get_instance(int classifier_type);
-  static ColorDetector * get_instance(std::string name);
 
   bool load_configuration(const std::string & path);
   bool load_configuration() {load_configuration(config_path);}
@@ -94,11 +75,9 @@ public:
   void detection(cv::Mat image);
 
   ninshiki_interfaces::msg::Contours detection_result;
-  std::string name;
+  std::string color_name;
 
 private:
-  static std::map<int, ColorDetector *> unique_instances;
-
   int classifier_type;
 
   int min_hue;

@@ -33,56 +33,17 @@ namespace ninshiki_cpp
 namespace detector
 {
 
-std::map<int, ColorDetector *> ColorDetector::unique_instances;
+// std::map<int, ColorDetector *> ColorDetector::unique_instances;
 
-ColorDetector::ColorDetector(int classifier_type)
+ColorDetector::ColorDetector()
 : config_path("")
 {
-  this->classifier_type = classifier_type;
-  unique_instances.insert(std::pair<int, ColorDetector *>(this->classifier_type, this));
-
-  switch (this->classifier_type) {
-    case CLASSIFIER_TYPE_RED: name = "red"; break;
-    case CLASSIFIER_TYPE_BLUE: name = "blue"; break;
-    case CLASSIFIER_TYPE_YELLOW: name = "yellow"; break;
-    case CLASSIFIER_TYPE_CYAN: name = "cyan"; break;
-    case CLASSIFIER_TYPE_MAGENTA: name = "magenta"; break;
-    case CLASSIFIER_TYPE_BALL: name = "ball"; break;
-    case CLASSIFIER_TYPE_FIELD: name = "field"; break;
-    case CLASSIFIER_TYPE_GOAL: name = "goal"; break;
-    case CLASSIFIER_TYPE_MARATHON: name = "marathon"; break;
-    case CLASSIFIER_TYPE_BLACK: name = "black"; break;
-    case CLASSIFIER_TYPE_WHITE: name = "white"; break;
-    case CLASSIFIER_TYPE_BASKETBALL: name = "basketball"; break;
-    case CLASSIFIER_TYPE_LINE: name = "line"; break;
-  }
-
   // sync_configuration();
   colors.clear();
 }
 
 ColorDetector::~ColorDetector()
 {
-  unique_instances.erase(classifier_type);
-}
-
-ColorDetector * ColorDetector::get_instance(int classifier_type)
-{
-  if (unique_instances.find(classifier_type) != unique_instances.end()) {
-    return unique_instances[classifier_type];
-  }
-  return new ColorDetector(classifier_type);
-}
-
-ColorDetector * ColorDetector::get_instance(std::string name)
-{
-  for (const std::pair<int, ColorDetector *> & keyval : unique_instances) {
-    if (keyval.second->name == name) {
-      return keyval.second;
-    }
-  }
-
-  return nullptr;
 }
 
 bool ColorDetector::load_configuration(const std::string & path)
@@ -115,15 +76,6 @@ bool ColorDetector::load_configuration(const std::string & path)
         item.value().at("max_hsv")[2]
       );
 
-      // Assign hsv value based on name
-      if (item.value().at("name") == name) {
-        min_hue = color.min_hue;
-        max_hue = color.max_hue;
-        min_saturation = color.min_saturation;
-        max_saturation = color.max_saturation;
-        min_value = color.min_value;
-        max_value = color.max_value;
-      }
       colors.push_back(color);
     } catch (nlohmann::json::parse_error & ex) {
       std::cerr << "parse error at byte " << ex.byte << std::endl;
@@ -244,25 +196,37 @@ void ColorDetector::detection(cv::Mat image)
   float img_width = static_cast<float>(image.cols);
   float img_height = static_cast<float>(image.rows);
 
-  cv::Mat field_binary_mat = classify(image);
-  find(field_binary_mat);
+  // iterate every color in colors
+  for (auto & color : colors) {
+    color_name = color.name;
+    min_hue = color.min_hue;
+    max_hue = color.max_hue;
+    min_saturation = color.min_saturation;
+    max_saturation = color.max_saturation;
+    min_value = color.min_value;
+    max_value = color.max_value;
 
-  // Copy contours to ros2 msg
-  if (contours.size() >= 0) {
-    for (std::vector<cv::Point> & contour : contours) {
-      ninshiki_interfaces::msg::Contour contour_msg;
+    cv::Mat field_binary_mat = classify(image);
+    find(field_binary_mat);
 
-      for (cv::Point & point : contour) {
-        ninshiki_interfaces::msg::Point point_msg;
-        point_msg.x = static_cast<float>(point.x) / img_width;
-        point_msg.y = static_cast<float>(point.y) / img_height;
+    // Copy contours to ros2 msg
+    if (contours.size() >= 0) {
+      for (std::vector<cv::Point> & contour : contours) {
+        ninshiki_interfaces::msg::Contour contour_msg;
 
-        contour_msg.name = name;
-        contour_msg.contour.push_back(point_msg);
+        for (cv::Point & point : contour) {
+          ninshiki_interfaces::msg::Point point_msg;
+          point_msg.x = static_cast<float>(point.x) / img_width;
+          point_msg.y = static_cast<float>(point.y) / img_height;
+
+          contour_msg.name = color_name;
+          contour_msg.contour.push_back(point_msg);
+        }
+        detection_result.contours.push_back(contour_msg);
       }
-      detection_result.contours.push_back(contour_msg);
     }
   }
+
 }
 }  // namespace detector
 
