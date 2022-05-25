@@ -22,20 +22,19 @@
 #include <string>
 #include <vector>
 
-#include "ninshiki_cpp/detector/detector.hpp"
+#include "ninshiki_cpp/detector/dnn_detector.hpp"
 
 namespace ninshiki_cpp
 {
 namespace detector
 {
 
-Detector::Detector(bool gpu, bool myriad)
+DnnDetector::DnnDetector(bool gpu, bool myriad)
 {
   file_name = static_cast<std::string>(getenv("HOME")) + "/yolo_model/obj.names";
-  std::string config = static_cast<std::string>(getenv("HOME")) +
-    "/tf_model/ssd_mobilenet_v1_soccer_graph.pbtxt";
+  std::string config = static_cast<std::string>(getenv("HOME")) + "/yolo_model/config.cfg";
   std::string model = static_cast<std::string>(getenv("HOME")) +
-    "/tf_model/frozen_inference_graph.pb";
+    "/yolo_model/yolo_weights.weights";
   model_suffix = utils::split_string(model, ".");
   net = cv::dnn::readNet(model, config, "");
 
@@ -61,7 +60,7 @@ Detector::Detector(bool gpu, bool myriad)
   }
 }
 
-void Detector::detection(const cv::Mat & image, float conf_threshold, float nms_threshold)
+void DnnDetector::detection(const cv::Mat & image, float conf_threshold, float nms_threshold)
 {
   if (model_suffix == "weight") {
     detect_darknet(image, conf_threshold, nms_threshold);
@@ -70,7 +69,7 @@ void Detector::detection(const cv::Mat & image, float conf_threshold, float nms_
   }
 }
 
-void Detector::detect_darknet(const cv::Mat & image, float conf_threshold, float nms_threshold)
+void DnnDetector::detect_darknet(const cv::Mat & image, float conf_threshold, float nms_threshold)
 {
   std::vector<cv::String> layer_output = net.getUnconnectedOutLayersNames();
 
@@ -176,7 +175,7 @@ void Detector::detect_darknet(const cv::Mat & image, float conf_threshold, float
   }
 }
 
-void Detector::detect_tensorflow(const cv::Mat & image, float conf_threshold, float nms_threshold)
+void DnnDetector::detect_tensorflow(const cv::Mat & image, float conf_threshold, float nms_threshold)
 {
   static cv::Mat blob;
   cv::Size input_size = cv::Size(300, 300);

@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ICHIRO ITS
+// Copyright (c) 2021 ICHIRO ITS
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -18,11 +18,30 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#ifndef NINSHIKI_CPP__NINSHIKI_CPP_HPP_
-#define NINSHIKI_CPP__NINSHIKI_CPP_HPP_
+#ifndef NINSHIKI_CPP__UTILS__COLOR_HPP_
+#define NINSHIKI_CPP__UTILS__COLOR_HPP_
 
-#include "./detector/color_detector.hpp"
-#include "./detector/dnn_detector.hpp"
-#include "./node/ninshiki_cpp_node.hpp"
+#include <string>
 
-#endif  // NINSHIKI_CPP__NINSHIKI_CPP_HPP_
+namespace ninshiki_cpp::utils
+{
+
+class Color
+{
+public:
+  Color(
+    const std::string & name, int min_hue, int max_hue, int min_saturation,
+    int max_saturation, int min_value, int max_value);
+
+  std::string name;
+  int min_hue;
+  int max_hue;
+  int min_saturation;
+  int max_saturation;
+  int min_value;
+  int max_value;
+};
+
+}  // namespace ninshiki_cpp::utils
+
+#endif  // NINSHIKI_CPP__UTILS__COLOR_HPP_

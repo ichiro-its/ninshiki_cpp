@@ -30,10 +30,12 @@ namespace ninshiki_cpp::node
 
 NinshikiCppNode::NinshikiCppNode(
   rclcpp::Node::SharedPtr node, std::string topic_name, int frequency)
-: node(node), detection(nullptr)
+: node(node), dnn_detection(nullptr), color_detection(nullptr)
 {
   detected_object_publisher = node->create_publisher<DetectedObjects>(
-    get_node_prefix() + "/detection", 10);
+    get_node_prefix() + "/dnn_detection", 10);
+  field_segmentation_publisher = node->create_publisher<Contours>(
+    get_node_prefix() + "/" + "color_detection", 10);
 
   image_subscriber = node->create_subscription<Image>(
     topic_name, 10,
@@ -58,6 +60,8 @@ NinshikiCppNode::NinshikiCppNode(
           // Decode the compressed image
           received_frame = cv::imdecode(message->data, cv::IMREAD_UNCHANGED);
         }
+
+        cv::cvtColor(received_frame, hsv_frame, cv::COLOR_BGR2HSV);
       }
     }
   );
@@ -74,17 +78,28 @@ NinshikiCppNode::NinshikiCppNode(
 
 void NinshikiCppNode::publish()
 {
-  detection->detection(received_frame, 0.4, 0.3);
-  detected_object_publisher->publish(detection->detection_result);
+  dnn_detection->detection(received_frame, 0.4, 0.3);
+  detected_object_publisher->publish(dnn_detection->detection_result);
+
+  color_detection->detection(hsv_frame);
+  field_segmentation_publisher->publish(color_detection->detection_result);
 
   // Clear detection_result
   // received_frame.release();
-  detection->detection_result.detected_objects.clear();
+  dnn_detection->detection_result.detected_objects.clear();
+  color_detection->detection_result.contours.clear();
 }
 
-void NinshikiCppNode::set_detection(std::shared_ptr<ninshiki_cpp::detector::Detector> detection)
+void NinshikiCppNode::set_detection(
+  std::shared_ptr<DnnDetector> dnn_detection,
+  std::shared_ptr<ColorDetector> color_detection)
 {
-  this->detection = detection;
+  this->dnn_detection = dnn_detection;
+  this->color_detection = color_detection;
+
+  if (this->color_detection != nullptr) {
+
+  }
 }
 
 std::string NinshikiCppNode::get_node_prefix()

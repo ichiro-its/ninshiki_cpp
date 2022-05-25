@@ -18,8 +18,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#ifndef NINSHIKI_CPP__DETECTOR__DETECTOR_HPP_
-#define NINSHIKI_CPP__DETECTOR__DETECTOR_HPP_
+#ifndef NINSHIKI_CPP__DETECTOR__DNN_DETECTOR_HPP_
+#define NINSHIKI_CPP__DETECTOR__DNN_DETECTOR_HPP_
 
 #include <opencv2/dnn.hpp>
 #include <opencv2/imgproc.hpp>
@@ -36,12 +36,12 @@
 namespace ninshiki_cpp::detector
 {
 
-class Detector
+class DnnDetector
 {
 public:
   ninshiki_interfaces::msg::DetectedObjects detection_result;
 
-  explicit Detector(bool gpu = false, bool myriad = false);
+  explicit DnnDetector(bool gpu = false, bool myriad = false);
 
   void detection(const cv::Mat & image, float conf_threshold, float nms_threshold);
   void detect_darknet(const cv::Mat & image, float conf_threshold, float nms_threshold);
@@ -56,7 +56,6 @@ private:
   bool myriad;
 
   cv::dnn::Net net;
-  std::vector<cv::Mat> outs;
 
   double img_width;
   double img_height;
@@ -64,4 +63,4 @@ private:
 
 }  // namespace ninshiki_cpp::detector
 
-#endif  // NINSHIKI_CPP__DETECTOR__DETECTOR_HPP_
+#endif  // NINSHIKI_CPP__DETECTOR__DNN_DETECTOR_HPP_

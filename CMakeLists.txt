@@ -14,13 +14,18 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 find_package(ament_cmake REQUIRED)
+find_package(keisan REQUIRED)
 find_package(ninshiki_interfaces REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(shisen_interfaces REQUIRED)
 
 add_library(${PROJECT_NAME} SHARED
-  "src/${PROJECT_NAME}/detector/detector.cpp"
+  "src/${PROJECT_NAME}/detector/color_detector.cpp"
+  "src/${PROJECT_NAME}/detector/dnn_detector.cpp"
+  "src/${PROJECT_NAME}/node/ninshiki_cpp_node.cpp"
+  "src/${PROJECT_NAME}/utils/color.cpp"
+  "src/${PROJECT_NAME}/utils/contours.cpp"
   "src/${PROJECT_NAME}/node/ninshiki_cpp_node.cpp"
   "src/${PROJECT_NAME}/utils/utils.cpp")
 
@@ -29,6 +34,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
   $<INSTALL_INTERFACE:include>)
 
 ament_target_dependencies(${PROJECT_NAME}
+  keisan
   ninshiki_interfaces
   OpenCV
   rclcpp
@@ -58,6 +64,7 @@ if(BUILD_TESTING)
 endif()
 
 ament_export_dependencies(
+  keisan
   ninshiki_interfaces
   OpenCV
   rclcpp

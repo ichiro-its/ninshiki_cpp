@@ -29,7 +29,8 @@
 #include <string>
 
 #include "rclcpp/rclcpp.hpp"
-#include "ninshiki_cpp/detector/detector.hpp"
+#include "ninshiki_cpp/detector/color_detector.hpp"
+#include "ninshiki_cpp/detector/dnn_detector.hpp"
 #include "ninshiki_interfaces/msg/detected_objects.hpp"
 #include "shisen_interfaces/msg/image.hpp"
 
@@ -39,12 +40,18 @@ namespace ninshiki_cpp::node
 class NinshikiCppNode
 {
 public:
+  using DnnDetector = ninshiki_cpp::detector::DnnDetector;
+  using ColorDetector = ninshiki_cpp::detector::ColorDetector;
+
   NinshikiCppNode(
     rclcpp::Node::SharedPtr node, std::string topic_name, int frequency);
   void publish();
-  void set_detection(std::shared_ptr<ninshiki_cpp::detector::Detector> detection);
+  void set_detection(
+    std::shared_ptr<DnnDetector> dnn_detection,
+    std::shared_ptr<ColorDetector> color_detection);
 
 private:
+  using Contours = ninshiki_interfaces::msg::Contours;
   using DetectedObjects = ninshiki_interfaces::msg::DetectedObjects;
   using Image = shisen_interfaces::msg::Image;
 
@@ -53,10 +60,13 @@ private:
 
   rclcpp::Subscription<shisen_interfaces::msg::Image>::SharedPtr image_subscriber;
   rclcpp::Publisher<DetectedObjects>::SharedPtr detected_object_publisher;
+  rclcpp::Publisher<Contours>::SharedPtr field_segmentation_publisher;
 
-  std::shared_ptr<ninshiki_cpp::detector::Detector> detection;
+  std::shared_ptr<DnnDetector> dnn_detection;
+  std::shared_ptr<ColorDetector> color_detection;
 
   cv::Mat received_frame;
+  cv::Mat hsv_frame;
 
   static std::string get_node_prefix();
 };
