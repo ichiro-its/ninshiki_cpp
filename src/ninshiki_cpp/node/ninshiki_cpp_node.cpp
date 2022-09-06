@@ -36,9 +36,9 @@ NinshikiCppNode::NinshikiCppNode(
   detected_object_publisher = node->create_publisher<DetectedObjects>(
     get_node_prefix() + "/dnn_detection", 10);
   field_segmentation_publisher = node->create_publisher<Contours>(
-    get_node_prefix() + "/" + "color_detection", 10);
+    get_node_prefix() + "/color_detection", 10);
 
-  image_provider = std::make_shared<shisen_cpp::ImageProvider>(options);
+  image_provider = std::make_shared<shisen_cpp::camera::ImageProvider>(options);
 
   node_timer = node->create_wall_timer(
     std::chrono::milliseconds(frequency),
