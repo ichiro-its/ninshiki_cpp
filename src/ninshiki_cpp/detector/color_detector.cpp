@@ -33,8 +33,6 @@ namespace ninshiki_cpp
 namespace detector
 {
 
-// std::map<int, ColorDetector *> ColorDetector::unique_instances;
-
 ColorDetector::ColorDetector()
 : config_path("")
 {
@@ -226,8 +224,6 @@ void ColorDetector::detection(cv::Mat image)
       }
     }
   }
-
 }
 }  // namespace detector
-
 }  // namespace ninshiki_cpp

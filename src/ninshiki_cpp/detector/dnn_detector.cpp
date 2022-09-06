@@ -175,7 +175,8 @@ void DnnDetector::detect_darknet(const cv::Mat & image, float conf_threshold, fl
   }
 }
 
-void DnnDetector::detect_tensorflow(const cv::Mat & image, float conf_threshold, float nms_threshold)
+void DnnDetector::detect_tensorflow(
+  const cv::Mat & image, float conf_threshold, float nms_threshold)
 {
   static cv::Mat blob;
   cv::Size input_size = cv::Size(300, 300);

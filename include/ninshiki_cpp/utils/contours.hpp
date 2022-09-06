@@ -34,8 +34,8 @@ class Contours
 {
 public:
   Contours();
-  Contours(std::vector<std::vector<cv::Point>> contours);
-  Contours(cv::Mat binary_mat);
+  explicit Contours(std::vector<std::vector<cv::Point>> contours);
+  explicit Contours(cv::Mat binary_mat);
 
   cv::Mat get_binary_mat(cv::Size mat_size);
   cv::Mat get_binary_mat_line(cv::Size mat_size, int line_size);
