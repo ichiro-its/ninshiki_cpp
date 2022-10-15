@@ -31,11 +31,6 @@ namespace ninshiki_cpp::detector
 class LBPDetector
 {
 public:
-    enum{
-        DETECTOR_TYPE_BALL    = 0,
-        DETECTOR_TYPE_FACE    = 1
-    };
-
     LBPDetector();
     LBPDetector(int type);
 

@@ -21,28 +21,60 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <opencv2/imgproc.hpp>
 
 #include "ninshiki_cpp/detector/lbp_detector.hpp"
 
-LBPDetector::LBPDetector(int type) {
-    switch (type)
-    {
-        case CLASSIFIER_TYPE_BALL:
-            classifier_file_path = "../../data/" + utils::get_host_name() + "lbp_classifier/ball_cascade.xml";
-            break;
-        
-        default:
-            return;
-    }
+namespace ninshiki_cpp
+{
+namespace detector
+{
+
+LBPDetector::LBPDetector() {
+    classifier_file_path = "../../data/" + utils::get_host_name() + "lbp_classifier/ball_cascade.xml";
+    classifier_loaded = loadClassifier(classifier_file_path);
 }
 
-std::vector<cv::Rect> LBPDetector::classify(cv::Mat input)
+bool LBPDetector::loadClassifier(std::string classifier_file_path) {
+    if (!cascade_detector_.load(classifier_file_path))
+    {
+        printf("failed to load cascade %s\n", classifier_file_path);
+        return false;
+    }
+
+    return true;
+}
+
+void LBPDetector::classify(cv::Mat input)
 {
+    img_width = static_cast<double>(input.cols);
+    img_height = static_cast<double>(input.rows);
+
+    std::vector<cv::Rect> rects;
+    if (!classifier_loaded)
+        return;
+
     std::vector<cv::Rect> rects;
     cv::Mat gray = input.clone();
     cv::cvtColor(input, gray, cv::COLOR_BGR2GRAY);
 
-    cascade_classifier_.detectMultiScale(gray, rects, 1.1, 5, 8, cv::Size(5, 5));
+    cascade_detector_.detectMultiScale(gray, rects, 1.1, 5, 8, cv::Size(5, 5));
 
-    return rects;
+    for (auto i = rects.begin(); i != rects.end(); ++i) {
+        cv::Rect rectangle = *i;
+        ninshiki_interfaces::msg::DetectedObject detection_object;
+
+        detection_object.label = "LBPDetector Detected Object";
+        detection_object.left = rectangle.x / img_width;
+        detection_object.top = rectangle.x / img_height;
+        detection_object.right = (rectangle.x + rectangle.width) / img_width;
+        detection_object.bottom = (rectangle.y + rectangle.height) / img_height;
+
+        detection_result.detected_objects.push_back(detection_object);
+    }
 }
+
+}
+}
+// return disamain sama color dan dnn, terus dites
+// cara tesnya run ninshiki_cpp sama yg di cmake

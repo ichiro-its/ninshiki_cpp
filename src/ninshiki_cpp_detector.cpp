@@ -107,11 +107,13 @@ int main(int argc, char ** argv)
     node, topic_name, frequency);
 
   using ColorDetector = ninshiki_cpp::detector::ColorDetector;
+  using LBPDetector = ninshiki_cpp::detector::LBPDetector;
   auto dnn_detection = std::make_shared<ninshiki_cpp::detector::DnnDetector>(gpu, myriad);
   auto color_detection = std::make_shared<ColorDetector>();
+  auto lbp_detection = std::make_shared<LBPDetector>();
   color_detection->load_configuration(path);
 
-  ninshiki_cpp_node->set_detection(dnn_detection, color_detection);
+  ninshiki_cpp_node->set_detection(dnn_detection, color_detection, lbp_detection);
 
   rclcpp::spin(node);
   rclcpp::shutdown();

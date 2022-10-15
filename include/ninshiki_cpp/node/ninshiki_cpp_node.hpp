@@ -31,6 +31,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include "ninshiki_cpp/detector/color_detector.hpp"
 #include "ninshiki_cpp/detector/dnn_detector.hpp"
+#include "ninshiki_cpp/detector/lbp_detector.hpp"
 #include "ninshiki_interfaces/msg/detected_objects.hpp"
 #include "shisen_interfaces/msg/image.hpp"
 
@@ -42,6 +43,7 @@ class NinshikiCppNode
 public:
   using DnnDetector = ninshiki_cpp::detector::DnnDetector;
   using ColorDetector = ninshiki_cpp::detector::ColorDetector;
+  using LBPDetector = ninshiki_cpp::detector::LBPDetector;
 
   NinshikiCppNode(
     rclcpp::Node::SharedPtr node, std::string topic_name, int frequency);
