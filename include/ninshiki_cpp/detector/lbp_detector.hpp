@@ -26,20 +26,25 @@
 #include <vector>
 #include <string>
 
+#include "ninshiki_cpp/utils/utils.hpp"
+#include "ninshiki_cpp/detector/detector.hpp"
+#include "ninshiki_interfaces/msg/detected_object.hpp"
+#include "ninshiki_interfaces/msg/detected_objects.hpp"
+
 namespace ninshiki_cpp::detector
 {
-class LBPDetector
+class LBPDetector : public Detector
 {
 public:
-    LBPDetector();
-    LBPDetector(int type);
-
-    std::vector<cv::Rect> classify(cv::Mat input);
+    explicit LBPDetector();
+    ~LBPDetector();
+    bool loadClassifier(std::string config_path) override;
+    void detection(cv::Mat input) override;
 
 private:
-    std::string classifier_file_path;
+    bool classifier_loaded;
     cv::CascadeClassifier cascade_detector_;
-    int detector_type_;
 };
 }
+
 #endif // NINSHIKI_CPP__DETECTOR__LBP_DETECTOR_HPP_

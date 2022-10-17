@@ -36,11 +36,12 @@
 #include "ninshiki_interfaces/msg/contours.hpp"
 #include "ninshiki_cpp/utils/color.hpp"
 #include "ninshiki_cpp/utils/utils.hpp"
+#include "ninshiki_cpp/detector/detector.hpp"
 
 namespace ninshiki_cpp::detector
 {
 
-class ColorDetector
+class ColorDetector : public Detector
 {
 public:
 
@@ -72,7 +73,7 @@ public:
   // Function for Contours
   void find(cv::Mat binary_mat);
 
-  void detection(cv::Mat image);
+  void detection(cv::Mat image) override;
 
   ninshiki_interfaces::msg::Contours detection_result;
   std::string color_name;
@@ -86,8 +87,6 @@ private:
   int max_saturation;
   int min_value;
   int max_value;
-
-  std::string config_path;
 
   std::vector<std::vector<cv::Point>> contours;
   std::vector<utils::Color> colors;

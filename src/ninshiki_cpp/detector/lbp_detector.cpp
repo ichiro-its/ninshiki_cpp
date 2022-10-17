@@ -31,21 +31,21 @@ namespace detector
 {
 
 LBPDetector::LBPDetector() {
-    classifier_file_path = "../../data/" + utils::get_host_name() + "lbp_classifier/ball_cascade.xml";
-    classifier_loaded = loadClassifier(classifier_file_path);
+    config_path = "../../data/" + utils::get_host_name() + "lbp_classifier/ball_cascade.xml";
+    classifier_loaded = loadClassifier(config_path);
 }
 
-bool LBPDetector::loadClassifier(std::string classifier_file_path) {
-    if (!cascade_detector_.load(classifier_file_path))
+bool LBPDetector::loadClassifier(std::string config_path) {
+    if (!cascade_detector_.load(config_path))
     {
-        printf("failed to load cascade %s\n", classifier_file_path);
+        printf("failed to load cascade %s\n", config_path);
         return false;
     }
 
     return true;
 }
 
-void LBPDetector::classify(cv::Mat input)
+void LBPDetector::detection(cv::Mat input)
 {
     img_width = static_cast<double>(input.cols);
     img_height = static_cast<double>(input.rows);
