@@ -51,4 +51,4 @@ protected:
 
 }
 
-#endif
+#endif // NINSHIKI_CPP__DETECTOR__DETECTOR_HPP
