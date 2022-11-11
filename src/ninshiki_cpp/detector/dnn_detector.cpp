@@ -62,7 +62,7 @@ DnnDetector::DnnDetector(bool gpu, bool myriad)
 
 void DnnDetector::detection(const cv::Mat & image, float conf_threshold, float nms_threshold)
 {
-  if (model_suffix == "weight") {
+  if (model_suffix == "weights") {
     detect_darknet(image, conf_threshold, nms_threshold);
   } else {
     detect_tensorflow(image, conf_threshold, nms_threshold);
@@ -175,7 +175,8 @@ void DnnDetector::detect_darknet(const cv::Mat & image, float conf_threshold, fl
   }
 }
 
-void DnnDetector::detect_tensorflow(const cv::Mat & image, float conf_threshold, float nms_threshold)
+void DnnDetector::detect_tensorflow(
+  const cv::Mat & image, float conf_threshold, float nms_threshold)
 {
   static cv::Mat blob;
   cv::Size input_size = cv::Size(300, 300);

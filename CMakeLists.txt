@@ -18,6 +18,7 @@ find_package(keisan REQUIRED)
 find_package(ninshiki_interfaces REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(shisen_cpp REQUIRED)
 find_package(shisen_interfaces REQUIRED)
 
 add_library(${PROJECT_NAME} SHARED
@@ -38,6 +39,7 @@ ament_target_dependencies(${PROJECT_NAME}
   ninshiki_interfaces
   OpenCV
   rclcpp
+  shisen_cpp
   shisen_interfaces)
 
 install(DIRECTORY "include" DESTINATION ".")
@@ -68,6 +70,7 @@ ament_export_dependencies(
   ninshiki_interfaces
   OpenCV
   rclcpp
+  shisen_cpp
   shisen_interfaces)
 ament_export_include_directories("include")
 ament_export_libraries(${PROJECT_NAME})

@@ -32,7 +32,7 @@
 #include "ninshiki_cpp/detector/color_detector.hpp"
 #include "ninshiki_cpp/detector/dnn_detector.hpp"
 #include "ninshiki_interfaces/msg/detected_objects.hpp"
-#include "shisen_interfaces/msg/image.hpp"
+#include "shisen_cpp/shisen_cpp.hpp"
 
 namespace ninshiki_cpp::node
 {
@@ -44,7 +44,8 @@ public:
   using ColorDetector = ninshiki_cpp::detector::ColorDetector;
 
   NinshikiCppNode(
-    rclcpp::Node::SharedPtr node, std::string topic_name, int frequency);
+    rclcpp::Node::SharedPtr node, std::string topic_name,
+    int frequency, shisen_cpp::Options options);
   void publish();
   void set_detection(
     std::shared_ptr<DnnDetector> dnn_detection,
@@ -58,12 +59,12 @@ private:
   rclcpp::Node::SharedPtr node;
   rclcpp::TimerBase::SharedPtr node_timer;
 
-  rclcpp::Subscription<shisen_interfaces::msg::Image>::SharedPtr image_subscriber;
   rclcpp::Publisher<DetectedObjects>::SharedPtr detected_object_publisher;
   rclcpp::Publisher<Contours>::SharedPtr field_segmentation_publisher;
 
   std::shared_ptr<DnnDetector> dnn_detection;
   std::shared_ptr<ColorDetector> color_detection;
+  std::shared_ptr<shisen_cpp::camera::ImageProvider> image_provider;
 
   cv::Mat received_frame;
   cv::Mat hsv_frame;
