@@ -30,6 +30,7 @@
 
 namespace ninshiki_cpp::utils
 {
+
 Contours::Contours()
 {
   contours.clear();
