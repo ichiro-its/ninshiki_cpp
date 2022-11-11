@@ -208,16 +208,16 @@ void ColorDetector::detection(cv::Mat image)
     find(field_binary_mat);
 
     // Copy contours to ros2 msg
-    if (contours.size() >= 0) {
+    if (contours.size() > 0) {
       for (std::vector<cv::Point> & contour : contours) {
         ninshiki_interfaces::msg::Contour contour_msg;
 
+        contour_msg.name = color_name;
         for (cv::Point & point : contour) {
           ninshiki_interfaces::msg::Point point_msg;
           point_msg.x = static_cast<float>(point.x) / img_width;
           point_msg.y = static_cast<float>(point.y) / img_height;
 
-          contour_msg.name = color_name;
           contour_msg.contour.push_back(point_msg);
         }
         detection_result.contours.push_back(contour_msg);
@@ -225,5 +225,6 @@ void ColorDetector::detection(cv::Mat image)
     }
   }
 }
+
 }  // namespace detector
 }  // namespace ninshiki_cpp

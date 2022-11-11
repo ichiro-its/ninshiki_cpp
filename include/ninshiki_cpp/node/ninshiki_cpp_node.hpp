@@ -44,8 +44,7 @@ public:
   using ColorDetector = ninshiki_cpp::detector::ColorDetector;
 
   NinshikiCppNode(
-    rclcpp::Node::SharedPtr node, std::string topic_name,
-    int frequency, shisen_cpp::Options options);
+    rclcpp::Node::SharedPtr node, int frequency, shisen_cpp::Options options);
   void publish();
   void set_detection(
     std::shared_ptr<DnnDetector> dnn_detection,

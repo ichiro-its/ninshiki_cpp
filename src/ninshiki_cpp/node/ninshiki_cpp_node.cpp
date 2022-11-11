@@ -29,8 +29,7 @@ namespace ninshiki_cpp::node
 {
 
 NinshikiCppNode::NinshikiCppNode(
-  rclcpp::Node::SharedPtr node, std::string topic_name,
-  int frequency, shisen_cpp::Options options)
+  rclcpp::Node::SharedPtr node, int frequency, shisen_cpp::Options options)
 : node(node), dnn_detection(nullptr), color_detection(nullptr)
 {
   detected_object_publisher = node->create_publisher<DetectedObjects>(
@@ -45,6 +44,7 @@ NinshikiCppNode::NinshikiCppNode(
     [this]() {
       image_provider->update_mat();
       received_frame = image_provider->get_mat();
+      cv::cvtColor(received_frame, hsv_frame, cv::COLOR_BGR2HSV);
       if (!received_frame.empty()) {
         publish();
       }

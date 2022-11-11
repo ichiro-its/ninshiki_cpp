@@ -41,10 +41,10 @@ int main(int argc, char ** argv)
 
   const char * help_message =
     "Usage: ros2 run ninshiki_cpp detector\n"
-    "[topic] [--detector DETECTOR] [--GPU {0,1}] [--MYRIAD {0,1}]\n"
+    "[path] [--detector DETECTOR] [--GPU {0,1}] [--MYRIAD {0,1}]\n"
     "\n"
     "Positional arguments:\n"
-    "topic                specify topic name to subscribe\n"
+    "path                 path for json file\n"
     "\n"
     "Optional arguments:\n"
     "-h, --help           show this help message and exit\n"
@@ -95,9 +95,6 @@ int main(int argc, char ** argv)
           return 1;
         }
       } else if (pos == 0) {
-        topic_name = arg;
-        ++pos;
-      } else if (pos == 1) {
         path = arg;
         ++pos;
       }
@@ -109,7 +106,7 @@ int main(int argc, char ** argv)
 
   auto node = std::make_shared<rclcpp::Node>("ninshiki_cpp");
   auto ninshiki_cpp_node = std::make_shared<ninshiki_cpp::node::NinshikiCppNode>(
-    node, topic_name, frequency, options);
+    node, frequency, options);
 
   using ColorDetector = ninshiki_cpp::detector::ColorDetector;
   auto dnn_detection = std::make_shared<ninshiki_cpp::detector::DnnDetector>(gpu, myriad);
