@@ -31,8 +31,8 @@ namespace detector
 Detector::Detector() {}
 Detector::~Detector() {}
 
-virtual bool Detector::loadClassifier() {}
-virtual void detection() {}
+bool Detector::loadClassifier(std::string config_path) {}
+void detection() {}
 
 }
 }

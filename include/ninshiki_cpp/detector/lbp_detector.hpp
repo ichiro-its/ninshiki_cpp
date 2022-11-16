@@ -38,8 +38,8 @@ class LBPDetector : public Detector
 public:
     explicit LBPDetector();
     ~LBPDetector();
-    bool loadClassifier(std::string config_path) override;
-    void detection(cv::Mat input) override;
+    bool loadClassifier(std::string config_path);
+    void detection(cv::Mat input);
 
 private:
     bool classifier_loaded;

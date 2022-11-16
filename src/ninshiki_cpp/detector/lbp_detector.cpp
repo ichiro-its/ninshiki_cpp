@@ -23,6 +23,7 @@
 #include <vector>
 #include <opencv2/imgproc.hpp>
 
+#include "detector.cpp"
 #include "ninshiki_cpp/detector/lbp_detector.hpp"
 
 namespace ninshiki_cpp
@@ -54,7 +55,6 @@ void LBPDetector::detection(cv::Mat input)
     if (!classifier_loaded)
         return;
 
-    std::vector<cv::Rect> rects;
     cv::Mat gray = input.clone();
     cv::cvtColor(input, gray, cv::COLOR_BGR2GRAY);
 

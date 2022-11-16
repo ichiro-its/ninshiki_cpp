@@ -72,7 +72,7 @@ public:
   // Function for Contours
   void find(cv::Mat binary_mat);
 
-  void detection(cv::Mat image) override;
+  void detection(cv::Mat image);
 
   ninshiki_interfaces::msg::Contours detection_result;
   std::string color_name;

@@ -26,6 +26,8 @@
 #include <memory>
 #include <string>
 
+#include "../src/ninshiki_cpp/detector/detector.cpp"
+
 int main(int argc, char ** argv)
 {
   rclcpp::init(argc, argv);
@@ -113,10 +115,13 @@ int main(int argc, char ** argv)
 
   using ColorDetector = ninshiki_cpp::detector::ColorDetector;
   using LBPDetector = ninshiki_cpp::detector::LBPDetector;
+
   auto dnn_detection = std::make_shared<ninshiki_cpp::detector::DnnDetector>(gpu, myriad);
   auto color_detection = std::make_shared<ColorDetector>();
   auto lbp_detection = std::make_shared<LBPDetector>();
+
   color_detection->load_configuration(path);
+  lbp_detection->loadClassifier(path);
 
   ninshiki_cpp_node->set_detection(dnn_detection, color_detection, lbp_detection);
 

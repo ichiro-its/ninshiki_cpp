@@ -60,10 +60,14 @@ void NinshikiCppNode::publish()
   color_detection->detection(hsv_frame);
   field_segmentation_publisher->publish(color_detection->detection_result);
 
+  lbp_detection->detection(received_frame);
+  detected_object_publisher->publish(lbp_detection->detection_result);
+
   // Clear detection_result
   // received_frame.release();
   dnn_detection->detection_result.detected_objects.clear();
   color_detection->detection_result.contours.clear();
+  lbp_detection->detection_result.detected_objects.clear();
 }
 
 void NinshikiCppNode::set_detection(

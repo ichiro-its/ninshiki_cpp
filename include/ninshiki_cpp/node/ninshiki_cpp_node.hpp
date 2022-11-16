@@ -32,6 +32,7 @@
 #include "ninshiki_cpp/detector/color_detector.hpp"
 #include "ninshiki_cpp/detector/dnn_detector.hpp"
 #include "ninshiki_cpp/detector/lbp_detector.hpp"
+#include "ninshiki_cpp/detector/detector.hpp"
 #include "ninshiki_interfaces/msg/detected_objects.hpp"
 #include "shisen_cpp/shisen_cpp.hpp"
 
