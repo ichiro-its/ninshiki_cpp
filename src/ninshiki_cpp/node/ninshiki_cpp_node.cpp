@@ -69,10 +69,11 @@ void NinshikiCppNode::publish()
 void NinshikiCppNode::set_detection(
   std::shared_ptr<DnnDetector> dnn_detection,
   std::shared_ptr<ColorDetector> color_detection,
-  std::shared_ptr<LBPDetector> lbp_detector)
+  std::shared_ptr<LBPDetector> lbp_detection)
 {
   this->dnn_detection = dnn_detection;
   this->color_detection = color_detection;
+  this->lbp_detection = lbp_detection;
 }
 
 std::string NinshikiCppNode::get_node_prefix()
