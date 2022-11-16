@@ -29,46 +29,22 @@ namespace ninshiki_cpp::node
 {
 
 NinshikiCppNode::NinshikiCppNode(
-  rclcpp::Node::SharedPtr node, std::string topic_name, int frequency)
+  rclcpp::Node::SharedPtr node, std::string topic_name,
+  int frequency, shisen_cpp::Options options)
 : node(node), dnn_detection(nullptr), color_detection(nullptr)
 {
   detected_object_publisher = node->create_publisher<DetectedObjects>(
     get_node_prefix() + "/dnn_detection", 10);
   field_segmentation_publisher = node->create_publisher<Contours>(
-    get_node_prefix() + "/" + "color_detection", 10);
+    get_node_prefix() + "/color_detection", 10);
 
-  image_subscriber = node->create_subscription<Image>(
-    topic_name, 10,
-    [this](const Image::SharedPtr message) {
-      if (!message->data.empty()) {
-        // Determine whether the image is compressed or not
-        if (message->quality < 0) {
-          // Determine the received_frame type from the channel count
-          auto type = CV_8UC1;
-          if (message->channels == 2) {
-            type = CV_8UC2;
-          } else if (message->channels == 3) {
-            type = CV_8UC3;
-          } else if (message->channels == 4) {
-            type = CV_8UC4;
-          }
-          received_frame = cv::Mat(message->rows, message->cols, type);
-
-          // Copy the mat data from the raw image
-          memcpy(received_frame.data, message->data.data(), message->data.size());
-        } else {
-          // Decode the compressed image
-          received_frame = cv::imdecode(message->data, cv::IMREAD_UNCHANGED);
-        }
-
-        cv::cvtColor(received_frame, hsv_frame, cv::COLOR_BGR2HSV);
-      }
-    }
-  );
+  image_provider = std::make_shared<shisen_cpp::camera::ImageProvider>(options);
 
   node_timer = node->create_wall_timer(
     std::chrono::milliseconds(frequency),
     [this]() {
+      image_provider->update_mat();
+      received_frame = image_provider->get_mat();
       if (!received_frame.empty()) {
         publish();
       }
@@ -97,10 +73,6 @@ void NinshikiCppNode::set_detection(
 {
   this->dnn_detection = dnn_detection;
   this->color_detection = color_detection;
-
-  if (this->color_detection != nullptr) {
-
-  }
 }
 
 std::string NinshikiCppNode::get_node_prefix()

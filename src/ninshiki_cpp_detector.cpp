@@ -20,12 +20,16 @@
 
 #include <ninshiki_cpp/ninshiki_cpp.hpp>
 #include <rclcpp/rclcpp.hpp>
+#include <shisen_cpp/camera/node/camera_node.hpp>
+#include <shisen_cpp/camera/provider/image_provider.hpp>
+
 #include <memory>
 #include <string>
 
 int main(int argc, char ** argv)
 {
   rclcpp::init(argc, argv);
+  shisen_cpp::Options options;
 
   // Default Value
   std::string path = "";
@@ -102,9 +106,10 @@ int main(int argc, char ** argv)
     std::cout << "Invalid arguments!\n\n" << help_message << std::endl;
     return 1;
   }
+
   auto node = std::make_shared<rclcpp::Node>("ninshiki_cpp");
   auto ninshiki_cpp_node = std::make_shared<ninshiki_cpp::node::NinshikiCppNode>(
-    node, topic_name, frequency);
+    node, topic_name, frequency, options);
 
   using ColorDetector = ninshiki_cpp::detector::ColorDetector;
   using LBPDetector = ninshiki_cpp::detector::LBPDetector;

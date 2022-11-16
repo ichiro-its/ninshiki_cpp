@@ -44,8 +44,7 @@ namespace ninshiki_cpp::detector
 class ColorDetector : public Detector
 {
 public:
-
-  explicit ColorDetector();
+  ColorDetector();
   ~ColorDetector();
 
   bool load_configuration(const std::string & path);
