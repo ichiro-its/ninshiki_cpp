@@ -29,6 +29,8 @@ namespace ninshiki_cpp
 namespace detector
 {
 
+// DnnDetector::DnnDetector() : Detector() {}
+
 DnnDetector::DnnDetector(bool gpu, bool myriad)
 {
   file_name = static_cast<std::string>(getenv("HOME")) + "/yolo_model/obj.names";

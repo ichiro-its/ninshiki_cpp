@@ -26,8 +26,6 @@
 #include <memory>
 #include <string>
 
-#include "../src/ninshiki_cpp/detector/detector.cpp"
-
 int main(int argc, char ** argv)
 {
   rclcpp::init(argc, argv);

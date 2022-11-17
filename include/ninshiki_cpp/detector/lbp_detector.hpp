@@ -36,8 +36,7 @@ namespace ninshiki_cpp::detector
 class LBPDetector : public Detector
 {
 public:
-    explicit LBPDetector();
-    ~LBPDetector();
+    LBPDetector();
     bool loadClassifier(std::string config_path);
     void detection(cv::Mat input);
 

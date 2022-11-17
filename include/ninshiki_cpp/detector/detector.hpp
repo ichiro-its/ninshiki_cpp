@@ -18,8 +18,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#ifndef NINSHIKI_CPP__DETECTOR__DETECTOR_HPP
-#define NINSHIKI_CPP__DETECTOR__DETECTOR_HPP
+#ifndef NINSHIKI_CPP__DETECTOR__DETECTOR_HPP_
+#define NINSHIKI_CPP__DETECTOR__DETECTOR_HPP_
 
 #include <opencv2/core.hpp>
 #include <opencv2/objdetect.hpp>
@@ -36,17 +36,17 @@ namespace ninshiki_cpp::detector
 class Detector
 {
 public:
-    explicit Detector();
-    virtual ~Detector();
+    virtual ~Detector() {};
+
+    virtual bool loadClassifier(std::string config_path) {};
+    virtual void detection(cv::Mat input) {};
 
     ninshiki_interfaces::msg::DetectedObjects detection_result;
-    virtual bool loadClassifier(std::string config_path);
-    virtual void detection(cv::Mat input);
 
 protected:
+    std::string config_path;
     double img_width;
     double img_height;
-    static std::string config_path;
 };
 
 }

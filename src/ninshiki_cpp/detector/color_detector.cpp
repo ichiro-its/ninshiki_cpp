@@ -33,6 +33,8 @@ namespace ninshiki_cpp
 namespace detector
 {
 
+// ColorDetector::ColorDetector() : Detector() {}
+
 ColorDetector::ColorDetector()
 // : config_path("")
 {

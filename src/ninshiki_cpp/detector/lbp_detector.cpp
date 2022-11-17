@@ -23,7 +23,7 @@
 #include <vector>
 #include <opencv2/imgproc.hpp>
 
-#include "detector.cpp"
+// #include "detector.cpp"
 #include "ninshiki_cpp/detector/lbp_detector.hpp"
 
 namespace ninshiki_cpp
@@ -31,7 +31,10 @@ namespace ninshiki_cpp
 namespace detector
 {
 
-LBPDetector::LBPDetector() {
+// LBPDetector::LBPDetector() : Detector() {}
+
+LBPDetector::LBPDetector()
+{
     config_path = "../../data/" + utils::get_host_name() + "lbp_classifier/ball_cascade.xml";
     classifier_loaded = loadClassifier(config_path);
 }
