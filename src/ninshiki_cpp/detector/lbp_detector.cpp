@@ -35,7 +35,7 @@ namespace detector
 
 LBPDetector::LBPDetector()
 {
-    config_path = "../../data/" + utils::get_host_name() + "lbp_classifier/ball_cascade.xml";
+    config_path = static_cast<std::string>(getenv("HOME")) + "/framework/data/" + utils::get_host_name() + "/lbp_classifier/ball_cascade.xml";
     classifier_loaded = loadClassifier(config_path);
 }
 

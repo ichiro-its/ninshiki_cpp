@@ -1,0 +1,17 @@
+CMake Error at CMakeLists.txt:17 (find_package):
+  By not providing "Findkeisan.cmake" in CMAKE_MODULE_PATH this project has
+  asked CMake to find a package configuration file provided by "keisan", but
+  CMake did not find one.
+
+  Could not find a package configuration file provided by "keisan" with any
+  of the following names:
+
+    keisanConfig.cmake
+    keisan-config.cmake
+
+  Add the installation prefix of "keisan" to CMAKE_PREFIX_PATH or set
+  "keisan_DIR" to a directory containing one of the above files.  If "keisan"
+  provides a separate development package or SDK, be sure it has been
+  installed.
+
+
