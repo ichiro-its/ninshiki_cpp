@@ -1,2 +1,0 @@
-Invoking command in '/home/ichiro/ros2_workspace/src/ninshiki_cpp/build/ninshiki_cpp': CMAKE_PREFIX_PATH=/opt/ros/foxy /usr/bin/cmake /home/ichiro/ros2_workspace/src/ninshiki_cpp -DCMAKE_INSTALL_PREFIX=/home/ichiro/ros2_workspace/src/ninshiki_cpp/install/ninshiki_cpp
-Invoked command in '/home/ichiro/ros2_workspace/src/ninshiki_cpp/build/ninshiki_cpp' returned '1': CMAKE_PREFIX_PATH=/opt/ros/foxy /usr/bin/cmake /home/ichiro/ros2_workspace/src/ninshiki_cpp -DCMAKE_INSTALL_PREFIX=/home/ichiro/ros2_workspace/src/ninshiki_cpp/install/ninshiki_cpp
