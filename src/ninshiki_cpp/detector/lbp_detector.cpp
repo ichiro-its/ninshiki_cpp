@@ -40,8 +40,8 @@ LBPDetector::LBPDetector()
 
 bool LBPDetector::loadClassifier(std::string config_path) {
   if (!cascade_detector_.load(config_path)) {
-      printf("failed to load cascade %s\n", config_path);
-      return false;
+    printf("failed to load cascade %s\n", config_path);
+    return false;
   }
 
   return true;
