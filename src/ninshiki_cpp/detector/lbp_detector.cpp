@@ -49,22 +49,22 @@ bool LBPDetector::loadClassifier(std::string config_path) {
     return true;
 }
 
-void LBPDetector::detection(cv::Mat input)
+void LBPDetector::detection(const cv::Mat & input)
 {
+    if (!classifier_loaded)
+        return;
+
+    cv::Mat gray = input;
+    cv::cvtColor(input, gray, cv::COLOR_BGR2GRAY);
+
     img_width = static_cast<double>(input.cols);
     img_height = static_cast<double>(input.rows);
 
     std::vector<cv::Rect> rects;
-    if (!classifier_loaded)
-        return;
-
-    cv::Mat gray = input.clone();
-    cv::cvtColor(input, gray, cv::COLOR_BGR2GRAY);
 
     cascade_detector_.detectMultiScale(gray, rects, 1.1, 5, 8, cv::Size(5, 5));
 
-    for (auto i = rects.begin(); i != rects.end(); ++i) {
-        cv::Rect rectangle = *i;
+    for (auto& rectangle : rects) {
         ninshiki_interfaces::msg::DetectedObject detection_object;
 
         detection_object.label = "LBPDetector Detected Object";
