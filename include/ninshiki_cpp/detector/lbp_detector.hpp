@@ -38,7 +38,7 @@ class LBPDetector : public Detector
 public:
   LBPDetector();
   bool loadClassifier(std::string config_path);
-  void detection(const cv::Mat & input);
+  void detection(const cv::Mat & input) override;
 
 private:
   bool classifier_loaded;
