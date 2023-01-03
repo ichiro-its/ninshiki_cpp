@@ -119,7 +119,6 @@ int main(int argc, char ** argv)
   auto lbp_detection = std::make_shared<LBPDetector>();
 
   color_detection->load_configuration(path);
-  lbp_detection->loadClassifier(path);
 
   ninshiki_cpp_node->set_detection(dnn_detection, color_detection, lbp_detection);
 
