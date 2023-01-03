@@ -39,7 +39,7 @@ public:
     virtual ~Detector() {};
 
     virtual bool loadClassifier(std::string config_path) {};
-    virtual void detection(cv::Mat input) {};
+    virtual void detection(const cv::Mat & input) {};
 
     ninshiki_interfaces::msg::DetectedObjects detection_result;
 
