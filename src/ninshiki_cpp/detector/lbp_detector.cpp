@@ -63,7 +63,7 @@ void LBPDetector::detection(const cv::Mat & input)
 
   cascade_detector_.detectMultiScale(gray, rects, 1.1, 5, 8, cv::Size(5, 5));
 
-  for (auto& rectangle : rects) {
+  for (auto & rectangle : rects) {
     ninshiki_interfaces::msg::DetectedObject detection_object;
 
     detection_object.label = "LBPDetector Detected Object";
