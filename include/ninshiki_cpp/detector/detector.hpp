@@ -36,19 +36,19 @@ namespace ninshiki_cpp::detector
 class Detector
 {
 public:
-    virtual ~Detector() {};
+  virtual ~Detector() {}
 
-    virtual bool loadClassifier(std::string config_path) {};
-    virtual void detection(const cv::Mat & input) {};
+  virtual bool loadClassifier(std::string config_path) {}
+  virtual void detection(const cv::Mat & input) {}
 
-    ninshiki_interfaces::msg::DetectedObjects detection_result;
+  ninshiki_interfaces::msg::DetectedObjects detection_result;
 
 protected:
-    std::string config_path;
-    double img_width;
-    double img_height;
+  std::string config_path;
+  double img_width;
+  double img_height;
 };
 
-}
+}  // namespace ninshiki_cpp::detector
 
-#endif // NINSHIKI_CPP__DETECTOR__DETECTOR_HPP
+#endif  // NINSHIKI_CPP__DETECTOR__DETECTOR_HPP_

@@ -36,14 +36,15 @@ namespace ninshiki_cpp::detector
 class LBPDetector : public Detector
 {
 public:
-    LBPDetector();
-    bool loadClassifier(std::string config_path);
-    void detection(const cv::Mat & input);
+  LBPDetector();
+  bool loadClassifier(std::string config_path);
+  void detection(const cv::Mat & input);
 
 private:
-    bool classifier_loaded;
-    cv::CascadeClassifier cascade_detector_;
+  bool classifier_loaded;
+  cv::CascadeClassifier cascade_detector_;
 };
-}
 
-#endif // NINSHIKI_CPP__DETECTOR__LBP_DETECTOR_HPP_
+}  // namespace ninshiki_cpp::detector
+
+#endif  // NINSHIKI_CPP__DETECTOR__LBP_DETECTOR_HPP_
