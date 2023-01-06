@@ -111,12 +111,9 @@ int main(int argc, char ** argv)
   auto ninshiki_cpp_node = std::make_shared<ninshiki_cpp::node::NinshikiCppNode>(
     node, topic_name, frequency, options);
 
-  using ColorDetector = ninshiki_cpp::detector::ColorDetector;
-  using LBPDetector = ninshiki_cpp::detector::LBPDetector;
-
   auto dnn_detection = std::make_shared<ninshiki_cpp::detector::DnnDetector>(gpu, myriad);
-  auto color_detection = std::make_shared<ColorDetector>();
-  auto lbp_detection = std::make_shared<LBPDetector>();
+  auto color_detection = std::make_shared<ninshiki_cpp::detector::ColorDetector>();
+  auto lbp_detection = std::make_shared<ninshiki_cpp::detector::LBPDetector>();
 
   color_detection->load_configuration(path);
 
