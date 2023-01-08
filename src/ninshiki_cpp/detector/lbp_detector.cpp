@@ -54,9 +54,11 @@ void LBPDetector::detection(const cv::Mat & input)
     return;
   }
 
+  // Convert input image to grayscale
   cv::Mat gray;
   cv::cvtColor(input, gray, cv::COLOR_BGR2GRAY);
 
+  // Get width and height of image
   img_width = static_cast<double>(input.cols);
   img_height = static_cast<double>(input.rows);
 
@@ -64,6 +66,7 @@ void LBPDetector::detection(const cv::Mat & input)
 
   cascade_detector_.detectMultiScale(gray, rects, 1.1, 5, 8, cv::Size(5, 5));
 
+  // Push detected objects into vector
   for (auto & rectangle : rects) {
     ninshiki_interfaces::msg::DetectedObject detection_object;
 
