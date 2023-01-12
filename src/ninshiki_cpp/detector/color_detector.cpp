@@ -34,7 +34,6 @@ namespace detector
 {
 
 ColorDetector::ColorDetector()
-: config_path("")
 {
   // sync_configuration();
   colors.clear();
@@ -188,11 +187,11 @@ void ColorDetector::find(cv::Mat binary_mat)
     cv::CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
 }
 
-void ColorDetector::detection(cv::Mat image)
+void ColorDetector::detection(const cv::Mat & image)
 {
   // Get width and height from image
-  float img_width = static_cast<float>(image.cols);
-  float img_height = static_cast<float>(image.rows);
+  double img_width = static_cast<double>(image.cols);
+  double img_height = static_cast<double>(image.rows);
 
   // iterate every color in colors
   for (auto & color : colors) {

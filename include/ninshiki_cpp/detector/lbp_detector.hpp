@@ -18,45 +18,33 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#ifndef NINSHIKI_CPP__DETECTOR__DNN_DETECTOR_HPP_
-#define NINSHIKI_CPP__DETECTOR__DNN_DETECTOR_HPP_
+#ifndef NINSHIKI_CPP__DETECTOR__LBP_DETECTOR_HPP_
+#define NINSHIKI_CPP__DETECTOR__LBP_DETECTOR_HPP_
 
-#include <opencv2/dnn.hpp>
-#include <opencv2/imgproc.hpp>
-#include <opencv2/highgui.hpp>
-
-#include <fstream>
-#include <string>
+#include <opencv2/core.hpp>
+#include <opencv2/objdetect.hpp>
 #include <vector>
+#include <string>
 
+#include "ninshiki_cpp/utils/utils.hpp"
 #include "ninshiki_cpp/detector/detector.hpp"
 #include "ninshiki_interfaces/msg/detected_object.hpp"
 #include "ninshiki_interfaces/msg/detected_objects.hpp"
-#include "ninshiki_cpp/utils/utils.hpp"
 
 namespace ninshiki_cpp::detector
 {
-
-class DnnDetector : public Detector
+class LBPDetector : public Detector
 {
 public:
-  explicit DnnDetector(bool gpu = false, bool myriad = false);
-
-  void detection(const cv::Mat & image, float conf_threshold, float nms_threshold);
-  void detect_darknet(const cv::Mat & image, float conf_threshold, float nms_threshold);
-  void detect_tensorflow(const cv::Mat & image, float conf_threshold, float nms_threshold);
+  LBPDetector();
+  bool loadClassifier(std::string config_path);
+  void detection(const cv::Mat & input) override;
 
 private:
-  std::string file_name;
-  std::string model_suffix;
-  std::vector<std::string> classes;
-
-  bool gpu;
-  bool myriad;
-
-  cv::dnn::Net net;
+  bool classifier_loaded;
+  cv::CascadeClassifier cascade_detector_;
 };
 
 }  // namespace ninshiki_cpp::detector
 
-#endif  // NINSHIKI_CPP__DETECTOR__DNN_DETECTOR_HPP_
+#endif  // NINSHIKI_CPP__DETECTOR__LBP_DETECTOR_HPP_

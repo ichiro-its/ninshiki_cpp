@@ -24,6 +24,7 @@ find_package(shisen_interfaces REQUIRED)
 add_library(${PROJECT_NAME} SHARED
   "src/${PROJECT_NAME}/detector/color_detector.cpp"
   "src/${PROJECT_NAME}/detector/dnn_detector.cpp"
+  "src/${PROJECT_NAME}/detector/lbp_detector.cpp"
   "src/${PROJECT_NAME}/node/ninshiki_cpp_node.cpp"
   "src/${PROJECT_NAME}/utils/color.cpp"
   "src/${PROJECT_NAME}/utils/contours.cpp"

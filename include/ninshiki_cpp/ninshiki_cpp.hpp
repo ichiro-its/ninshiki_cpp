@@ -23,6 +23,7 @@
 
 #include "./detector/color_detector.hpp"
 #include "./detector/dnn_detector.hpp"
+#include "./detector/lbp_detector.hpp"
 #include "./node/ninshiki_cpp_node.hpp"
 
 #endif  // NINSHIKI_CPP__NINSHIKI_CPP_HPP_

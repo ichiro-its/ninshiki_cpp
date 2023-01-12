@@ -30,7 +30,9 @@
 
 #include "rclcpp/rclcpp.hpp"
 #include "ninshiki_cpp/detector/color_detector.hpp"
+#include "ninshiki_cpp/detector/detector.hpp"
 #include "ninshiki_cpp/detector/dnn_detector.hpp"
+#include "ninshiki_cpp/detector/lbp_detector.hpp"
 #include "ninshiki_interfaces/msg/detected_objects.hpp"
 #include "shisen_cpp/shisen_cpp.hpp"
 
@@ -42,6 +44,7 @@ class NinshikiCppNode
 public:
   using DnnDetector = ninshiki_cpp::detector::DnnDetector;
   using ColorDetector = ninshiki_cpp::detector::ColorDetector;
+  using LBPDetector = ninshiki_cpp::detector::LBPDetector;
 
   NinshikiCppNode(
     rclcpp::Node::SharedPtr node, std::string topic_name,
@@ -49,7 +52,8 @@ public:
   void publish();
   void set_detection(
     std::shared_ptr<DnnDetector> dnn_detection,
-    std::shared_ptr<ColorDetector> color_detection);
+    std::shared_ptr<ColorDetector> color_detection,
+    std::shared_ptr<LBPDetector> lbp_detection);
 
 private:
   using Contours = ninshiki_interfaces::msg::Contours;
@@ -64,6 +68,7 @@ private:
 
   std::shared_ptr<DnnDetector> dnn_detection;
   std::shared_ptr<ColorDetector> color_detection;
+  std::shared_ptr<LBPDetector> lbp_detection;
   std::shared_ptr<shisen_cpp::camera::ImageProvider> image_provider;
 
   cv::Mat received_frame;
