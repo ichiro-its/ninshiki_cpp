@@ -34,6 +34,7 @@
 #include "ninshiki_cpp/detector/dnn_detector.hpp"
 #include "ninshiki_cpp/detector/lbp_detector.hpp"
 #include "ninshiki_interfaces/msg/detected_objects.hpp"
+#include "shisen_interfaces/msg/image.hpp"
 #include "shisen_cpp/shisen_cpp.hpp"
 
 namespace ninshiki_cpp::node
