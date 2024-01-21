@@ -36,6 +36,7 @@
 #include "ninshiki_interfaces/msg/detected_objects.hpp"
 #include "shisen_interfaces/msg/image.hpp"
 #include "shisen_cpp/shisen_cpp.hpp"
+#include "sensor_msgs/msg/image.hpp"
 
 namespace ninshiki_cpp::node
 {
@@ -55,6 +56,7 @@ public:
     std::shared_ptr<DnnDetector> dnn_detection,
     std::shared_ptr<ColorDetector> color_detection,
     std::shared_ptr<LBPDetector> lbp_detection);
+  void set_image_msg();
 
 private:
   using Contours = ninshiki_interfaces::msg::Contours;
@@ -66,11 +68,13 @@ private:
 
   rclcpp::Publisher<DetectedObjects>::SharedPtr detected_object_publisher;
   rclcpp::Publisher<Contours>::SharedPtr field_segmentation_publisher;
+  rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr image_msg_publisher;
 
   std::shared_ptr<DnnDetector> dnn_detection;
   std::shared_ptr<ColorDetector> color_detection;
   std::shared_ptr<LBPDetector> lbp_detection;
   std::shared_ptr<shisen_cpp::camera::ImageProvider> image_provider;
+  std::shared_ptr<sensor_msgs::msg::Image> image_msg;
 
   cv::Mat received_frame;
   cv::Mat hsv_frame;

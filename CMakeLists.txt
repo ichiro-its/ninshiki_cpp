@@ -16,6 +16,8 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(keisan REQUIRED)
 find_package(ninshiki_interfaces REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(shisen_cpp REQUIRED)
@@ -40,6 +42,8 @@ ament_target_dependencies(${PROJECT_NAME}
   ninshiki_interfaces
   OpenCV
   rclcpp
+  std_msgs
+  sensor_msgs
   shisen_cpp
   shisen_interfaces)
 
@@ -71,6 +75,8 @@ ament_export_dependencies(
   ninshiki_interfaces
   OpenCV
   rclcpp
+  std_msgs
+  sensor_msgs
   shisen_cpp
   shisen_interfaces)
 ament_export_include_directories("include")

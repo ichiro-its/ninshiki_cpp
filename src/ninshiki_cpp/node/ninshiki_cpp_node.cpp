@@ -37,6 +37,8 @@ NinshikiCppNode::NinshikiCppNode(
     get_node_prefix() + "/dnn_detection", 10);
   field_segmentation_publisher = node->create_publisher<Contours>(
     get_node_prefix() + "/color_detection", 10);
+  image_msg_publisher = node->create_publisher<sensor_msgs::msg::Image>(
+    "input", 10);
 
   image_provider = std::make_shared<shisen_cpp::camera::ImageProvider>(options);
 
@@ -63,6 +65,9 @@ void NinshikiCppNode::publish()
   lbp_detection->detection(received_frame);
   detected_object_publisher->publish(lbp_detection->detection_result);
 
+  set_image_msg();
+  image_msg_publisher->publish(*image_msg);
+
   // Clear detection_result
   // received_frame.release();
   dnn_detection->detection_result.detected_objects.clear();
@@ -78,6 +83,17 @@ void NinshikiCppNode::set_detection(
   this->dnn_detection = dnn_detection;
   this->color_detection = color_detection;
   this->lbp_detection = lbp_detection;
+}
+
+void NinshikiCppNode::set_image_msg()
+{
+  this->image_msg->header.stamp = node->get_clock()->now();
+  this->image_msg->header.frame_id = "camera";
+  this->image_msg->width = received_frame.cols;
+  this->image_msg->height = received_frame.rows;
+  this->image_msg->encoding = "bgr8";
+  this->image_msg->data.assign(
+    received_frame.data, received_frame.data + received_frame.total() * received_frame.elemSize());
 }
 
 std::string NinshikiCppNode::get_node_prefix()
