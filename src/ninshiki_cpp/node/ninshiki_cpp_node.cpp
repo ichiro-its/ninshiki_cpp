@@ -87,13 +87,18 @@ void NinshikiCppNode::set_detection(
 
 void NinshikiCppNode::set_image_msg()
 {
-  this->image_msg->header.stamp = node->get_clock()->now();
-  this->image_msg->header.frame_id = "camera";
-  this->image_msg->width = received_frame.cols;
-  this->image_msg->height = received_frame.rows;
-  this->image_msg->encoding = "bgr8";
-  this->image_msg->data.assign(
-    received_frame.data, received_frame.data + received_frame.total() * received_frame.elemSize());
+  if (!this->image_msg)
+  {
+    this->image_msg = std::make_shared<sensor_msgs::msg::Image>();
+  }
+
+  this->cv_image.header.stamp = node->get_clock()->now();
+  this->cv_image.header.frame_id = "camera";
+  this->cv_image.encoding = "bgr8";
+  this->cv_image.image = received_frame;
+
+  // Convert to sensor_msgs::msg::Image
+  this->image_msg = this->cv_image.toImageMsg();
 }
 
 std::string NinshikiCppNode::get_node_prefix()

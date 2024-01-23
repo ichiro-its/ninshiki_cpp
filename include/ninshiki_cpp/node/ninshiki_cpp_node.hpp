@@ -37,6 +37,7 @@
 #include "shisen_interfaces/msg/image.hpp"
 #include "shisen_cpp/shisen_cpp.hpp"
 #include "sensor_msgs/msg/image.hpp"
+#include <cv_bridge/cv_bridge.h>
 
 namespace ninshiki_cpp::node
 {
@@ -74,7 +75,9 @@ private:
   std::shared_ptr<ColorDetector> color_detection;
   std::shared_ptr<LBPDetector> lbp_detection;
   std::shared_ptr<shisen_cpp::camera::ImageProvider> image_provider;
-  std::shared_ptr<sensor_msgs::msg::Image> image_msg;
+
+  sensor_msgs::msg::Image::SharedPtr image_msg;
+  cv_bridge::CvImage cv_image;
 
   cv::Mat received_frame;
   cv::Mat hsv_frame;
