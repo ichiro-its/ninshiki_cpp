@@ -11,33 +11,13 @@ jobs:
         with:
           path: workspace
 
-      - name: Clone Keisan
-        uses: actions/checkout@v4.0.0
-        with:
-          repository: ichiro-its/keisan
-          ref: master
-          path: src/keisan
-
-      - name: Clone Ninshiki Interfaces
-        uses: actions/checkout@v4.0.0
-        with:
-          repository: ichiro-its/ninshiki_interfaces
-          ref: master
-          path: src/ninshiki_interfaces
-
-      - name: Clone Shisen Interfaces
-        uses: actions/checkout@v4.0.0
-        with:
-          repository: ichiro-its/shisen_interfaces
-          ref: master
-          path: src/shisen_interfaces
-
-      - name: Clone Shisen Cpp
-        uses: actions/checkout@v4.0.0
-        with:
-          repository: ichiro-its/shisen_cpp
-          ref: master
-          path: src/shisen_cpp
+      - name: Clone Repositories
+        run: |
+          mkdir -p workspace/src
+          git clone --branch master https://github.com/ichiro-its/keisan workspace/src/keisan
+          git clone --branch master https://github.com/ichiro-its/ninshiki_interfaces workspace/src/ninshiki_interfaces
+          git clone --branch master https://github.com/ichiro-its/shisen_interfaces workspace/src/shisen_interfaces
+          git clone --branch master https://github.com/ichiro-its/shisen_cpp workspace/src/shisen_cpp
 
       - name: Build and test workspace
         uses: ichiro-its/ros2-ws-action@v1.0.0
