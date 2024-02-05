@@ -18,23 +18,22 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
+#include "ninshiki_cpp/detector/dnn_detector.hpp"
+
 #include <map>
 #include <string>
 #include <vector>
-
-#include "ninshiki_cpp/detector/dnn_detector.hpp"
 
 namespace ninshiki_cpp
 {
 namespace detector
 {
 
-DnnDetector::DnnDetector(bool gpu, bool myriad)
+DnnDetector::DnnDetector(bool gpu, bool myriad, int target, int backend)
 {
   file_name = static_cast<std::string>(getenv("HOME")) + "/yolo_model/obj.names";
   std::string config = static_cast<std::string>(getenv("HOME")) + "/yolo_model/config.cfg";
-  std::string model = static_cast<std::string>(getenv("HOME")) +
-    "/yolo_model/yolo_weights.weights";
+  std::string model = static_cast<std::string>(getenv("HOME")) + "/yolo_model/yolo_weights.weights";
   model_suffix = utils::split_string(model, ".");
   net = cv::dnn::readNet(model, config, "");
 
@@ -47,17 +46,8 @@ DnnDetector::DnnDetector(bool gpu, bool myriad)
     classes.push_back(line);
   }
 
-  // Set computation method (gpu, myriad, or CPU)
-  if (gpu) {
-    net.setPreferableBackend(cv::dnn::DNN_BACKEND_CUDA);
-    net.setPreferableTarget(cv::dnn::DNN_TARGET_CUDA);
-  } else if (myriad) {
-    net.setPreferableBackend(cv::dnn::DNN_BACKEND_OPENCV);
-    net.setPreferableTarget(cv::dnn::DNN_TARGET_MYRIAD);
-  } else {
-    net.setPreferableBackend(cv::dnn::DNN_BACKEND_OPENCV);
-    net.setPreferableTarget(cv::dnn::DNN_TARGET_CPU);
-  }
+  net.setPreferableBackend(backend);
+  net.setPreferableTarget(target);
 }
 
 void DnnDetector::detection(const cv::Mat & image, float conf_threshold, float nms_threshold)
@@ -133,8 +123,7 @@ void DnnDetector::detect_darknet(const cv::Mat & image, float conf_threshold, fl
     std::vector<float> nms_confidences;
     std::vector<int> nms_class_ids;
     for (std::map<int, std::vector<size_t>>::iterator it = class2indices.begin();
-      it != class2indices.end(); ++it)
-    {
+         it != class2indices.end(); ++it) {
       std::vector<cv::Rect2d> local_boxes;
       std::vector<float> local_confidences;
       std::vector<size_t> class_indices = it->second;

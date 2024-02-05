@@ -21,18 +21,17 @@
 #ifndef NINSHIKI_CPP__DETECTOR__DNN_DETECTOR_HPP_
 #define NINSHIKI_CPP__DETECTOR__DNN_DETECTOR_HPP_
 
-#include <opencv2/dnn.hpp>
-#include <opencv2/imgproc.hpp>
-#include <opencv2/highgui.hpp>
-
 #include <fstream>
+#include <opencv2/dnn.hpp>
+#include <opencv2/highgui.hpp>
+#include <opencv2/imgproc.hpp>
 #include <string>
 #include <vector>
 
 #include "ninshiki_cpp/detector/detector.hpp"
+#include "ninshiki_cpp/utils/utils.hpp"
 #include "ninshiki_interfaces/msg/detected_object.hpp"
 #include "ninshiki_interfaces/msg/detected_objects.hpp"
-#include "ninshiki_cpp/utils/utils.hpp"
 
 namespace ninshiki_cpp::detector
 {
@@ -40,7 +39,7 @@ namespace ninshiki_cpp::detector
 class DnnDetector : public Detector
 {
 public:
-  explicit DnnDetector(bool gpu = false, bool myriad = false);
+  explicit DnnDetector(bool gpu = false, bool myriad = false, int target, int backend);
 
   void detection(const cv::Mat & image, float conf_threshold, float nms_threshold);
   void detect_darknet(const cv::Mat & image, float conf_threshold, float nms_threshold);
