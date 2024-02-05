@@ -25,19 +25,19 @@ jobs:
           ref: master
           path: src/ninshiki_interfaces
 
-      - name: Clone Shisen Cpp
-        uses: actions/checkout@v4.0.0
-        with:
-          repository: ichiro-its/shisen_cpp
-          ref: master
-          path: src/shisen_cpp
-
       - name: Clone Shisen Interfaces
         uses: actions/checkout@v4.0.0
         with:
           repository: ichiro-its/shisen_interfaces
           ref: master
           path: src/shisen_interfaces
+
+      - name: Clone Shisen Cpp
+        uses: actions/checkout@v4.0.0
+        with:
+          repository: ichiro-its/shisen_cpp
+          ref: master
+          path: src/shisen_cpp
 
       - name: Build and test workspace
         uses: ichiro-its/ros2-ws-action@v1.0.0
