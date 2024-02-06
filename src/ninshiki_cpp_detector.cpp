@@ -18,12 +18,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
+#include <memory>
 #include <ninshiki_cpp/ninshiki_cpp.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <shisen_cpp/camera/node/camera_node.hpp>
 #include <shisen_cpp/camera/provider/image_provider.hpp>
-
-#include <memory>
 #include <string>
 
 int main(int argc, char ** argv)
@@ -35,13 +34,11 @@ int main(int argc, char ** argv)
   std::string path = "";
   std::string topic_name = "";
   std::string detection_method = "yolo";
-  int gpu = 0;
-  int myriad = 0;
   int frequency = 96;
 
   const char * help_message =
     "Usage: ros2 run ninshiki_cpp detector\n"
-    "[topic] [--detector DETECTOR] [--GPU {0,1}] [--MYRIAD {0,1}]\n"
+    "[topic] [--detector DETECTOR]\n"
     "\n"
     "Positional arguments:\n"
     "topic                specify topic name to subscribe\n"
@@ -49,11 +46,14 @@ int main(int argc, char ** argv)
     "Optional arguments:\n"
     "-h, --help           show this help message and exit\n"
     "--detector DETECTOR  chose detector we want to use (yolo / tflite)\n"
-    "--GPU {0,1}          if we chose the computation using GPU\n"
-    "--MYRIAD {0,1}       if we chose the computation using Compute Stick\n"
+    "--backend            chose preferable backend we want to use (default / halide / inference / "
+    "opencv)\n"
+    "--target             chose preferable target we want to use (yolo / tflite)\n"
     "--frequency          specify publisher frequency";
 
   // Handle arguments
+  int backend_id = cv::dnn::DNN_BACKEND_OPENCV;
+  int target_id = cv::dnn::DNN_TARGET_CPU;
   try {
     int i = 1;
     int pos = 0;
@@ -71,25 +71,36 @@ int main(int argc, char ** argv)
             std::cout << "Unknown detector `" << arg << "`!\n\n" << help_message << std::endl;
             return 1;
           }
-        } else if (arg == "--GPU") {
-          int value = atoi(argv[i++]);
-          if (value == 0 || value == 1) {
-            gpu = value;
-          } else {
-            std::cout << "Unknown option for GPU `" << arg << "`!\n\n" << help_message << std::endl;
-            return 1;
-          }
-        } else if (arg == "--MYRIAD") {
-          int value = atoi(argv[i++]);
-          if (value == 0 || value == 1) {
-            myriad = value;
-          } else {
-            std::cout << "Unknown option for MYRIAD `" << arg << "`!\n\n" <<
-              help_message << std::endl;
-            return 1;
-          }
         } else if (arg == "--frequency") {
           frequency = atoi(argv[i++]);
+        } else if (arg == "--backend") {
+          std::string value = argv[i++];
+          if (value == "default") {
+            backend_id = cv::dnn::DNN_BACKEND_DEFAULT;
+          } else if (value == "halide") {
+            backend_id = cv::dnn::DNN_BACKEND_HALIDE;
+          } else if (value == "inference") {
+            backend_id = cv::dnn::DNN_BACKEND_INFERENCE_ENGINE;
+          } else if (value == "opencv") {
+            backend_id = cv::dnn::DNN_BACKEND_OPENCV;
+          } else {
+            std::cout << "Unknown backend `" << arg << "`!\n\n" << help_message << std::endl;
+            return 1;
+          }
+        } else if (arg == "--target") {
+          std::string value = argv[i++];
+          if (value == "cpu") {
+            backend_id = cv::dnn::DNN_TARGET_CPU;
+          } else if (value == "opencl") {
+            backend_id = cv::dnn::DNN_TARGET_OPENCL;
+          } else if (value == "opencl-fp16") {
+            backend_id = cv::dnn::DNN_TARGET_OPENCL_FP16;
+          } else if (value == "fpga") {
+            backend_id = cv::dnn::DNN_TARGET_FPGA;
+          } else {
+            std::cout << "Unknown targets `" << arg << "`!\n\n" << help_message << std::endl;
+            return 1;
+          }
         } else {
           std::cout << "Unknown argument `" << arg << "`!\n\n" << help_message << std::endl;
           return 1;
@@ -108,10 +119,10 @@ int main(int argc, char ** argv)
   }
 
   auto node = std::make_shared<rclcpp::Node>("ninshiki_cpp");
-  auto ninshiki_cpp_node = std::make_shared<ninshiki_cpp::node::NinshikiCppNode>(
-    node, topic_name, frequency, options);
+  auto ninshiki_cpp_node =
+    std::make_shared<ninshiki_cpp::node::NinshikiCppNode>(node, topic_name, frequency, options);
 
-  auto dnn_detection = std::make_shared<ninshiki_cpp::detector::DnnDetector>(gpu, myriad);
+  auto dnn_detection = std::make_shared<ninshiki_cpp::detector::DnnDetector>(target_id, backend_id);
   auto color_detection = std::make_shared<ninshiki_cpp::detector::ColorDetector>();
   auto lbp_detection = std::make_shared<ninshiki_cpp::detector::LBPDetector>();
 
