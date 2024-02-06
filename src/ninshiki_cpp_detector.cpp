@@ -34,8 +34,6 @@ int main(int argc, char ** argv)
   std::string path = "";
   std::string topic_name = "";
   std::string detection_method = "yolo";
-  int gpu = 0;
-  int myriad = 0;
   int frequency = 96;
 
   const char * help_message =
@@ -124,8 +122,7 @@ int main(int argc, char ** argv)
   auto ninshiki_cpp_node =
     std::make_shared<ninshiki_cpp::node::NinshikiCppNode>(node, topic_name, frequency, options);
 
-  auto dnn_detection =
-    std::make_shared<ninshiki_cpp::detector::DnnDetector>(gpu, myriad, target_id, backend_id);
+  auto dnn_detection = std::make_shared<ninshiki_cpp::detector::DnnDetector>(target_id, backend_id);
   auto color_detection = std::make_shared<ninshiki_cpp::detector::ColorDetector>();
   auto lbp_detection = std::make_shared<ninshiki_cpp::detector::LBPDetector>();
 

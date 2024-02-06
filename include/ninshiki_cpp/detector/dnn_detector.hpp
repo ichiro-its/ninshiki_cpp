@@ -39,7 +39,7 @@ namespace ninshiki_cpp::detector
 class DnnDetector : public Detector
 {
 public:
-  explicit DnnDetector(bool gpu = false, bool myriad = false, int target, int backend);
+  explicit DnnDetector(int target, int backend);
 
   void detection(const cv::Mat & image, float conf_threshold, float nms_threshold);
   void detect_darknet(const cv::Mat & image, float conf_threshold, float nms_threshold);
@@ -50,8 +50,7 @@ private:
   std::string model_suffix;
   std::vector<std::string> classes;
 
-  bool gpu;
-  bool myriad;
+  int dnn_backend;
 
   cv::dnn::Net net;
 };
