@@ -42,6 +42,7 @@ public:
 
   std::vector<std::vector<cv::Point>> get_contours();
   void set_contours(std::vector<std::vector<cv::Point>> contours);
+  void add_contour(std::vector<cv::Point> contour);
 
   void set_name(std::string contours_name);
 

@@ -81,6 +81,11 @@ void Contours::set_contours(std::vector<std::vector<cv::Point>> contours)
   this->contours = contours;
 }
 
+void Contours::add_contour(std::vector<cv::Point> contour)
+{
+  this->contours.push_back(contour);
+}
+
 void Contours::set_name(std::string contours_name)
 {
   name = contours_name;
