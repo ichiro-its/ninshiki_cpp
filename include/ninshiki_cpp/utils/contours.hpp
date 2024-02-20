@@ -37,12 +37,12 @@ public:
   explicit Contours(std::vector<std::vector<cv::Point>> contours);
   explicit Contours(cv::Mat binary_mat);
 
+  std::vector<std::vector<cv::Point>> contours;
+
   cv::Mat get_binary_mat(cv::Size mat_size);
   cv::Mat get_binary_mat_line(cv::Size mat_size, int line_size);
 
   std::vector<std::vector<cv::Point>> get_contours();
-  void set_contours(std::vector<std::vector<cv::Point>> contours);
-  void add_contour(std::vector<cv::Point> contour);
 
   void set_name(std::string contours_name);
 
@@ -84,7 +84,6 @@ public:
 
 private:
   std::vector<cv::Point> get_all_point_contour();
-  std::vector<std::vector<cv::Point>> contours;
   std::string name;
 };
 
