@@ -42,8 +42,6 @@ public:
   cv::Mat get_binary_mat(cv::Size mat_size);
   cv::Mat get_binary_mat_line(cv::Size mat_size, int line_size);
 
-  std::vector<std::vector<cv::Point>> get_contours();
-
   void set_name(std::string contours_name);
 
   void find(cv::Mat binary_mat);
