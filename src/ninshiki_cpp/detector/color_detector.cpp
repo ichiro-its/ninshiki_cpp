@@ -62,10 +62,9 @@ bool ColorDetector::load_configuration(const std::string & path)
   nlohmann::json config = nlohmann::json::parse(input);
   for (auto & item : config.items()) {
     // Get all config
-    std::string name = item.key();
     try {
       utils::Color color(
-        name,
+        item.key(),
         item.value().at("min_hsv")[0],
         item.value().at("max_hsv")[0],
         item.value().at("min_hsv")[1],
