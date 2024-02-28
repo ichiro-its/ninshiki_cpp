@@ -32,7 +32,7 @@ int main(int argc, char ** argv)
   shisen_cpp::Options options;
 
   // Default Value
-  std::string path = "";
+  std::string path = "./src/ninshiki_cpp/data";
   std::string topic_name = "";
   std::string detection_method = "yolo";
   int gpu = 0;

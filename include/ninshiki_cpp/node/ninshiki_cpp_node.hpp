@@ -59,18 +59,19 @@ public:
 private:
   using Contours = ninshiki_interfaces::msg::Contours;
   using DetectedObjects = ninshiki_interfaces::msg::DetectedObjects;
-  using Image = shisen_interfaces::msg::Image;
+  using Image = sensor_msgs::msg::Image;
 
   rclcpp::Node::SharedPtr node;
   rclcpp::TimerBase::SharedPtr node_timer;
 
   rclcpp::Publisher<DetectedObjects>::SharedPtr detected_object_publisher;
   rclcpp::Publisher<Contours>::SharedPtr field_segmentation_publisher;
+  rclcpp::Subscription<Image>::SharedPtr image_subscriber;
 
   std::shared_ptr<DnnDetector> dnn_detection;
   std::shared_ptr<ColorDetector> color_detection;
   std::shared_ptr<LBPDetector> lbp_detection;
-  std::shared_ptr<shisen_cpp::camera::ImageProvider> image_provider;
+  std::shared_ptr<shisen_cpp::camera::CameraNode> camera_node;
 
   cv::Mat received_frame;
   cv::Mat hsv_frame;

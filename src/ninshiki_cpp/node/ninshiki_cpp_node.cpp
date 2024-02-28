@@ -38,14 +38,18 @@ NinshikiCppNode::NinshikiCppNode(
   field_segmentation_publisher = node->create_publisher<Contours>(
     get_node_prefix() + "/color_detection", 10);
 
-  image_provider = std::make_shared<shisen_cpp::camera::ImageProvider>(options);
+  image_subscriber =
+    node->create_subscription<Image>("camera/image", 10, [this](const Image::SharedPtr message) {
+      if (!message->data.empty()) {
+        received_frame = cv_bridge::toCvShare(message, "bgr8")->image;
+      }
+    });
 
   node_timer = node->create_wall_timer(
     std::chrono::milliseconds(frequency),
     [this]() {
-      image_provider->update_mat();
-      received_frame = image_provider->get_mat();
       if (!received_frame.empty()) {
+        cv::cvtColor(received_frame, hsv_frame, cv::COLOR_BGR2HSV);
         publish();
       }
     }
