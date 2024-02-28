@@ -71,7 +71,6 @@ private:
   std::shared_ptr<DnnDetector> dnn_detection;
   std::shared_ptr<ColorDetector> color_detection;
   std::shared_ptr<LBPDetector> lbp_detection;
-  std::shared_ptr<shisen_cpp::camera::CameraNode> camera_node;
 
   cv::Mat received_frame;
   cv::Mat hsv_frame;
