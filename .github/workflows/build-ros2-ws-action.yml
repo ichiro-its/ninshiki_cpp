@@ -24,11 +24,11 @@ jobs:
           repository: ichiro-its/shisen_interfaces
           path: shisen_interfaces
 
-      - name: Checkout Kansei Interfaces
+      - name: Checkout Shisen Interfaces
         uses: actions/checkout@v2.3.4
         with:
-          repository: ichiro-its/kansei_interfaces
-          path: kansei_interfaces
+          repository: ichiro-its/shisen_interfaces
+          path: shisen_interfaces
 
       - name: install opencv contrib
         run: |
