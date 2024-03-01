@@ -21,6 +21,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <cv_bridge/cv_bridge.hpp>
 #include "ninshiki_cpp/node/ninshiki_cpp_node.hpp"
 
 using namespace std::chrono_literals;

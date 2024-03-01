@@ -20,6 +20,7 @@ find_package(OpenCV REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(shisen_cpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(cv_bridge REQUIRED)
 
 add_library(${PROJECT_NAME} SHARED
   "src/${PROJECT_NAME}/detector/color_detector.cpp"
@@ -41,7 +42,8 @@ ament_target_dependencies(${PROJECT_NAME}
   OpenCV
   rclcpp
   shisen_cpp
-  sensor_msgs)
+  sensor_msgs
+  cv_bridge)
 
 install(DIRECTORY "include" DESTINATION ".")
 
@@ -72,7 +74,8 @@ ament_export_dependencies(
   OpenCV
   rclcpp
   shisen_cpp
-  sensor_msgs)
+  sensor_msgs
+  cv_bridge)
 ament_export_include_directories("include")
 ament_export_libraries(${PROJECT_NAME})
 ament_package()
