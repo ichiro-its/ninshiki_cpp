@@ -29,12 +29,12 @@
 #include <string>
 
 #include "rclcpp/rclcpp.hpp"
+#include "sensor_msgs/msg/image.hpp"
 #include "ninshiki_cpp/detector/color_detector.hpp"
 #include "ninshiki_cpp/detector/detector.hpp"
 #include "ninshiki_cpp/detector/dnn_detector.hpp"
 #include "ninshiki_cpp/detector/lbp_detector.hpp"
 #include "ninshiki_interfaces/msg/detected_objects.hpp"
-#include "shisen_interfaces/msg/image.hpp"
 #include "shisen_cpp/shisen_cpp.hpp"
 
 namespace ninshiki_cpp::node
@@ -48,7 +48,7 @@ public:
   using LBPDetector = ninshiki_cpp::detector::LBPDetector;
 
   NinshikiCppNode(
-    rclcpp::Node::SharedPtr node, std::string topic_name,
+    rclcpp::Node::SharedPtr node,
     int frequency, shisen_cpp::Options options);
   void publish();
   void set_detection(

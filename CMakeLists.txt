@@ -19,7 +19,7 @@ find_package(ninshiki_interfaces REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(shisen_cpp REQUIRED)
-find_package(shisen_interfaces REQUIRED)
+find_package(sensor_msgs REQUIRED)
 
 add_library(${PROJECT_NAME} SHARED
   "src/${PROJECT_NAME}/detector/color_detector.cpp"
@@ -41,7 +41,7 @@ ament_target_dependencies(${PROJECT_NAME}
   OpenCV
   rclcpp
   shisen_cpp
-  shisen_interfaces)
+  sensor_msgs)
 
 install(DIRECTORY "include" DESTINATION ".")
 
@@ -72,7 +72,7 @@ ament_export_dependencies(
   OpenCV
   rclcpp
   shisen_cpp
-  shisen_interfaces)
+  sensor_msgs)
 ament_export_include_directories("include")
 ament_export_libraries(${PROJECT_NAME})
 ament_package()

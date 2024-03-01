@@ -20,8 +20,6 @@
 
 #include <ninshiki_cpp/ninshiki_cpp.hpp>
 #include <rclcpp/rclcpp.hpp>
-#include <shisen_cpp/camera/node/camera_node.hpp>
-#include <shisen_cpp/camera/provider/image_provider.hpp>
 
 #include <memory>
 #include <string>
@@ -32,7 +30,7 @@ int main(int argc, char ** argv)
   shisen_cpp::Options options;
 
   // Default Value
-  std::string path = "./src/ninshiki_cpp/data";
+  std::string path = "";
   std::string topic_name = "";
   std::string detection_method = "yolo";
   int gpu = 0;
@@ -95,9 +93,6 @@ int main(int argc, char ** argv)
           return 1;
         }
       } else if (pos == 0) {
-        topic_name = arg;
-        ++pos;
-      } else if (pos == 1) {
         path = arg;
         ++pos;
       }
@@ -109,7 +104,7 @@ int main(int argc, char ** argv)
 
   auto node = std::make_shared<rclcpp::Node>("ninshiki_cpp");
   auto ninshiki_cpp_node = std::make_shared<ninshiki_cpp::node::NinshikiCppNode>(
-    node, topic_name, frequency, options);
+    node, frequency, options);
 
   auto dnn_detection = std::make_shared<ninshiki_cpp::detector::DnnDetector>(gpu, myriad);
   auto color_detection = std::make_shared<ninshiki_cpp::detector::ColorDetector>();
