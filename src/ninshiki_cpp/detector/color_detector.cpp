@@ -64,7 +64,7 @@ bool ColorDetector::load_configuration(const std::string & path)
     // Get all config
     try {
       utils::Color color(
-        item.value().at("name"),
+        item.key(),
         item.value().at("min_hsv")[0],
         item.value().at("max_hsv")[0],
         item.value().at("min_hsv")[1],
