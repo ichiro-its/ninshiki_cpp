@@ -38,7 +38,7 @@ Contours::Contours()
 
 Contours::Contours(std::vector<std::vector<cv::Point>> contours)
 {
-  set_contours(contours);
+  contours = contours;
 }
 
 Contours::Contours(cv::Mat binary_mat)
@@ -69,16 +69,6 @@ cv::Mat Contours::get_binary_mat_line(cv::Size mat_size, int line_size)
   }
 
   return binary_mat;
-}
-
-std::vector<std::vector<cv::Point>> Contours::get_contours()
-{
-  return contours;
-}
-
-void Contours::set_contours(std::vector<std::vector<cv::Point>> contours)
-{
-  this->contours = contours;
 }
 
 void Contours::set_name(std::string contours_name)
