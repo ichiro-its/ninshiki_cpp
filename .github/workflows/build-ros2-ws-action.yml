@@ -18,12 +18,6 @@ jobs:
         with:
           path: shisen_cpp
 
-      - name: Checkout Shisen Interface
-        uses: actions/checkout@v2.3.4
-        with:
-          repository: ichiro-its/shisen_interfaces
-          path: shisen_interfaces
-
       - name: Checkout Shisen Interfaces
         uses: actions/checkout@v2.3.4
         with:
