@@ -14,27 +14,11 @@ jobs:
         with:
           path: shisen_cpp
  
-      - name: Checkout Shisen Interfaces
-        uses: actions/checkout@v4.1.1
-        with:
-          repository: ichiro-its/shisen_interfaces
-          path: shisen_interfaces
-
-      - name: Checkout Shisen Cpp
-        uses: actions/checkout@v4.1.1
-        with:
-          repository: ichiro-its/shisen_cpp
-          path: shisen_cpp
-
-      - name: install opencv contrib
+      - name: Checkout Dependencies
         run: |
-          sudo apt install libopencv-contrib-dev -y
-
-      - name: Checkout Keisan
-        uses: actions/checkout@v4.1.1
-        with:
-          repository: ichiro-its/keisan
-          path: keisan
+          git clone https://github.com/ichiro-its/shisen_interfaces.git
+          git clone https://github.com/ichiro-its/shisen_cpp.git
+          git clone https://github.com/ichiro-its/keisan.git
 
       - name: Setup workspace
         uses: ichiro-its/ros2-ws-action/setup@v1.0.1
