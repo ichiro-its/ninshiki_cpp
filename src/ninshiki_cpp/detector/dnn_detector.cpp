@@ -164,10 +164,10 @@ void DnnDetector::detect_darknet(const cv::Mat & image, float conf_threshold, fl
         ninshiki_interfaces::msg::DetectedObject detection_object;
         detection_object.label = classes[class_ids[i]];
         detection_object.score = confidences[i];
-        detection_object.left = box.x / img_width;
-        detection_object.top = box.y / img_height;
-        detection_object.right = (box.x + box.width) / img_width;
-        detection_object.bottom = (box.y + box.height) / img_height;
+        detection_object.left = box.x;
+        detection_object.top = box.y;
+        detection_object.right = box.width;
+        detection_object.bottom = box.height;
 
         detection_result.detected_objects.push_back(detection_object);
       }

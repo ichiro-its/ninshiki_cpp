@@ -21,6 +21,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <cv_bridge/cv_bridge.hpp>
 #include "ninshiki_cpp/node/ninshiki_cpp_node.hpp"
 
 using namespace std::chrono_literals;
@@ -29,23 +30,27 @@ namespace ninshiki_cpp::node
 {
 
 NinshikiCppNode::NinshikiCppNode(
-  rclcpp::Node::SharedPtr node, std::string topic_name,
+  rclcpp::Node::SharedPtr node,
   int frequency, shisen_cpp::Options options)
-: node(node), dnn_detection(nullptr), color_detection(nullptr)
+: node(node), dnn_detection(nullptr), color_detection(nullptr), lbp_detection(nullptr)
 {
   detected_object_publisher = node->create_publisher<DetectedObjects>(
     get_node_prefix() + "/dnn_detection", 10);
   field_segmentation_publisher = node->create_publisher<Contours>(
     get_node_prefix() + "/color_detection", 10);
 
-  image_provider = std::make_shared<shisen_cpp::camera::ImageProvider>(options);
+  image_subscriber =
+    node->create_subscription<Image>("camera/image", 10, [this](const Image::SharedPtr message) {
+      if (!message->data.empty()) {
+        received_frame = cv_bridge::toCvShare(message, "bgr8")->image;
+      }
+    });
 
   node_timer = node->create_wall_timer(
     std::chrono::milliseconds(frequency),
     [this]() {
-      image_provider->update_mat();
-      received_frame = image_provider->get_mat();
       if (!received_frame.empty()) {
+        cv::cvtColor(received_frame, hsv_frame, cv::COLOR_BGR2HSV);
         publish();
       }
     }
@@ -64,7 +69,7 @@ void NinshikiCppNode::publish()
   detected_object_publisher->publish(lbp_detection->detection_result);
 
   // Clear detection_result
-  // received_frame.release();
+  received_frame.release();
   dnn_detection->detection_result.detected_objects.clear();
   color_detection->detection_result.contours.clear();
   lbp_detection->detection_result.detected_objects.clear();
