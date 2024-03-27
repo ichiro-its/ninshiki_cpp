@@ -39,10 +39,11 @@ int main(int argc, char ** argv)
 
   const char * help_message =
     "Usage: ros2 run ninshiki_cpp detector\n"
-    "[topic] [--detector DETECTOR] [--GPU {0,1}] [--MYRIAD {0,1}]\n"
+    "[path] [--detector DETECTOR] [--GPU {0,1}] [--MYRIAD {0,1}]\n"
     "\n"
+    ""
     "Positional arguments:\n"
-    "topic                specify topic name to subscribe\n"
+    "path                 path to detection configuration\n"
     "\n"
     "Optional arguments:\n"
     "-h, --help           show this help message and exit\n"
@@ -53,6 +54,9 @@ int main(int argc, char ** argv)
 
   // Handle arguments
   try {
+    if (argc < 2) {
+      throw std::runtime_error("");
+    }
     int i = 1;
     int pos = 0;
     while (i < argc) {
