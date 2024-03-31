@@ -55,7 +55,8 @@ int main(int argc, char ** argv)
   // Handle arguments
   try {
     if (argc < 2) {
-      throw std::runtime_error("");
+      std::cerr << "Argument needed!\n\n" << help_message << std::endl;
+      return 1;
     }
     int i = 1;
     int pos = 0;
