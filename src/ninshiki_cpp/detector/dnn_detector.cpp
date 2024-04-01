@@ -55,7 +55,7 @@ DnnDetector::DnnDetector(bool gpu, bool myriad)
     net.setPreferableBackend(cv::dnn::DNN_BACKEND_OPENCV);
     net.setPreferableTarget(cv::dnn::DNN_TARGET_MYRIAD);
   } else {
-    net.setPreferableBackend(cv::dnn::DNN_BACKEND_OPENCV);
+    net.setPreferableBackend(cv::dnn::DNN_BACKEND_INFERENCE_ENGINE);
     net.setPreferableTarget(cv::dnn::DNN_TARGET_CPU);
   }
 }
@@ -75,7 +75,7 @@ void DnnDetector::detect_darknet(const cv::Mat & image, float conf_threshold, fl
 
   // Create a 4D blob from a frame
   static cv::Mat blob;
-  cv::Size input_size = cv::Size(416, 416);
+  cv::Size input_size = cv::Size(320, 320);
   cv::dnn::blobFromImage(image, blob, 1.0, input_size, cv::Scalar(), true, false, CV_8U);
 
   net.setInput(blob, "", 0.00392, cv::Scalar(0, 0, 0, 0));
