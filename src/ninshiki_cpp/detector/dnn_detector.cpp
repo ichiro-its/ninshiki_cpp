@@ -76,7 +76,7 @@ void DnnDetector::detect_darknet(const cv::Mat & image, float conf_threshold, fl
   // Create a 4D blob from a frame
   static cv::Mat blob;
   cv::Size input_size = cv::Size(320, 320);
-  cv::dnn::blobFromImage(image, blob, 1.0, input_size, cv::Scalar(), true, false, CV_8U);
+  cv::dnn::blobFromImage(image, blob, 1.0, input_size, cv::Scalar(), false, false, CV_8U);
 
   net.setInput(blob, "", 0.00392, cv::Scalar(0, 0, 0, 0));
   std::vector<cv::Mat> outs;
