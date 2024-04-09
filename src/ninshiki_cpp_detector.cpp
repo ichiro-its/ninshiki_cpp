@@ -20,8 +20,6 @@
 
 #include <ninshiki_cpp/ninshiki_cpp.hpp>
 #include <rclcpp/rclcpp.hpp>
-#include <shisen_cpp/camera/node/camera_node.hpp>
-#include <shisen_cpp/camera/provider/image_provider.hpp>
 
 #include <memory>
 #include <string>
@@ -41,10 +39,11 @@ int main(int argc, char ** argv)
 
   const char * help_message =
     "Usage: ros2 run ninshiki_cpp detector\n"
-    "[topic] [--detector DETECTOR] [--GPU {0,1}] [--MYRIAD {0,1}]\n"
+    "[path] [--detector DETECTOR] [--GPU {0,1}] [--MYRIAD {0,1}]\n"
     "\n"
+    ""
     "Positional arguments:\n"
-    "topic                specify topic name to subscribe\n"
+    "path                 path to detection configuration\n"
     "\n"
     "Optional arguments:\n"
     "-h, --help           show this help message and exit\n"
@@ -55,6 +54,10 @@ int main(int argc, char ** argv)
 
   // Handle arguments
   try {
+    if (argc < 2) {
+      std::cerr << "Argument needed!\n\n" << help_message << std::endl;
+      return 1;
+    }
     int i = 1;
     int pos = 0;
     while (i < argc) {
@@ -95,9 +98,6 @@ int main(int argc, char ** argv)
           return 1;
         }
       } else if (pos == 0) {
-        topic_name = arg;
-        ++pos;
-      } else if (pos == 1) {
         path = arg;
         ++pos;
       }
@@ -109,7 +109,7 @@ int main(int argc, char ** argv)
 
   auto node = std::make_shared<rclcpp::Node>("ninshiki_cpp");
   auto ninshiki_cpp_node = std::make_shared<ninshiki_cpp::node::NinshikiCppNode>(
-    node, topic_name, frequency, options);
+    node, frequency, options);
 
   auto dnn_detection = std::make_shared<ninshiki_cpp::detector::DnnDetector>(gpu, myriad);
   auto color_detection = std::make_shared<ninshiki_cpp::detector::ColorDetector>();
