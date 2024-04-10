@@ -36,7 +36,7 @@ NinshikiCppNode::NinshikiCppNode(
 {
   detected_object_publisher = node->create_publisher<DetectedObjects>(
     get_node_prefix() + "/dnn_detection", 10);
-  field_segmentation_publisher = node->create_publisher<Contours>(
+  color_segmentation_publisher = node->create_publisher<Contours>(
     get_node_prefix() + "/color_detection", 10);
 
   image_subscriber =
@@ -63,7 +63,7 @@ void NinshikiCppNode::publish()
   detected_object_publisher->publish(dnn_detection->detection_result);
 
   color_detection->detection(hsv_frame);
-  field_segmentation_publisher->publish(color_detection->detection_result);
+  color_segmentation_publisher->publish(color_detection->detection_result);
 
   lbp_detection->detection(received_frame);
   detected_object_publisher->publish(lbp_detection->detection_result);
