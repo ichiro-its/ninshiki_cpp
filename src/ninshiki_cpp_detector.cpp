@@ -28,8 +28,12 @@
 
 int main(int argc, char ** argv)
 {
+  std::cout << "[DEBUG A]" << std::endl;
+
   rclcpp::init(argc, argv);
   shisen_cpp::Options options;
+
+  std::cout << "[DEBUG B]" << std::endl;
 
   // Default Value
   std::string path = "";
@@ -38,6 +42,8 @@ int main(int argc, char ** argv)
   int gpu = 0;
   int myriad = 0;
   int frequency = 96;
+
+  std::cout << "[DEBUG C]" << std::endl;
 
   const char * help_message =
     "Usage: ros2 run ninshiki_cpp detector\n"
@@ -107,20 +113,33 @@ int main(int argc, char ** argv)
     return 1;
   }
 
+  std::cout << "[DEBUG D]" << std::endl;
+
   auto node = std::make_shared<rclcpp::Node>("ninshiki_cpp");
+
+  std::cout << "[DEBUG D 2]" << std::endl;
+
   auto ninshiki_cpp_node = std::make_shared<ninshiki_cpp::node::NinshikiCppNode>(
-    node, topic_name, frequency, options);
+    node, topic_name, frequency, options, path);
+
+  std::cout << "[DEBUG E]" << std::endl;
 
   auto dnn_detection = std::make_shared<ninshiki_cpp::detector::DnnDetector>(gpu, myriad);
   auto color_detection = std::make_shared<ninshiki_cpp::detector::ColorDetector>();
   auto lbp_detection = std::make_shared<ninshiki_cpp::detector::LBPDetector>();
 
-  color_detection->load_configuration(path);
+  std::cout << "[DEBUG F]" << std::endl;
 
-  ninshiki_cpp_node->set_detection(dnn_detection, color_detection, lbp_detection, path);
+  color_detection->load_configuration(path);
+  std::cout << "[DEBUG G]" << std::endl;
+
+  ninshiki_cpp_node->set_detection(dnn_detection, color_detection, lbp_detection);
+  std::cout << "[DEBUG H]" << std::endl;
+
 
   rclcpp::spin(node);
   rclcpp::shutdown();
 
+  std::cout << "[DEBUG I]" << std::endl;
   return 0;
 }

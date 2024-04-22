@@ -33,7 +33,7 @@ void CallDataSaveColorSetting::HandleRequest()
     // nlohmann::json color_data = nlohmann::json::parse(request_.json_color());
 
     std::string json_string = request_.json_color();
-    std::replace(json_string.begin(), json_string.end(), '\\', ' ');
+    // std::replace(json_string.begin(), json_string.end(), '\\', ' ');
     nlohmann::json color_data = nlohmann::json::parse(json_string);
 
     config.save_color_setting(color_data);

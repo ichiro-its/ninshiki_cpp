@@ -50,11 +50,11 @@ public:
 
   NinshikiCppNode(
     rclcpp::Node::SharedPtr node, std::string topic_name, int frequency,
-    shisen_cpp::Options options);
+    shisen_cpp::Options options, std::string path);
   void publish();
   void set_detection(
     std::shared_ptr<DnnDetector> dnn_detection, std::shared_ptr<ColorDetector> color_detection,
-    std::shared_ptr<LBPDetector> lbp_detection, std::string path);
+    std::shared_ptr<LBPDetector> lbp_detection);
 
 private:
   using Contours = ninshiki_interfaces::msg::Contours;
