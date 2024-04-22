@@ -29,6 +29,7 @@
 #include <string>
 
 #include "rclcpp/rclcpp.hpp"
+#include "ninshiki_cpp/config/grpc/config.hpp"
 #include "ninshiki_cpp/detector/color_detector.hpp"
 #include "ninshiki_cpp/detector/detector.hpp"
 #include "ninshiki_cpp/detector/dnn_detector.hpp"
@@ -48,13 +49,12 @@ public:
   using LBPDetector = ninshiki_cpp::detector::LBPDetector;
 
   NinshikiCppNode(
-    rclcpp::Node::SharedPtr node, std::string topic_name,
-    int frequency, shisen_cpp::Options options);
+    rclcpp::Node::SharedPtr node, std::string topic_name, int frequency,
+    shisen_cpp::Options options);
   void publish();
   void set_detection(
-    std::shared_ptr<DnnDetector> dnn_detection,
-    std::shared_ptr<ColorDetector> color_detection,
-    std::shared_ptr<LBPDetector> lbp_detection);
+    std::shared_ptr<DnnDetector> dnn_detection, std::shared_ptr<ColorDetector> color_detection,
+    std::shared_ptr<LBPDetector> lbp_detection, std::string path);
 
 private:
   using Contours = ninshiki_interfaces::msg::Contours;
@@ -67,10 +67,13 @@ private:
   rclcpp::Publisher<DetectedObjects>::SharedPtr detected_object_publisher;
   rclcpp::Publisher<Contours>::SharedPtr field_segmentation_publisher;
 
+  ConfigGrpc config_grpc;
+
   std::shared_ptr<DnnDetector> dnn_detection;
   std::shared_ptr<ColorDetector> color_detection;
   std::shared_ptr<LBPDetector> lbp_detection;
   std::shared_ptr<shisen_cpp::camera::ImageProvider> image_provider;
+  std::string path;
 
   cv::Mat received_frame;
   cv::Mat hsv_frame;

@@ -117,7 +117,7 @@ int main(int argc, char ** argv)
 
   color_detection->load_configuration(path);
 
-  ninshiki_cpp_node->set_detection(dnn_detection, color_detection, lbp_detection);
+  ninshiki_cpp_node->set_detection(dnn_detection, color_detection, lbp_detection, path);
 
   rclcpp::spin(node);
   rclcpp::shutdown();

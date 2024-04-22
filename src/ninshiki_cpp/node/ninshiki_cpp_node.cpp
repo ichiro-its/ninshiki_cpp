@@ -50,6 +50,9 @@ NinshikiCppNode::NinshikiCppNode(
       }
     }
   );
+
+  config_grpc.Run(5757, path, color_detection);
+  RCLCPP_INFO(rclcpp::get_logger("GrpcServers"), "grpc running");
 }
 
 void NinshikiCppNode::publish()
@@ -73,11 +76,13 @@ void NinshikiCppNode::publish()
 void NinshikiCppNode::set_detection(
   std::shared_ptr<DnnDetector> dnn_detection,
   std::shared_ptr<ColorDetector> color_detection,
-  std::shared_ptr<LBPDetector> lbp_detection)
+  std::shared_ptr<LBPDetector> lbp_detection,
+  std::string path)
 {
   this->dnn_detection = dnn_detection;
   this->color_detection = color_detection;
   this->lbp_detection = lbp_detection;
+  this->path = path;
 }
 
 std::string NinshikiCppNode::get_node_prefix()
