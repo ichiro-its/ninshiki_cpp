@@ -30,8 +30,8 @@ namespace ninshiki_cpp::node
 
 NinshikiCppNode::NinshikiCppNode(
   rclcpp::Node::SharedPtr node, std::string topic_name,
-  int frequency, shisen_cpp::Options options, std::string path)
-: node(node), dnn_detection(nullptr), color_detection(nullptr), path(path)
+  int frequency, shisen_cpp::Options options, std::string path, std::shared_ptr<ColorDetector> color_detection)
+: node(node), dnn_detection(nullptr), color_detection(color_detection), path(path)
 {
   std::cout << "[DEBUG NODE A]" << std::endl;
   detected_object_publisher = node->create_publisher<DetectedObjects>(

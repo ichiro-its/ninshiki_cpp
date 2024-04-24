@@ -119,14 +119,14 @@ int main(int argc, char ** argv)
 
   std::cout << "[DEBUG D 2]" << std::endl;
 
-  auto ninshiki_cpp_node = std::make_shared<ninshiki_cpp::node::NinshikiCppNode>(
-    node, topic_name, frequency, options, path);
-
   std::cout << "[DEBUG E]" << std::endl;
 
   auto dnn_detection = std::make_shared<ninshiki_cpp::detector::DnnDetector>(gpu, myriad);
   auto color_detection = std::make_shared<ninshiki_cpp::detector::ColorDetector>();
   auto lbp_detection = std::make_shared<ninshiki_cpp::detector::LBPDetector>();
+
+  auto ninshiki_cpp_node = std::make_shared<ninshiki_cpp::node::NinshikiCppNode>(
+    node, topic_name, frequency, options, path, color_detection);
 
   std::cout << "[DEBUG F]" << std::endl;
 

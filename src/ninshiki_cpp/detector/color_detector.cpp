@@ -36,6 +36,7 @@ namespace detector
 ColorDetector::ColorDetector()
 {
   // sync_configuration();
+  std::cout << "DICLEAR BRUH" << std::endl;
   colors.clear();
 }
 
@@ -73,7 +74,27 @@ bool ColorDetector::load_configuration(const std::string & path)
         item.value().at("max_hsv")[2]
       );
 
+      std::cout << "[DEBUG LOAD_CONFIGURATION]" << std::endl;
+      std::cout << "name: " << color.name << std::endl;
+      std::cout << "min_hue: " << color.min_hue << std::endl;
+      std::cout << "max_hue: " << color.max_hue << std::endl;
+      std::cout << "min_saturation: " << color.min_saturation << std::endl;
+      std::cout << "max_saturation: " << color.max_saturation << std::endl;
+      std::cout << "min_value: " << color.min_value << std::endl;
+      std::cout << "max_value: " << color.max_value << std::endl;
+      std::cout << "------------------------" << std::endl;
+
       colors.push_back(color);
+
+      std::cout << "COLOR : " << colors.size() << std::endl;
+      std::cout << colors.back().name << std::endl;
+      std::cout << colors.back().min_hue << std::endl;
+      std::cout << colors.back().max_hue << std::endl;
+      std::cout << colors.back().min_saturation << std::endl;
+      std::cout << colors.back().max_saturation << std::endl;
+      std::cout << colors.back().min_value << std::endl;
+      std::cout << colors.back().max_value << std::endl;
+
     } catch (nlohmann::json::parse_error & ex) {
       std::cerr << "parse error at byte " << ex.byte << std::endl;
     }
@@ -133,8 +154,12 @@ bool ColorDetector::sync_configuration()
 
 void ColorDetector::configure_color_setting(utils::Color color)
 {
+  std::cout << "[DEBUG CONFIGURE_COLOR_SETTING A]" << std::endl;
+
   for (auto & item : colors) {
+    std::cout << "[DEBUG CONFIGURE_COLOR_SETTING B]" << std::endl;
     if (item.name == color.name) {
+      std::cout << "[DEBUG CONFIGURE_COLOR_SETTING C]" << std::endl;
       item.min_hue = color.min_hue;
       item.max_hue = color.max_hue;
       item.min_saturation = color.min_saturation;

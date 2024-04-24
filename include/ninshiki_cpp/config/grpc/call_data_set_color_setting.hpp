@@ -15,12 +15,13 @@ public:
   CallDataSetColorSetting(
     ninshiki_interfaces::proto::Config::AsyncService * service, grpc::ServerCompletionQueue * cq,
     const std::string & path, std::shared_ptr<ninshiki_cpp::detector::ColorDetector> color_detection);
+    using ColorDetector = ninshiki_cpp::detector::ColorDetector;
 
 protected:
   void AddNextToCompletionQueue() override;
   void WaitForRequest();
   void HandleRequest();
-  std::shared_ptr<ninshiki_cpp::detector::ColorDetector> color_detection_;
+  std::shared_ptr<ColorDetector> color_detection_;
 };
 }  // namespace ninshiki_cpp
 

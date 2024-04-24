@@ -27,15 +27,21 @@ void CallDataSetColorSetting::WaitForRequest()
 
 void CallDataSetColorSetting::HandleRequest()
 {
+  std::cout << "[DEBUG SET DATA A]" << std::endl;
   Config config(path_);
+  std::cout << "[DEBUG SET DATA B]" << std::endl;
   try {
+    std::cout << "[DEBUG SET DATA C]" << std::endl;
     std::string name = request_.name();
+    std::cout << "[DEBUG SET DATA D]" << std::endl;
     int min_hue = request_.min_hue();
+    std::cout << "[DEBUG SET DATA E]" << std::endl;
     int max_hue = request_.max_hue();
     int min_saturation = request_.min_saturation();
     int max_saturation = request_.max_saturation();
     int min_value = request_.min_value();
     int max_value = request_.max_value();
+    std::cout << "[DEBUG SET DATA F]" << std::endl;
 
     utils::Color color(
       name,
@@ -46,8 +52,10 @@ void CallDataSetColorSetting::HandleRequest()
       min_value,
       max_value
     );
+    std::cout << "[DEBUG SET DATA G]" << std::endl;
 
     color_detection_->configure_color_setting(color);
+    std::cout << "[DEBUG SET DATA H]" << std::endl;
 
     RCLCPP_INFO(
       rclcpp::get_logger("Set color config"), "color setting config has been applied!"
