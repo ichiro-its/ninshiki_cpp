@@ -57,20 +57,20 @@ NinshikiCppNode::NinshikiCppNode(
 
 void NinshikiCppNode::publish()
 {
-  // dnn_detection->detection(received_frame, 0.4, 0.3);
-  // detected_object_publisher->publish(dnn_detection->detection_result);
+  dnn_detection->detection(received_frame, 0.4, 0.3);
+  detected_object_publisher->publish(dnn_detection->detection_result);
   // color_detection->detection(hsv_frame);
   color_detection->detection(received_frame);
   field_segmentation_publisher->publish(color_detection->detection_result);
 
-  // lbp_detection->detection(received_frame);
-  // detected_object_publisher->publish(lbp_detection->detection_result);
+  lbp_detection->detection(received_frame);
+  detected_object_publisher->publish(lbp_detection->detection_result);
 
   // Clear detection_result
-  // received_frame.release();
-  // dnn_detection->detection_result.detected_objects.clear();
+  received_frame.release();
+  dnn_detection->detection_result.detected_objects.clear();
   color_detection->detection_result.contours.clear();
-  // lbp_detection->detection_result.detected_objects.clear();
+  lbp_detection->detection_result.detected_objects.clear();
 }
 
 void NinshikiCppNode::set_detection(
@@ -78,9 +78,9 @@ void NinshikiCppNode::set_detection(
   std::shared_ptr<ColorDetector> color_detection,
   std::shared_ptr<LBPDetector> lbp_detection)
 {
-  // this->dnn_detection = dnn_detection;
+  this->dnn_detection = dnn_detection;
   this->color_detection = color_detection;
-  // this->lbp_detection = lbp_detection;
+  this->lbp_detection = lbp_detection;
 }
 
 std::string NinshikiCppNode::get_node_prefix()
