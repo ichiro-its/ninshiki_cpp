@@ -70,9 +70,6 @@ public:
   void set_min_value(int value) {min_value = keisan::clamp(value, 0, 100);}
   void set_max_value(int value) {max_value = keisan::clamp(value, 0, 100);}
 
-  std::vector<utils::Color> get_colors() {std::cout << "XXXXXXXX" << std::endl; return colors;}
-  void set_colors(std::vector<utils::Color> value) {colors = value;}
-
   // Function for Contours
   void find(cv::Mat binary_mat);
 
