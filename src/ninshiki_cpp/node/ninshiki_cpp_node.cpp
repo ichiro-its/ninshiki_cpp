@@ -21,6 +21,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <cv_bridge/cv_bridge.hpp>
 #include "ninshiki_cpp/node/ninshiki_cpp_node.hpp"
 
 using namespace std::chrono_literals;
@@ -29,38 +30,43 @@ namespace ninshiki_cpp::node
 {
 
 NinshikiCppNode::NinshikiCppNode(
-  rclcpp::Node::SharedPtr node, std::string topic_name,
-  int frequency, shisen_cpp::Options options, std::string path, std::shared_ptr<ColorDetector> color_detection)
-: node(node), dnn_detection(nullptr), color_detection(color_detection), path(path)
+  rclcpp::Node::SharedPtr node, int frequency, shisen_cpp::Options options, std::string path,
+  std::shared_ptr<DnnDetector> dnn_detection, std::shared_ptr<ColorDetector> color_detection,
+  std::shared_ptr<LBPDetector> lbp_detection)
+: node(node), path(path), dnn_detection(dnn_detection), color_detection(color_detection), lbp_detection(lbp_detection)
 {
   detected_object_publisher = node->create_publisher<DetectedObjects>(
     get_node_prefix() + "/dnn_detection", 10);
   field_segmentation_publisher = node->create_publisher<Contours>(
     get_node_prefix() + "/color_detection", 10);
 
-  image_provider = std::make_shared<shisen_cpp::camera::ImageProvider>(options);
+  image_subscriber =
+    node->create_subscription<Image>("camera/image", 10, [this](const Image::SharedPtr message) {
+      if (!message->data.empty()) {
+        received_frame = cv_bridge::toCvShare(message, "bgr8")->image;
+      }
+    });
 
   node_timer = node->create_wall_timer(
     std::chrono::milliseconds(frequency),
     [this]() {
-      image_provider->update_mat();
-      received_frame = image_provider->get_mat();
       if (!received_frame.empty()) {
+        cv::cvtColor(received_frame, hsv_frame, cv::COLOR_BGR2HSV);
         publish();
       }
     }
   );
-  config_grpc.Run(5757, path, color_detection);
-  RCLCPP_INFO(rclcpp::get_logger("GrpcServers"), "grpc running");
 
+  config_grpc.Run(5858, path, color_detection);
+  RCLCPP_INFO(rclcpp::get_logger("GrpcServers"), "grpc running");
 }
 
 void NinshikiCppNode::publish()
 {
   dnn_detection->detection(received_frame, 0.4, 0.3);
   detected_object_publisher->publish(dnn_detection->detection_result);
-  // color_detection->detection(hsv_frame);
-  color_detection->detection(received_frame);
+
+  color_detection->detection(hsv_frame);
   field_segmentation_publisher->publish(color_detection->detection_result);
 
   lbp_detection->detection(received_frame);
@@ -71,16 +77,6 @@ void NinshikiCppNode::publish()
   dnn_detection->detection_result.detected_objects.clear();
   color_detection->detection_result.contours.clear();
   lbp_detection->detection_result.detected_objects.clear();
-}
-
-void NinshikiCppNode::set_detection(
-  std::shared_ptr<DnnDetector> dnn_detection,
-  std::shared_ptr<ColorDetector> color_detection,
-  std::shared_ptr<LBPDetector> lbp_detection)
-{
-  this->dnn_detection = dnn_detection;
-  this->color_detection = color_detection;
-  this->lbp_detection = lbp_detection;
 }
 
 std::string NinshikiCppNode::get_node_prefix()

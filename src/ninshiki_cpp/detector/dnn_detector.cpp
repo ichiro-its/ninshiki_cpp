@@ -55,7 +55,7 @@ DnnDetector::DnnDetector(bool gpu, bool myriad)
     net.setPreferableBackend(cv::dnn::DNN_BACKEND_OPENCV);
     net.setPreferableTarget(cv::dnn::DNN_TARGET_MYRIAD);
   } else {
-    net.setPreferableBackend(cv::dnn::DNN_BACKEND_OPENCV);
+    net.setPreferableBackend(cv::dnn::DNN_BACKEND_INFERENCE_ENGINE);
     net.setPreferableTarget(cv::dnn::DNN_TARGET_CPU);
   }
 }
@@ -75,8 +75,8 @@ void DnnDetector::detect_darknet(const cv::Mat & image, float conf_threshold, fl
 
   // Create a 4D blob from a frame
   static cv::Mat blob;
-  cv::Size input_size = cv::Size(416, 416);
-  cv::dnn::blobFromImage(image, blob, 1.0, input_size, cv::Scalar(), true, false, CV_8U);
+  cv::Size input_size = cv::Size(320, 320);
+  cv::dnn::blobFromImage(image, blob, 1.0, input_size, cv::Scalar(), false, false, CV_8U);
 
   net.setInput(blob, "", 0.00392, cv::Scalar(0, 0, 0, 0));
   std::vector<cv::Mat> outs;
@@ -164,10 +164,10 @@ void DnnDetector::detect_darknet(const cv::Mat & image, float conf_threshold, fl
         ninshiki_interfaces::msg::DetectedObject detection_object;
         detection_object.label = classes[class_ids[i]];
         detection_object.score = confidences[i];
-        detection_object.left = box.x / img_width;
-        detection_object.top = box.y / img_height;
-        detection_object.right = (box.x + box.width) / img_width;
-        detection_object.bottom = (box.y + box.height) / img_height;
+        detection_object.left = box.x;
+        detection_object.top = box.y;
+        detection_object.right = box.width;
+        detection_object.bottom = box.height;
 
         detection_result.detected_objects.push_back(detection_object);
       }

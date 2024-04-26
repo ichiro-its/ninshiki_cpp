@@ -36,7 +36,6 @@ namespace detector
 ColorDetector::ColorDetector()
 {
   // sync_configuration();
-  std::cout << "DICLEAR BRUH" << std::endl;
   colors.clear();
 }
 
@@ -75,7 +74,6 @@ bool ColorDetector::load_configuration(const std::string & path)
       );
 
       colors.push_back(color);
-
     } catch (nlohmann::json::parse_error & ex) {
       std::cerr << "parse error at byte " << ex.byte << std::endl;
     }
@@ -101,9 +99,10 @@ bool ColorDetector::save_configuration()
     int max_hsv[] = {item.max_hue, item.max_saturation, item.max_value};
 
     nlohmann::json color = {
-      {"name", item.name},
-      {"min_hsv", min_hsv},
-      {"max_hsv", max_hsv},
+      {item.name, {
+        {"min_hsv", min_hsv},
+        {"max_hsv", max_hsv}
+      }}
     };
 
     config.push_back(color);
@@ -159,8 +158,8 @@ void ColorDetector::configure_color_setting(utils::Color color)
 
 cv::Mat ColorDetector::classify(cv::Mat input)
 {
-  int h_min = (min_hue * 180) / 360;
-  int h_max = (max_hue * 180) / 360;
+  int h_min = (min_hue * 255) / 360;
+  int h_max = (max_hue * 255) / 360;
 
   int s_min = (min_saturation * 255) / 100;
   int s_max = (max_saturation * 255) / 100;
@@ -215,10 +214,6 @@ void ColorDetector::find(cv::Mat binary_mat)
 
 void ColorDetector::detection(const cv::Mat & image)
 {
-  // Get width and height from image
-  double img_width = static_cast<double>(image.cols);
-  double img_height = static_cast<double>(image.rows);
-
   // iterate every color in colors
   for (auto & color : colors) {
     color_name = color.name;
@@ -239,8 +234,8 @@ void ColorDetector::detection(const cv::Mat & image)
 
         for (cv::Point & point : contour) {
           ninshiki_interfaces::msg::Point point_msg;
-          point_msg.x = static_cast<float>(point.x) / img_width;
-          point_msg.y = static_cast<float>(point.y) / img_height;
+          point_msg.x = static_cast<float>(point.x);
+          point_msg.y = static_cast<float>(point.y);
 
           contour_msg.name = color_name;
           contour_msg.contour.push_back(point_msg);

@@ -13,7 +13,8 @@
   <depend>nlohmann-json-dev</depend>
   <depend>rclcpp</depend>
   <depend>shisen_cpp</depend>
-  <depend>shisen_interfaces</depend>
+  <depend>sensor_msgs</depend>
+  <depend>cv_bridge</depend>
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
   <export>
