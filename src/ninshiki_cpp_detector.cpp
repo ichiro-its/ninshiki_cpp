@@ -121,6 +121,5 @@ int main(int argc, char ** argv)
   rclcpp::spin(node);
   rclcpp::shutdown();
 
-  std::cout << "[DEBUG I]" << std::endl;
   return 0;
 }
