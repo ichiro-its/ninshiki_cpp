@@ -143,14 +143,6 @@ void ColorDetector::configure_color_setting(utils::Color color)
       item.min_value = color.min_value;
       item.max_value = color.max_value;
 
-      std::cout << "[DEBUG] Color setting has been applied!" << std::endl;
-      std::cout << "name: " << item.name << std::endl;
-      std::cout << "min_hue: " << item.min_hue << std::endl;
-      std::cout << "max_hue: " << item.max_hue << std::endl;
-      std::cout << "min_saturation: " << item.min_saturation << std::endl;
-      std::cout << "max_saturation: " << item.max_saturation << std::endl;
-      std::cout << "min_value: " << item.min_value << std::endl;
-      std::cout << "max_value: " << item.max_value << std::endl;
       break;
     }
   }
