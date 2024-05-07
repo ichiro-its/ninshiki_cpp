@@ -216,6 +216,7 @@ void ColorDetector::detection(const cv::Mat & image)
     min_value = color.min_value;
     max_value = color.max_value;
 
+
     cv::Mat field_binary_mat = classify(image);
     find(field_binary_mat);
 

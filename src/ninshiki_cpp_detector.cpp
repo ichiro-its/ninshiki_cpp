@@ -30,7 +30,7 @@ int main(int argc, char ** argv)
   shisen_cpp::Options options;
 
   // Default Value
-  std::string path = "";
+  std::string path = "./src/ninshiki_cpp/data/";
   std::string topic_name = "";
   std::string detection_method = "yolo";
   int gpu = 0;
@@ -54,7 +54,7 @@ int main(int argc, char ** argv)
 
   // Handle arguments
   try {
-    if (argc < 2) {
+    if (argc < 1) {
       std::cerr << "Argument needed!\n\n" << help_message << std::endl;
       return 1;
     }
