@@ -76,4 +76,5 @@ void Circles::find(std::vector<std::vector<cv::Point>> contours)
         radiuses.push_back(radius);
     }
 }
+
 } // namespace ninshiki_cpp::utils
