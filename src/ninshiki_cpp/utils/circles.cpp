@@ -46,7 +46,7 @@ cv::Mat Circles::get_binary_mat_line(const cv::Size & mat_size, int line_size)
 
 cv::Point Circles::get_first_center()
 {
-    if (centers.size() <= 0)
+    if (centers.empty())
         return cv::Point(-1, -1);
 
     return centers[0];
@@ -54,7 +54,7 @@ cv::Point Circles::get_first_center()
 
 float Circles::get_first_radiuses()
 {
-    if (radiuses.size() <= 0)
+    if (radiuses.empty())
         return 0;
     
     return radiuses[0];
