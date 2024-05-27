@@ -23,9 +23,16 @@
 namespace ninshiki_cpp::utils
 {
 
-Circles::Circles()
+Circles::Circles(const std::vector<std::vector<cv::Point>> & contours)
 : centers{}, radiuses{}
 {
+    centers.resize(contours.size());
+    radiuses.resize(contours.size());
+
+    for (int i = contours.size() - 1; i >= 0; --i)
+    {
+        cv::minEnclosingCircle(cv::Mat(contours[i]), centers[i], radiuses[i]);
+    }
 }
 
 cv::Mat Circles::get_binary_mat_line(const cv::Size & mat_size, int line_size)
@@ -44,10 +51,10 @@ cv::Mat Circles::get_binary_mat_line(const cv::Size & mat_size, int line_size)
     return binary_mat;
 }
 
-cv::Point Circles::get_first_center()
+cv::Point2f Circles::get_first_center()
 {
     if (centers.empty())
-        return cv::Point(-1, -1);
+        return cv::Point2f(-1, -1);
 
     return centers[0];
 }
@@ -58,22 +65,6 @@ float Circles::get_first_radiuses()
         return 0;
     
     return radiuses[0];
-}
-
-void Circles::find(const std::vector<std::vector<cv::Point>> & contours)
-{
-    centers.clear();
-    radiuses.clear();
-
-    for (auto contour : contours)
-    {
-        cv::Point2f center;
-        float radius;
-        cv::minEnclosingCircle(cv::Mat(contour), center, radius);
-        
-        centers.push_back(center);
-        radiuses.push_back(radius);
-    }
 }
 
 } // namespace ninshiki_cpp::utils

@@ -31,24 +31,21 @@ class Circles
 {
 private:
 
-    std::vector<cv::Point> centers;
+    std::vector<cv::Point2f> centers;
     std::vector<float> radiuses;
 
 public:
 
-    Circles();
-    Circles(const std::vector<std::vector<cv::Point>> & contours) { find(contours); }
+    Circles(const std::vector<std::vector<cv::Point>> & contours);
     
     cv::Mat get_binary_mat(const cv::Size & mat_size) { return get_binary_mat_line(mat_size, cv::FILLED); }
     cv::Mat get_binary_mat_line(const cv::Size & mat_size, int line_size = cv::FILLED);
 
-    std::vector<cv::Point> get_centers() { return centers; }
+    std::vector<cv::Point2f> get_centers() { return centers; }
     std::vector<float> get_radiuses() { return radiuses; }
 
-    cv::Point get_first_center();
+    cv::Point2f get_first_center();
     float get_first_radiuses();
-
-    void find(const std::vector<std::vector<cv::Point>> & contours);
 };
 
 }  // namespace ninshiki_cpp::utils
