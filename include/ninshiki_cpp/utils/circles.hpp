@@ -37,10 +37,10 @@ private:
 public:
 
     Circles();
-    Circles(std::vector<std::vector<cv::Point>> contours) { find(contours); }
+    Circles(const std::vector<std::vector<cv::Point>> & contours) { find(contours); }
     
-    cv::Mat get_binary_mat(cv::Size mat_size) { return get_binary_mat_line(mat_size, cv::FILLED); }
-    cv::Mat get_binary_mat_line(cv::Size mat_size, int line_size);
+    cv::Mat get_binary_mat(const cv::Size & mat_size) { return get_binary_mat_line(mat_size, cv::FILLED); }
+    cv::Mat get_binary_mat_line(const cv::Size & mat_size, int line_size = cv::FILLED);
 
     std::vector<cv::Point> get_centers() { return centers; }
     std::vector<float> get_radiuses() { return radiuses; }
@@ -48,7 +48,7 @@ public:
     cv::Point get_first_center();
     float get_first_radiuses();
 
-    void find(std::vector<std::vector<cv::Point>> contours);
+    void find(const std::vector<std::vector<cv::Point>> & contours);
 };
 
 }  // namespace ninshiki_cpp::utils

@@ -24,12 +24,11 @@ namespace ninshiki_cpp::utils
 {
 
 Circles::Circles()
+: centers{}, radiuses{}
 {
-    centers.clear();
-    radiuses.clear();
 }
 
-cv::Mat Circles::get_binary_mat_line(cv::Size mat_size, int line_size)
+cv::Mat Circles::get_binary_mat_line(const cv::Size & mat_size, int line_size)
 {
     cv::Mat binary_mat(mat_size, CV_8UC1);
     binary_mat = cv::Scalar(0);
@@ -61,12 +60,12 @@ float Circles::get_first_radiuses()
     return radiuses[0];
 }
 
-void Circles::find(std::vector<std::vector<cv::Point>> contours)
+void Circles::find(const std::vector<std::vector<cv::Point>> & contours)
 {
     centers.clear();
     radiuses.clear();
 
-    for (std::vector<cv::Point> &contour : contours)
+    for (auto contour : contours)
     {
         cv::Point2f center;
         float radius;
