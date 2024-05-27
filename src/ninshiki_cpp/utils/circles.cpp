@@ -35,10 +35,10 @@ cv::Mat Circles::get_binary_mat_line(const cv::Size & mat_size, int line_size)
 
     if (centers.size() > 0 && radiuses.size() > 0)
     {
-        for (unsigned int i = 0; i < centers.size() && i < radiuses.size(); i++)
-        {
-		    cv::circle(binary_mat, centers[i], radiuses[i], 255, line_size);
-        }
+        for (int i = std::min(centers.size(), radiuses.size()) - 1; i >= 0; --i)  
+        {  
+            cv::circle(binary_mat, centers[i], radiuses[i], 255, line_size);  
+        } 
     }
 
     return binary_mat;
