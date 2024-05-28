@@ -18,8 +18,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#ifndef NINSHIKI_CPP__UTILS__CIRCLES_HPP_
-#define NINSHIKI_CPP__UTILS__CIRCLES_HPP_
+#ifndef NINSHIKI_CPP__UTILS__CIRCLE_HPP_
+#define NINSHIKI_CPP__UTILS__CIRCLE_HPP_
 
 #include <opencv2/opencv.hpp>
 #include <vector>
@@ -27,25 +27,21 @@
 namespace ninshiki_cpp::utils
 {
 
-class Circles
+class Circle
 {
 private:
 
-    std::vector<cv::Point2f> centers;
-    std::vector<float> radiuses;
+    cv::Point2f center;
+    float radius;
 
 public:
 
-    Circles(const std::vector<std::vector<cv::Point>> & contours);
-    
-    cv::Mat get_binary_mat(const cv::Size & mat_size) { return get_binary_mat_line(mat_size, cv::FILLED); }
+    Circle(const std::vector<cv::Point> & contour);
+
     cv::Mat get_binary_mat_line(const cv::Size & mat_size, int line_size = cv::FILLED);
 
-    std::vector<cv::Point2f> get_centers() { return centers; }
-    std::vector<float> get_radiuses() { return radiuses; }
-
-    cv::Point2f get_first_center();
-    float get_first_radiuses();
+    cv::Point2f get_center();
+    float get_radius();
 };
 
 }  // namespace ninshiki_cpp::utils

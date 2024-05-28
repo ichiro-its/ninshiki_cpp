@@ -18,53 +18,35 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#include "ninshiki_cpp/utils/circles.hpp"
+#include "ninshiki_cpp/utils/circle.hpp"
 
 namespace ninshiki_cpp::utils
 {
 
-Circles::Circles(const std::vector<std::vector<cv::Point>> & contours)
-: centers{}, radiuses{}
+Circle::Circle(const std::vector<cv::Point> & contour)
+: center(cv::Point2f(-1, -1)), radius(0.0)
 {
-    centers.resize(contours.size());
-    radiuses.resize(contours.size());
-
-    for (int i = contours.size() - 1; i >= 0; --i)
-    {
-        cv::minEnclosingCircle(cv::Mat(contours[i]), centers[i], radiuses[i]);
-    }
+    cv::minEnclosingCircle(cv::Mat(contour), center, radius);
 }
 
-cv::Mat Circles::get_binary_mat_line(const cv::Size & mat_size, int line_size)
+cv::Mat Circle::get_binary_mat_line(const cv::Size & mat_size, int line_size)
 {
     cv::Mat binary_mat(mat_size, CV_8UC1);
     binary_mat = cv::Scalar(0);
 
-    if (centers.size() > 0 && radiuses.size() > 0)
-    {
-        for (int i = std::min(centers.size(), radiuses.size()) - 1; i >= 0; --i)  
-        {  
-            cv::circle(binary_mat, centers[i], radiuses[i], 255, line_size);  
-        } 
-    }
+    cv::circle(binary_mat, center, radius, 255, line_size);
 
     return binary_mat;
 }
 
-cv::Point2f Circles::get_first_center()
+cv::Point2f Circle::get_center()
 {
-    if (centers.empty())
-        return cv::Point2f(-1, -1);
-
-    return centers[0];
+    return center;
 }
 
-float Circles::get_first_radiuses()
+float Circle::get_radius()
 {
-    if (radiuses.empty())
-        return 0;
-    
-    return radiuses[0];
+    return radius;
 }
 
 } // namespace ninshiki_cpp::utils
