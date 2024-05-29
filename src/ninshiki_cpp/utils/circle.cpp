@@ -31,7 +31,7 @@ Circle::Circle(const std::vector<cv::Point> & contour)
 
 void Circle::draw(cv::Mat & image, int line_size) const
 {
-    cv::circle(image, center, radius, 255, line_size);
+    cv::circle(image, center, radius, cv::Scalar(0, 255, 238), line_size);
 }
 
 const cv::Point2f & Circle::get_center() const
