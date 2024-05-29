@@ -38,10 +38,10 @@ public:
 
     Circle(const std::vector<cv::Point> & contour);
 
-    cv::Mat get_binary_mat_line(const cv::Size & mat_size, int line_size = cv::FILLED);
+    void draw(cv::Mat & image, int line_size) const;
 
-    cv::Point2f get_center();
-    float get_radius();
+    const cv::Point2f & get_center() const;
+    const float & get_radius() const;
 };
 
 }  // namespace ninshiki_cpp::utils
