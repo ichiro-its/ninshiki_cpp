@@ -39,8 +39,8 @@ public:
 
 protected:
   void AddNextToCompletionQueue() override;
-  void WaitForRequest();
-  void HandleRequest();
+  void WaitForRequest() override;
+  void HandleRequest() override;
   std::shared_ptr<ColorDetector> color_detection_;
 };
 }  // namespace ninshiki_cpp
