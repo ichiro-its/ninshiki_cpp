@@ -32,7 +32,6 @@ message(STATUS "Using gRPC ${gRPC_VERSION}")
 
 add_library(${PROJECT_NAME} SHARED
   "src/${PROJECT_NAME}/config/grpc/config.cpp"
-  "src/${PROJECT_NAME}/config/grpc/call_data_base.cpp"
   "src/${PROJECT_NAME}/config/grpc/call_data_get_color_setting.cpp"
   "src/${PROJECT_NAME}/config/grpc/call_data_save_color_setting.cpp"
   "src/${PROJECT_NAME}/config/grpc/call_data_set_color_setting.cpp"
