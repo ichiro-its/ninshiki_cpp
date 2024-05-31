@@ -39,7 +39,7 @@ const cv::Point2f & Circle::get_center() const
     return center;
 }
 
-const float & Circle::get_radius() const
+const float Circle::get_radius() const
 {
     return radius;
 }

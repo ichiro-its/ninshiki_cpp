@@ -41,7 +41,7 @@ public:
     void draw(cv::Mat & image, int line_size) const;
 
     const cv::Point2f & get_center() const;
-    const float & get_radius() const;
+    const float get_radius() const;
 };
 
 }  // namespace ninshiki_cpp::utils
