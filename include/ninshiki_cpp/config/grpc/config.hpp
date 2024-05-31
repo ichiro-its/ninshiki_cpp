@@ -21,27 +21,12 @@
 #ifndef NINSHIKI_CPP__CONFIG__GRPC__CONFIG_HPP_
 #define NINSHIKI_CPP__CONFIG__GRPC__CONFIG_HPP_
 
-#include <absl/flags/flag.h>
-#include <absl/flags/parse.h>
-#include <absl/strings/str_format.h>
-#include <grpc/support/log.h>
 #include <grpcpp/grpcpp.h>
-#include <ninshiki_cpp/config/grpc/call_data.hpp>
-#include <ninshiki_cpp/config/grpc/call_data_base.hpp>
 #include <ninshiki_cpp/detector/color_detector.hpp>
-#include <ninshiki_interfaces/msg/color_setting.hpp>
 #include <ninshiki_interfaces/ninshiki.grpc.pb.h>
 #include <ninshiki_interfaces/ninshiki.pb.h>
-#include <nlohmann/json.hpp>
-#include <rclcpp/rclcpp.hpp>
 
-#include <chrono>
-#include <fstream>
-#include <future>
-#include <iostream>
-#include <map>
 #include <memory>
-#include <string>
 #include <thread>
 
 namespace ninshiki_cpp

@@ -28,7 +28,6 @@
 
 #include <chrono>
 #include <csignal>
-#include <future>
 #include <string>
 
 using grpc::ServerBuilder;

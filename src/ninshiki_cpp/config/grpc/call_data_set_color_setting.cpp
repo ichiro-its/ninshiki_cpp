@@ -48,22 +48,14 @@ void CallDataSetColorSetting::HandleRequest()
 {
   Config config(path_);
   try {
-    std::string name = request_.name();
-    int min_hue = request_.min_hue();
-    int max_hue = request_.max_hue();
-    int min_saturation = request_.min_saturation();
-    int max_saturation = request_.max_saturation();
-    int min_value = request_.min_value();
-    int max_value = request_.max_value();
-
     utils::Color color(
-      name,
-      min_hue,
-      max_hue,
-      min_saturation,
-      max_saturation,
-      min_value,
-      max_value
+      request_.name(),
+      request_.min_hue(),
+      request_.max_hue(),
+      request_.min_saturation(),
+      request_.max_saturation(),
+      request_.min_value(),
+      request_.max_value()
     );
 
     color_detection_->configure_color_setting(color);
