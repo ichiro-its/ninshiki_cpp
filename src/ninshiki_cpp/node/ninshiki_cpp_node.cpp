@@ -57,7 +57,7 @@ NinshikiCppNode::NinshikiCppNode(
     }
   );
 
-  config_grpc.Run(5858, path, color_detection);
+  config_grpc.Run(path, color_detection);
   RCLCPP_INFO(rclcpp::get_logger("GrpcServers"), "grpc running");
 }
 

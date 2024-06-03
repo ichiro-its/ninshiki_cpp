@@ -40,7 +40,7 @@ public:
 
   ~ConfigGrpc();
 
-  void Run(uint16_t port, const std::string & path, std::shared_ptr<ColorDetector> color_detection);
+  void Run(const std::string & path, std::shared_ptr<ColorDetector> color_detection);
 
 private:
   std::string path;

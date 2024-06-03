@@ -51,7 +51,7 @@ void ConfigGrpc::SignIntHandler(int signum)
   exit(signum);
 }
 
-void ConfigGrpc::Run(uint16_t port, const std::string & path, std::shared_ptr<ninshiki_cpp::detector::ColorDetector> color_detection)
+void ConfigGrpc::Run(const std::string & path, std::shared_ptr<ninshiki_cpp::detector::ColorDetector> color_detection)
 {
   Config config(path);
   std::string server_address =
