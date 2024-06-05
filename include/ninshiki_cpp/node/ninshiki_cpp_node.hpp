@@ -65,7 +65,7 @@ private:
   rclcpp::TimerBase::SharedPtr node_timer;
 
   rclcpp::Publisher<DetectedObjects>::SharedPtr detected_object_publisher;
-  rclcpp::Publisher<Contours>::SharedPtr field_segmentation_publisher;
+  rclcpp::Publisher<Contours>::SharedPtr color_segmentation_publisher;
   rclcpp::Subscription<Image>::SharedPtr image_subscriber;
 
   std::shared_ptr<DnnDetector> dnn_detection;
