@@ -46,4 +46,4 @@ public:
 
 }  // namespace ninshiki_cpp::utils
 
-#endif // NINSHIKI_CPP__UTILS__CIRCLES_HPP_
+#endif // NINSHIKI_CPP__UTILS__CIRCLE_HPP_
