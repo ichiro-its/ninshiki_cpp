@@ -51,6 +51,7 @@ public:
   bool load_configuration() {load_configuration(config_path);}
   bool save_configuration();
   bool sync_configuration();
+  void configure_color_setting(utils::Color color);
 
   cv::Mat classify(cv::Mat input);
   cv::Mat classify_gray(cv::Mat input);
