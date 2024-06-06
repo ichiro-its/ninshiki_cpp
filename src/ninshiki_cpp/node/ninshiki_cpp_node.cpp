@@ -30,9 +30,9 @@ namespace ninshiki_cpp::node
 {
 
 NinshikiCppNode::NinshikiCppNode(
-  rclcpp::Node::SharedPtr node,
+  rclcpp::Node::SharedPtr node, const std::string & path,
   int frequency, shisen_cpp::Options options)
-: node(node), dnn_detection(nullptr), color_detection(nullptr), lbp_detection(nullptr)
+: node(node), path(path), dnn_detection(nullptr), color_detection(nullptr), lbp_detection(nullptr)
 {
   detected_object_publisher = node->create_publisher<DetectedObjects>(
     get_node_prefix() + "/dnn_detection", 10);
@@ -55,6 +55,9 @@ NinshikiCppNode::NinshikiCppNode(
       }
     }
   );
+
+  config_grpc.Run(path, color_detection);
+  RCLCPP_INFO(rclcpp::get_logger("GrpcServers"), "grpc running");
 }
 
 void NinshikiCppNode::publish()

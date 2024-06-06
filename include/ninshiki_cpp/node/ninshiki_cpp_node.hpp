@@ -30,6 +30,7 @@
 
 #include "rclcpp/rclcpp.hpp"
 #include "sensor_msgs/msg/image.hpp"
+#include "ninshiki_cpp/config/grpc/config.hpp"
 #include "ninshiki_cpp/detector/color_detector.hpp"
 #include "ninshiki_cpp/detector/detector.hpp"
 #include "ninshiki_cpp/detector/dnn_detector.hpp"
@@ -48,7 +49,7 @@ public:
   using LBPDetector = ninshiki_cpp::detector::LBPDetector;
 
   NinshikiCppNode(
-    rclcpp::Node::SharedPtr node,
+    rclcpp::Node::SharedPtr node, const std::string & path,
     int frequency, shisen_cpp::Options options);
   void publish();
   void set_detection(
@@ -74,6 +75,9 @@ private:
 
   cv::Mat received_frame;
   cv::Mat hsv_frame;
+
+  ConfigGrpc config_grpc;
+  std::string path;
 
   static std::string get_node_prefix();
 };

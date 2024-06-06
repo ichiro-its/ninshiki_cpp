@@ -132,6 +132,22 @@ bool ColorDetector::sync_configuration()
   return true;
 }
 
+void ColorDetector::configure_color_setting(utils::Color color)
+{
+  for (auto & item : colors) {
+    if (item.name == color.name) {
+      item.min_hue = color.min_hue;
+      item.max_hue = color.max_hue;
+      item.min_saturation = color.min_saturation;
+      item.max_saturation = color.max_saturation;
+      item.min_value = color.min_value;
+      item.max_value = color.max_value;
+
+      break;
+    }
+  }
+}
+
 cv::Mat ColorDetector::classify(cv::Mat input)
 {
   int h_min = (min_hue * 255) / 360;

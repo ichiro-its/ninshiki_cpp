@@ -109,7 +109,7 @@ int main(int argc, char ** argv)
 
   auto node = std::make_shared<rclcpp::Node>("ninshiki_cpp");
   auto ninshiki_cpp_node = std::make_shared<ninshiki_cpp::node::NinshikiCppNode>(
-    node, frequency, options);
+    node, path, frequency, options);
 
   auto dnn_detection = std::make_shared<ninshiki_cpp::detector::DnnDetector>(gpu, myriad);
   auto color_detection = std::make_shared<ninshiki_cpp::detector::ColorDetector>();
