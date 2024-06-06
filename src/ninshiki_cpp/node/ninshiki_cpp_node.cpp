@@ -31,8 +31,12 @@ namespace ninshiki_cpp::node
 
 NinshikiCppNode::NinshikiCppNode(
   rclcpp::Node::SharedPtr node, const std::string & path,
-  int frequency, shisen_cpp::Options options)
-: node(node), path(path), dnn_detection(nullptr), color_detection(nullptr), lbp_detection(nullptr)
+  int frequency, shisen_cpp::Options options,
+  std::shared_ptr<DnnDetector> dnn_detection,
+  std::shared_ptr<ColorDetector> color_detection,
+  std::shared_ptr<LBPDetector> lbp_detection)
+: node(node), path(path), dnn_detection(dnn_detection),
+  color_detection(color_detection), lbp_detection(lbp_detection)
 {
   detected_object_publisher = node->create_publisher<DetectedObjects>(
     get_node_prefix() + "/dnn_detection", 10);
@@ -76,16 +80,6 @@ void NinshikiCppNode::publish()
   dnn_detection->detection_result.detected_objects.clear();
   color_detection->detection_result.contours.clear();
   lbp_detection->detection_result.detected_objects.clear();
-}
-
-void NinshikiCppNode::set_detection(
-  std::shared_ptr<DnnDetector> dnn_detection,
-  std::shared_ptr<ColorDetector> color_detection,
-  std::shared_ptr<LBPDetector> lbp_detection)
-{
-  this->dnn_detection = dnn_detection;
-  this->color_detection = color_detection;
-  this->lbp_detection = lbp_detection;
 }
 
 std::string NinshikiCppNode::get_node_prefix()

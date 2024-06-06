@@ -50,7 +50,10 @@ public:
 
   NinshikiCppNode(
     rclcpp::Node::SharedPtr node, const std::string & path,
-    int frequency, shisen_cpp::Options options);
+    int frequency, shisen_cpp::Options options,
+    std::shared_ptr<DnnDetector> dnn_detection,
+    std::shared_ptr<ColorDetector> color_detection,
+    std::shared_ptr<LBPDetector> lbp_detection);
   void publish();
   void set_detection(
     std::shared_ptr<DnnDetector> dnn_detection,

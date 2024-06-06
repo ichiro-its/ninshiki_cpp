@@ -107,17 +107,15 @@ int main(int argc, char ** argv)
     return 1;
   }
 
-  auto node = std::make_shared<rclcpp::Node>("ninshiki_cpp");
-  auto ninshiki_cpp_node = std::make_shared<ninshiki_cpp::node::NinshikiCppNode>(
-    node, path, frequency, options);
-
   auto dnn_detection = std::make_shared<ninshiki_cpp::detector::DnnDetector>(gpu, myriad);
   auto color_detection = std::make_shared<ninshiki_cpp::detector::ColorDetector>();
   auto lbp_detection = std::make_shared<ninshiki_cpp::detector::LBPDetector>();
 
   color_detection->load_configuration(path);
 
-  ninshiki_cpp_node->set_detection(dnn_detection, color_detection, lbp_detection);
+  auto node = std::make_shared<rclcpp::Node>("ninshiki_cpp");
+  auto ninshiki_cpp_node = std::make_shared<ninshiki_cpp::node::NinshikiCppNode>(
+    node, path, frequency, options, dnn_detection, color_detection, lbp_detection);
 
   rclcpp::spin(node);
   rclcpp::shutdown();

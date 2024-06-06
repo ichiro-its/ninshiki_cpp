@@ -25,7 +25,6 @@
 #include <iomanip>
 #include <string>
 
-
 namespace ninshiki_cpp
 {
 Config::Config(const std::string & path) : path(path) {}
