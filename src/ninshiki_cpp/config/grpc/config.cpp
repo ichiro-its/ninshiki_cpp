@@ -21,6 +21,7 @@
 #include <rclcpp/rclcpp.hpp>
 #include <ninshiki_cpp/config/grpc/call_data_base.hpp>
 #include <ninshiki_cpp/config/grpc/call_data_get_color_setting.hpp>
+#include <ninshiki_cpp/config/grpc/call_data_load_config.hpp>
 #include <ninshiki_cpp/config/grpc/call_data_save_color_setting.hpp>
 #include <ninshiki_cpp/config/grpc/call_data_set_color_setting.hpp>
 #include <ninshiki_cpp/config/grpc/config.hpp>
@@ -70,6 +71,7 @@ void ConfigGrpc::Run(const std::string & path, std::shared_ptr<ninshiki_cpp::det
     new CallDataGetColorSetting(&service_, cq_.get(), path);
     new CallDataSaveColorSetting(&service_, cq_.get(), path);
     new CallDataSetColorSetting(&service_, cq_.get(), path, color_detection);
+    new CallDataLoadConfig(&service_, cq_.get(), path, color_detection);
     void * tag;  // uniquely identifies a request.
     bool ok = true;
     while (true) {
