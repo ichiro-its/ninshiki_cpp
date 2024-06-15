@@ -18,15 +18,15 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
+#include "keisan/keisan.hpp"
+#include "ninshiki_cpp/utils/contours.hpp"
+#include "opencv2/opencv.hpp"
+
+#include <algorithm>
+#include <limits>
 #include <math.h>
 #include <string>
 #include <vector>
-#include <limits>
-#include <algorithm>
-
-#include "ninshiki_cpp/utils/contours.hpp"
-#include "opencv2/opencv.hpp"
-#include "keisan/keisan.hpp"
 
 namespace ninshiki_cpp::utils
 {

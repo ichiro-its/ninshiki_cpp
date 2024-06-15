@@ -21,22 +21,21 @@
 #ifndef NINSHIKI_CPP__DETECTOR__COLOR_DETECTOR_HPP_
 #define NINSHIKI_CPP__DETECTOR__COLOR_DETECTOR_HPP_
 
-#include <opencv2/opencv.hpp>
-#include <cmath>
-
-#include <sstream>
-#include <fstream>
-#include <string>
-#include <vector>
-#include <map>
-
 #include "keisan/geometry/point_2.hpp"
+#include "ninshiki_cpp/detector/detector.hpp"
+#include "ninshiki_cpp/utils/color.hpp"
+#include "ninshiki_cpp/utils/utils.hpp"
 #include "ninshiki_interfaces/msg/point.hpp"
 #include "ninshiki_interfaces/msg/contour.hpp"
 #include "ninshiki_interfaces/msg/contours.hpp"
-#include "ninshiki_cpp/utils/color.hpp"
-#include "ninshiki_cpp/utils/utils.hpp"
-#include "ninshiki_cpp/detector/detector.hpp"
+
+#include <cmath>
+#include <fstream>
+#include <map>
+#include <opencv2/opencv.hpp>
+#include <sstream>
+#include <string>
+#include <vector>
 
 namespace ninshiki_cpp::detector
 {

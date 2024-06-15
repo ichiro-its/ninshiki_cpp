@@ -21,11 +21,11 @@
 #ifndef NINSHIKI_CPP__UTILS__CONTOURS_HPP_
 #define NINSHIKI_CPP__UTILS__CONTOURS_HPP_
 
-#include <string>
-#include <vector>
-
 #include "opencv2/opencv.hpp"
 #include "keisan/keisan.hpp"
+
+#include <string>
+#include <vector>
 
 namespace ninshiki_cpp::utils
 {

@@ -18,13 +18,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#include <opencv2/imgproc.hpp>
+#include "ninshiki_cpp/detector/lbp_detector.hpp"
 
 #include <map>
+#include <opencv2/imgproc.hpp>
 #include <string>
 #include <vector>
-
-#include "ninshiki_cpp/detector/lbp_detector.hpp"
 
 namespace ninshiki_cpp
 {

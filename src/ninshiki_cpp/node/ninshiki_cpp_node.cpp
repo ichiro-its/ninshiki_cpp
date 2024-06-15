@@ -18,11 +18,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
+#include "ninshiki_cpp/node/ninshiki_cpp_node.hpp"
+
+#include <cv_bridge/cv_bridge.hpp>
 #include <memory>
 #include <string>
 #include <vector>
-#include <cv_bridge/cv_bridge.hpp>
-#include "ninshiki_cpp/node/ninshiki_cpp_node.hpp"
 
 using namespace std::chrono_literals;
 
