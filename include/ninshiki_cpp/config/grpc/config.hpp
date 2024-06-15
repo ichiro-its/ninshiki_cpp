@@ -21,10 +21,10 @@
 #ifndef NINSHIKI_CPP__CONFIG__GRPC__CONFIG_HPP_
 #define NINSHIKI_CPP__CONFIG__GRPC__CONFIG_HPP_
 
-#include <grpcpp/grpcpp.h>
-#include <ninshiki_cpp/detector/color_detector.hpp>
-#include <ninshiki_interfaces/ninshiki.grpc.pb.h>
-#include <ninshiki_interfaces/ninshiki.pb.h>
+#include "grpcpp/grpcpp.h"
+#include "ninshiki_cpp/detector/color_detector.hpp"
+#include "ninshiki_interfaces/ninshiki.grpc.pb.h"
+#include "ninshiki_interfaces/ninshiki.pb.h"
 
 #include <memory>
 #include <thread>
