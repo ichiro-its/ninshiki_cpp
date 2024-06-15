@@ -21,22 +21,21 @@
 #ifndef NINSHIKI_CPP__NODE__NINSHIKI_CPP_NODE_HPP_
 #define NINSHIKI_CPP__NODE__NINSHIKI_CPP_NODE_HPP_
 
-#include <opencv2/dnn.hpp>
-#include <opencv2/imgproc.hpp>
-#include <opencv2/highgui.hpp>
-
-#include <memory>
-#include <string>
-
-#include "rclcpp/rclcpp.hpp"
-#include "sensor_msgs/msg/image.hpp"
 #include "ninshiki_cpp/config/grpc/config.hpp"
 #include "ninshiki_cpp/detector/color_detector.hpp"
 #include "ninshiki_cpp/detector/detector.hpp"
 #include "ninshiki_cpp/detector/dnn_detector.hpp"
 #include "ninshiki_cpp/detector/lbp_detector.hpp"
 #include "ninshiki_interfaces/msg/detected_objects.hpp"
+#include "rclcpp/rclcpp.hpp"
+#include "sensor_msgs/msg/image.hpp"
 #include "shisen_cpp/shisen_cpp.hpp"
+
+#include <memory>
+#include <opencv2/dnn.hpp>
+#include <opencv2/highgui.hpp>
+#include <opencv2/imgproc.hpp>
+#include <string>
 
 namespace ninshiki_cpp::node
 {

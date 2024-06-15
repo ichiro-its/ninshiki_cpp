@@ -21,18 +21,17 @@
 #ifndef NINSHIKI_CPP__DETECTOR__DNN_DETECTOR_HPP_
 #define NINSHIKI_CPP__DETECTOR__DNN_DETECTOR_HPP_
 
-#include <opencv2/dnn.hpp>
-#include <opencv2/imgproc.hpp>
-#include <opencv2/highgui.hpp>
-
-#include <fstream>
-#include <string>
-#include <vector>
-
 #include "ninshiki_cpp/detector/detector.hpp"
+#include "ninshiki_cpp/utils/utils.hpp"
 #include "ninshiki_interfaces/msg/detected_object.hpp"
 #include "ninshiki_interfaces/msg/detected_objects.hpp"
-#include "ninshiki_cpp/utils/utils.hpp"
+
+#include <fstream>
+#include <opencv2/dnn.hpp>
+#include <opencv2/highgui.hpp>
+#include <opencv2/imgproc.hpp>
+#include <string>
+#include <vector>
 
 namespace ninshiki_cpp::detector
 {

@@ -21,10 +21,10 @@
 #ifndef NINSHIKI_CPP_CONFIG__GRPC__CALL_DATA_SET_COLOR_SETTING_HPP__
 #define NINSHIKI_CPP_CONFIG__GRPC__CALL_DATA_SET_COLOR_SETTING_HPP__
 
-#include <rclcpp/rclcpp.hpp>
-#include <ninshiki_cpp/config/grpc/call_data.hpp>
-#include <ninshiki_cpp/detector/color_detector.hpp>
-#include <ninshiki_cpp/utils/color.hpp>
+#include "rclcpp/rclcpp.hpp"
+#include "ninshiki_cpp/config/grpc/call_data.hpp"
+#include "ninshiki_cpp/detector/color_detector.hpp"
+#include "ninshiki_cpp/utils/color.hpp"
 
 namespace ninshiki_cpp
 {

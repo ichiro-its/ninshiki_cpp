@@ -21,7 +21,7 @@
 #ifndef NINSHIKI_CPP__CONFIG__GRPC__CALL_DATA_GET_COLOR_SETTING_HPP__
 #define NINSHIKI_CPP__CONFIG__GRPC__CALL_DATA_GET_COLOR_SETTING_HPP__
 
-#include <ninshiki_cpp/config/grpc/call_data.hpp>
+#include "ninshiki_cpp/config/grpc/call_data.hpp"
 
 namespace ninshiki_cpp
 {

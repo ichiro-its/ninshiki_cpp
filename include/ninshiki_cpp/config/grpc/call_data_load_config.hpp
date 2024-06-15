@@ -18,40 +18,31 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#ifndef NINSHIKI_CPP__CONFIG__GRPC__CONFIG_HPP_
-#define NINSHIKI_CPP__CONFIG__GRPC__CONFIG_HPP_
+#ifndef NINSHIKI_CPP_CONFIG__GRPC__CALL_DATA_LOAD_CONFIG_HPP__
+#define NINSHIKI_CPP_CONFIG__GRPC__CALL_DATA_LOAD_CONFIG_HPP__
 
-#include "grpcpp/grpcpp.h"
+#include "rclcpp/rclcpp.hpp"
+#include "ninshiki_cpp/config/grpc/call_data.hpp"
 #include "ninshiki_cpp/detector/color_detector.hpp"
-#include "ninshiki_interfaces/ninshiki.grpc.pb.h"
-#include "ninshiki_interfaces/ninshiki.pb.h"
-
-#include <memory>
-#include <thread>
+#include "ninshiki_cpp/utils/color.hpp"
 
 namespace ninshiki_cpp
 {
-class ConfigGrpc
+class CallDataLoadConfig
+: CallData<ninshiki_interfaces::proto::Empty, ninshiki_interfaces::proto::Empty>
 {
 public:
-  explicit ConfigGrpc();
-  explicit ConfigGrpc(const std::string & path);
-  using ColorDetector = detector::ColorDetector;
+  CallDataLoadConfig(
+    ninshiki_interfaces::proto::Config::AsyncService * service, grpc::ServerCompletionQueue * cq,
+    const std::string & path, std::shared_ptr<ninshiki_cpp::detector::ColorDetector> color_detection);
+    using ColorDetector = ninshiki_cpp::detector::ColorDetector;
 
-  ~ConfigGrpc();
-
-  void Run(const std::string & path, std::shared_ptr<ColorDetector> color_detection);
-
-private:
-  std::string path;
-  static void SignIntHandler(int signum);
-
-  static inline std::unique_ptr<grpc::ServerCompletionQueue> cq_;
-  static inline std::unique_ptr<grpc::Server> server_;
-  std::thread thread_;
-  ninshiki_interfaces::proto::Config::AsyncService service_;
+protected:
+  void AddNextToCompletionQueue() override;
+  void WaitForRequest() override;
+  void HandleRequest() override;
+  std::shared_ptr<ColorDetector> color_detection_;
 };
-
 }  // namespace ninshiki_cpp
 
-#endif  // NINSHIKI_CPP__CONFIG__GRPC__CONFIG_HPP_
+#endif  // NINSHIKI_CPP__CONFIG__GRPC__CALL_DATA_LOAD_CONFIG_HPP__

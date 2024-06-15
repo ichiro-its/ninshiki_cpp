@@ -18,17 +18,16 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
+#include "ninshiki_cpp/utils/utils.hpp"
 
 #include <algorithm>
 #include <fstream>
-#include <string>
 #include <sstream>
+#include <string>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 #include <vector>
-
-#include "ninshiki_cpp/utils/utils.hpp"
 
 namespace ninshiki_cpp::utils
 {

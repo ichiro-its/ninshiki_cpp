@@ -18,40 +18,42 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#ifndef NINSHIKI_CPP__CONFIG__GRPC__CONFIG_HPP_
-#define NINSHIKI_CPP__CONFIG__GRPC__CONFIG_HPP_
-
-#include "grpcpp/grpcpp.h"
-#include "ninshiki_cpp/detector/color_detector.hpp"
+#include "ninshiki_cpp/config/grpc/call_data_load_config.hpp"
+#include "ninshiki_cpp/config/utils/config.hpp"
 #include "ninshiki_interfaces/ninshiki.grpc.pb.h"
 #include "ninshiki_interfaces/ninshiki.pb.h"
-
-#include <memory>
-#include <thread>
+#include "rclcpp/rclcpp.hpp"
 
 namespace ninshiki_cpp
 {
-class ConfigGrpc
+CallDataLoadConfig::CallDataLoadConfig(
+  ninshiki_interfaces::proto::Config::AsyncService * service, grpc::ServerCompletionQueue * cq,
+  const std::string & path, std::shared_ptr<ninshiki_cpp::detector::ColorDetector> color_detection)
+: CallData(service, cq, path), color_detection_(color_detection)
 {
-public:
-  explicit ConfigGrpc();
-  explicit ConfigGrpc(const std::string & path);
-  using ColorDetector = detector::ColorDetector;
+  Proceed();
+}
 
-  ~ConfigGrpc();
+void CallDataLoadConfig::AddNextToCompletionQueue()
+{
+  new CallDataLoadConfig(service_, cq_, path_, color_detection_);
+}
 
-  void Run(const std::string & path, std::shared_ptr<ColorDetector> color_detection);
+void CallDataLoadConfig::WaitForRequest()
+{
+  service_->RequestLoadConfig(&ctx_, &request_, &responder_, cq_, cq_, this);
+}
 
-private:
-  std::string path;
-  static void SignIntHandler(int signum);
+void CallDataLoadConfig::HandleRequest()
+{
+  try {
+    color_detection_->load_configuration(path_);
 
-  static inline std::unique_ptr<grpc::ServerCompletionQueue> cq_;
-  static inline std::unique_ptr<grpc::Server> server_;
-  std::thread thread_;
-  ninshiki_interfaces::proto::Config::AsyncService service_;
-};
-
+    RCLCPP_INFO(
+      rclcpp::get_logger("Load config"), "config has been loaded!"
+    );
+  } catch (nlohmann::json::exception e) {
+    RCLCPP_ERROR(rclcpp::get_logger("Load config"), e.what());
+  }
+}
 }  // namespace ninshiki_cpp
-
-#endif  // NINSHIKI_CPP__CONFIG__GRPC__CONFIG_HPP_

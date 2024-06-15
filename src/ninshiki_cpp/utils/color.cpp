@@ -18,8 +18,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#include <string>
 #include "ninshiki_cpp/utils/color.hpp"
+
+#include <string>
 
 namespace ninshiki_cpp::utils
 {

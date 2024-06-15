@@ -21,14 +21,14 @@
 #ifndef NINSHIKI_CPP__DETECTOR__DETECTOR_HPP_
 #define NINSHIKI_CPP__DETECTOR__DETECTOR_HPP_
 
-#include <opencv2/core.hpp>
-#include <opencv2/objdetect.hpp>
-#include <vector>
-#include <string>
-
 #include "ninshiki_cpp/utils/utils.hpp"
 #include "ninshiki_interfaces/msg/detected_object.hpp"
 #include "ninshiki_interfaces/msg/detected_objects.hpp"
+
+#include <opencv2/core.hpp>
+#include <opencv2/objdetect.hpp>
+#include <string>
+#include <vector>
 
 namespace ninshiki_cpp::detector
 {

@@ -18,11 +18,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
+#include "ninshiki_cpp/detector/dnn_detector.hpp"
+
 #include <map>
 #include <string>
 #include <vector>
-
-#include "ninshiki_cpp/detector/dnn_detector.hpp"
 
 namespace ninshiki_cpp
 {
