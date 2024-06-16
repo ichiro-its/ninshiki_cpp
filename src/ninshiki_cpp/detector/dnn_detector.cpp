@@ -29,7 +29,7 @@ namespace ninshiki_cpp
 namespace detector
 {
 
-DnnDetector::DnnDetector(bool gpu, bool myriad)
+DnnDetector::DnnDetector()
 {
   file_name = static_cast<std::string>(getenv("HOME")) + "/yolo_model/obj.names";
   std::string config = static_cast<std::string>(getenv("HOME")) + "/yolo_model/config.cfg";
@@ -38,14 +38,19 @@ DnnDetector::DnnDetector(bool gpu, bool myriad)
   model_suffix = utils::split_string(model, ".");
   net = cv::dnn::readNet(model, config, "");
 
-  this->gpu = gpu;
-  this->myriad = myriad;
-
   std::ifstream ifs(file_name.c_str());
   std::string line;
   while (std::getline(ifs, line)) {
     classes.push_back(line);
   }
+
+
+}
+
+void DnnDetector::set_computation_method(bool gpu, bool myriad)
+{
+  this->gpu = gpu;
+  this->myriad = myriad;
 
   // Set computation method (gpu, myriad, or CPU)
   if (gpu) {

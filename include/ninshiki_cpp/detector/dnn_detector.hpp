@@ -39,8 +39,9 @@ namespace ninshiki_cpp::detector
 class DnnDetector : public Detector
 {
 public:
-  explicit DnnDetector(bool gpu = false, bool myriad = false);
+  explicit DnnDetector();
 
+  void set_computation_method(bool gpu = false, bool myriad = false);
   void detection(const cv::Mat & image, float conf_threshold, float nms_threshold);
   void detect_darknet(const cv::Mat & image, float conf_threshold, float nms_threshold);
   void detect_tensorflow(const cv::Mat & image, float conf_threshold, float nms_threshold);

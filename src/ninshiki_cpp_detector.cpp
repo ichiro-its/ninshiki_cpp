@@ -18,36 +18,39 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#include "ninshiki_cpp/ninshiki_cpp.hpp"
-#include "rclcpp/rclcpp.hpp"
-
 #include <memory>
 #include <string>
+
+#include "ninshiki_cpp/ninshiki_cpp.hpp"
+#include "rclcpp/rclcpp.hpp"
 
 int main(int argc, char ** argv)
 {
   rclcpp::init(argc, argv);
-  shisen_cpp::Options options;
 
   // Default Value
   std::string path = "";
   std::string topic_name = "";
-  std::string detection_method = "yolo";
+
   int gpu = 0;
   int myriad = 0;
   int frequency = 96;
 
+  std::shared_ptr<ninshiki_cpp::detector::DnnDetector>dnn_detector = nullptr;
+  std::shared_ptr<ninshiki_cpp::detector::ColorDetector>color_detector = nullptr;
+  std::shared_ptr<ninshiki_cpp::detector::LBPDetector>lbp_detector = nullptr;
+
   const char * help_message =
     "Usage: ros2 run ninshiki_cpp detector\n"
-    "[path] [--detector DETECTOR] [--GPU {0,1}] [--MYRIAD {0,1}]\n"
+    "[path] [--GPU {0,1}] [--MYRIAD {0,1}] [methods]\n"
     "\n"
     ""
     "Positional arguments:\n"
     "path                 path to detection configuration\n"
+    "methods              detection methods (dnn &/ color &/ lbp)\n"
     "\n"
     "Optional arguments:\n"
     "-h, --help           show this help message and exit\n"
-    "--detector DETECTOR  chose detector we want to use (yolo / tflite)\n"
     "--GPU {0,1}          if we chose the computation using GPU\n"
     "--MYRIAD {0,1}       if we chose the computation using Compute Stick\n"
     "--frequency          specify publisher frequency";
@@ -59,21 +62,12 @@ int main(int argc, char ** argv)
       return 1;
     }
     int i = 1;
-    int pos = 0;
     while (i < argc) {
       std::string arg = argv[i++];
       if (arg[0] == '-') {
         if (arg == "-h" || arg == "--help") {
           std::cout << help_message << std::endl;
           return 1;
-        } else if (arg == "--detector") {
-          std::string value = argv[i++];
-          if (value == "yolo") {
-            detection_method = value;
-          } else {
-            std::cout << "Unknown detector `" << arg << "`!\n\n" << help_message << std::endl;
-            return 1;
-          }
         } else if (arg == "--GPU") {
           int value = atoi(argv[i++]);
           if (value == 0 || value == 1) {
@@ -87,35 +81,48 @@ int main(int argc, char ** argv)
           if (value == 0 || value == 1) {
             myriad = value;
           } else {
-            std::cout << "Unknown option for MYRIAD `" << arg << "`!\n\n" <<
-              help_message << std::endl;
+            std::cout << "Unknown option for MYRIAD `" << arg << "`!\n\n"
+                      << help_message << std::endl;
             return 1;
           }
         } else if (arg == "--frequency") {
           frequency = atoi(argv[i++]);
+        } else if (arg == "--method") {
         } else {
           std::cout << "Unknown argument `" << arg << "`!\n\n" << help_message << std::endl;
           return 1;
         }
-      } else if (pos == 0) {
+      } else if (arg == "dnn") {
+        dnn_detector = std::make_shared<ninshiki_cpp::detector::DnnDetector>();
+      } else if (arg == "color") {
+        color_detector = std::make_shared<ninshiki_cpp::detector::ColorDetector>();
+      } else if (arg == "lbp") {
+        lbp_detector = std::make_shared<ninshiki_cpp::detector::LBPDetector>();
+      } else {
         path = arg;
-        ++pos;
       }
     }
   } catch (...) {
     std::cout << "Invalid arguments!\n\n" << help_message << std::endl;
     return 1;
   }
+  
+  if (!dnn_detector && !color_detector && !lbp_detector) {
+    std::cout << "At least one detection method is needed!\n\n" << help_message << std::endl;
+    return 1;
+  }
 
-  auto dnn_detection = std::make_shared<ninshiki_cpp::detector::DnnDetector>(gpu, myriad);
-  auto color_detection = std::make_shared<ninshiki_cpp::detector::ColorDetector>();
-  auto lbp_detection = std::make_shared<ninshiki_cpp::detector::LBPDetector>();
+  if (dnn_detector) {
+    dnn_detector->set_computation_method(gpu, myriad);
+  }
 
-  color_detection->load_configuration(path);
+  if (color_detector) {
+    color_detector->load_configuration(path);
+  }
 
   auto node = std::make_shared<rclcpp::Node>("ninshiki_cpp");
   auto ninshiki_cpp_node = std::make_shared<ninshiki_cpp::node::NinshikiCppNode>(
-    node, path, frequency, options, dnn_detection, color_detection, lbp_detection);
+    node, path, frequency, dnn_detector, color_detector, lbp_detector);
 
   rclcpp::spin(node);
   rclcpp::shutdown();
