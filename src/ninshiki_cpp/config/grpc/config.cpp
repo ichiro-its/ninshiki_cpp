@@ -25,7 +25,7 @@
 #include "ninshiki_cpp/config/grpc/call_data_save_color_setting.hpp"
 #include "ninshiki_cpp/config/grpc/call_data_set_color_setting.hpp"
 #include "ninshiki_cpp/config/grpc/config.hpp"
-#include "ninshiki_cpp/config/utils/config.hpp"
+#include "jitsuyo/config.hpp"
 
 #include <chrono>
 #include <csignal>
@@ -54,9 +54,8 @@ void ConfigGrpc::SignIntHandler(int signum)
 
 void ConfigGrpc::Run(const std::string & path, std::shared_ptr<ninshiki_cpp::detector::ColorDetector> color_detection)
 {
-  Config config(path);
   std::string server_address =
-    absl::StrFormat("0.0.0.0:%d", config.get_grpc_config()["port"].get<uint16_t>());
+    absl::StrFormat("0.0.0.0:%d", jitsuyo::load_config(path, "grpc.json")["port"].get<uint16_t>());
 
   ServerBuilder builder;
   builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());

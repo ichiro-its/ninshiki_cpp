@@ -19,6 +19,7 @@ find_package(ninshiki_interfaces REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(shisen_cpp REQUIRED)
+find_package(jitsuyo REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(cv_bridge REQUIRED)
 
@@ -36,7 +37,6 @@ add_library(${PROJECT_NAME} SHARED
   "src/${PROJECT_NAME}/config/grpc/call_data_load_config.cpp"
   "src/${PROJECT_NAME}/config/grpc/call_data_save_color_setting.cpp"
   "src/${PROJECT_NAME}/config/grpc/call_data_set_color_setting.cpp"
-  "src/${PROJECT_NAME}/config/utils/config.cpp"
   "src/${PROJECT_NAME}/detector/color_detector.cpp"
   "src/${PROJECT_NAME}/detector/dnn_detector.cpp"
   "src/${PROJECT_NAME}/detector/lbp_detector.cpp"
@@ -70,6 +70,7 @@ ament_target_dependencies(${PROJECT_NAME}
   OpenCV
   rclcpp
   shisen_cpp
+  jitsuyo
   sensor_msgs
   cv_bridge
   gRPC)
@@ -80,6 +81,7 @@ ament_target_dependencies(${PROJECT_NAME}_exported
   OpenCV
   rclcpp
   shisen_cpp
+  jitsuyo
   sensor_msgs
   cv_bridge)
 
