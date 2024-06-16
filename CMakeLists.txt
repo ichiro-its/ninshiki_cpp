@@ -44,8 +44,7 @@ add_library(${PROJECT_NAME} SHARED
   "src/${PROJECT_NAME}/utils/color.cpp"
   "src/${PROJECT_NAME}/utils/contours.cpp"
   "src/${PROJECT_NAME}/utils/circle.cpp"
-  "src/${PROJECT_NAME}/node/ninshiki_cpp_node.cpp"
-  "src/${PROJECT_NAME}/utils/utils.cpp")
+  "src/${PROJECT_NAME}/node/ninshiki_cpp_node.cpp")
 
 add_library(${PROJECT_NAME}_exported SHARED
   "src/${PROJECT_NAME}/detector/color_detector.cpp"
@@ -53,8 +52,7 @@ add_library(${PROJECT_NAME}_exported SHARED
   "src/${PROJECT_NAME}/detector/lbp_detector.cpp"
   "src/${PROJECT_NAME}/utils/color.cpp"
   "src/${PROJECT_NAME}/utils/contours.cpp"
-  "src/${PROJECT_NAME}/utils/circle.cpp"
-  "src/${PROJECT_NAME}/utils/utils.cpp")
+  "src/${PROJECT_NAME}/utils/circle.cpp")
 
 target_include_directories(${PROJECT_NAME} PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>

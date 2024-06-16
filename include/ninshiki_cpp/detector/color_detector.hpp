@@ -24,7 +24,6 @@
 #include "keisan/geometry/point_2.hpp"
 #include "ninshiki_cpp/detector/detector.hpp"
 #include "ninshiki_cpp/utils/color.hpp"
-#include "ninshiki_cpp/utils/utils.hpp"
 #include "ninshiki_interfaces/msg/point.hpp"
 #include "ninshiki_interfaces/msg/contour.hpp"
 #include "ninshiki_interfaces/msg/contours.hpp"

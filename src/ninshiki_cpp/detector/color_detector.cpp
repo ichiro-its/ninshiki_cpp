@@ -27,6 +27,7 @@
 #include <vector>
 
 #include "ninshiki_cpp/detector/color_detector.hpp"
+#include "jitsuyo/linux.hpp"
 
 namespace ninshiki_cpp
 {
@@ -48,7 +49,7 @@ bool ColorDetector::load_configuration(const std::string & path)
   config_path = path;
   std::string ss = config_path + "/color_classifier.json";
 
-  if (utils::is_file_exist(ss) == false) {
+  if (jitsuyo::is_file_exist(ss) == false) {
     if (save_configuration() == false) {
       return false;
     }
@@ -86,8 +87,8 @@ bool ColorDetector::save_configuration()
 {
   std::string ss = config_path + "/color_classifier.json";
 
-  if (utils::is_file_exist(ss) == false) {
-    if (utils::create_file(ss) == false) {
+  if (jitsuyo::is_file_exist(ss) == false) {
+    if (jitsuyo::create_file(ss) == false) {
       return false;
     }
   }

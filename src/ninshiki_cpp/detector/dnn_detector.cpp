@@ -24,6 +24,8 @@
 #include <string>
 #include <vector>
 
+#include "jitsuyo/linux.hpp"
+
 namespace ninshiki_cpp
 {
 namespace detector
@@ -35,7 +37,7 @@ DnnDetector::DnnDetector(bool gpu, bool myriad)
   std::string config = static_cast<std::string>(getenv("HOME")) + "/yolo_model/config.cfg";
   std::string model = static_cast<std::string>(getenv("HOME")) +
     "/yolo_model/yolo_weights.weights";
-  model_suffix = utils::split_string(model, ".");
+  model_suffix = jitsuyo::split_string(model, ".");
   net = cv::dnn::readNet(model, config, "");
 
   this->gpu = gpu;
