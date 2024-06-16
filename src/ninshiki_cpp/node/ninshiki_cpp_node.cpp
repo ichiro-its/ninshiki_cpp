@@ -66,7 +66,6 @@ NinshikiCppNode::NinshikiCppNode(
 
 void NinshikiCppNode::publish()
 {
-  printf("Publish\n");
   if (dnn_detection) {
     dnn_detection->detection(received_frame, 0.4, 0.3);
     detected_object_publisher->publish(dnn_detection->detection_result);
