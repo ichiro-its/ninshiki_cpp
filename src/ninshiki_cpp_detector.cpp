@@ -68,34 +68,34 @@ int main(int argc, char ** argv)
           RCLCPP_INFO(rclcpp::get_logger("ninshiki_cpp"), "%s", help_message);
           return 1;
         } else if (arg == "--detector") {
-            std::string value = args[i++];
-            if (value == "yolo") {
-              detection_method = value;
-            } else {
-              RCLCPP_ERROR(rclcpp::get_logger("ninshiki_cpp"), "No value provided for `--detector`!\n\n%s", help_message);
-              return 1;
-            }
-        } else if (arg == "--GPU") {
-            int value = std::stoi(args[i++]);
-            if (value == 0 || value == 1) {
-              gpu = value;
-            } else {
-              RCLCPP_ERROR(rclcpp::get_logger("ninshiki_cpp"), "No value provided for `--GPU`!\n\n%s", help_message);
-              return 1;
-            }
-        } else if (arg == "--MYRIAD") {
-            int value = std::stoi(args[i++]);
-            if (value == 0 || value == 1) {
-              myriad = value;
-            } else {
-              RCLCPP_ERROR(rclcpp::get_logger("ninshiki_cpp"), "No value provided for `--MYRIAD`!\n\n%s", help_message);
-              return 1;
-            }
-        } else if (arg == "--frequency") {
-            frequency = std::stoi(args[i++]);
-        } else {
-            RCLCPP_ERROR(rclcpp::get_logger("ninshiki_cpp"), "Unknown argument `%s`!\n\n%s", arg.c_str(), help_message);
+          std::string value = args[i++];
+          if (value == "yolo") {
+            detection_method = value;
+          } else {
+            RCLCPP_ERROR(rclcpp::get_logger("ninshiki_cpp"), "No value provided for `--detector`!\n\n%s", help_message);
             return 1;
+          }
+        } else if (arg == "--GPU") {
+          int value = std::stoi(args[i++]);
+          if (value == 0 || value == 1) {
+            gpu = value;
+          } else {
+            RCLCPP_ERROR(rclcpp::get_logger("ninshiki_cpp"), "No value provided for `--GPU`!\n\n%s", help_message);
+            return 1;
+          }
+        } else if (arg == "--MYRIAD") {
+          int value = std::stoi(args[i++]);
+          if (value == 0 || value == 1) {
+            myriad = value;
+          } else {
+            RCLCPP_ERROR(rclcpp::get_logger("ninshiki_cpp"), "No value provided for `--MYRIAD`!\n\n%s", help_message);
+            return 1;
+          }
+        } else if (arg == "--frequency") {
+          frequency = std::stoi(args[i++]);
+        } else {
+          RCLCPP_ERROR(rclcpp::get_logger("ninshiki_cpp"), "Unknown argument `%s`!\n\n%s", arg.c_str(), help_message);
+          return 1;
         }
       } else if (pos == 0) {
         path = arg;
