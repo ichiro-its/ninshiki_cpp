@@ -68,54 +68,34 @@ int main(int argc, char ** argv)
           RCLCPP_INFO(rclcpp::get_logger("ninshiki_cpp"), "%s", help_message);
           return 1;
         } else if (arg == "--detector") {
-          if (i < args.size()) {
             std::string value = args[i++];
-            if (value == "yolo" || value == "tflite") {
+            if (value == "yolo") {
               detection_method = value;
             } else {
-              RCLCPP_ERROR(rclcpp::get_logger("ninshiki_cpp"), "Unknown detector `%s`!\n\n%s", value.c_str(), help_message);
+              RCLCPP_ERROR(rclcpp::get_logger("ninshiki_cpp"), "No value provided for `--detector`!\n\n%s", help_message);
               return 1;
             }
-          } else {
-            RCLCPP_ERROR(rclcpp::get_logger("ninshiki_cpp"), "No value provided for `--detector`!\n\n%s", help_message);
-            return 1;
-          }
         } else if (arg == "--GPU") {
-          if (i < args.size()) {
             int value = std::stoi(args[i++]);
             if (value == 0 || value == 1) {
               gpu = value;
             } else {
-              RCLCPP_ERROR(rclcpp::get_logger("ninshiki_cpp"), "Unknown option for GPU `%s`!\n\n%s", std::to_string(value).c_str(), help_message);
+              RCLCPP_ERROR(rclcpp::get_logger("ninshiki_cpp"), "No value provided for `--GPU`!\n\n%s", help_message);
               return 1;
             }
-          } else {
-            RCLCPP_ERROR(rclcpp::get_logger("ninshiki_cpp"), "No value provided for `--GPU`!\n\n%s", help_message);
-            return 1;
-          }
         } else if (arg == "--MYRIAD") {
-          if (i < args.size()) {
             int value = std::stoi(args[i++]);
             if (value == 0 || value == 1) {
               myriad = value;
             } else {
-              RCLCPP_ERROR(rclcpp::get_logger("ninshiki_cpp"), "Unknown option for MYRIAD `%s`!\n\n%s", std::to_string(value).c_str(), help_message);
+              RCLCPP_ERROR(rclcpp::get_logger("ninshiki_cpp"), "No value provided for `--MYRIAD`!\n\n%s", help_message);
               return 1;
             }
-          } else {
-            RCLCPP_ERROR(rclcpp::get_logger("ninshiki_cpp"), "No value provided for `--MYRIAD`!\n\n%s", help_message);
-            return 1;
-          }
         } else if (arg == "--frequency") {
-          if (i < args.size()) {
             frequency = std::stoi(args[i++]);
-          } else {
-            RCLCPP_ERROR(rclcpp::get_logger("ninshiki_cpp"), "No value provided for `--frequency`!\n\n%s", help_message);
-            return 1;
-          }
         } else {
-          RCLCPP_ERROR(rclcpp::get_logger("ninshiki_cpp"), "Unknown argument `%s`!\n\n%s", arg.c_str(), help_message);
-          return 1;
+            RCLCPP_ERROR(rclcpp::get_logger("ninshiki_cpp"), "Unknown argument `%s`!\n\n%s", arg.c_str(), help_message);
+            return 1;
         }
       } else if (pos == 0) {
         path = arg;
