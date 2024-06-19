@@ -56,23 +56,23 @@ int main(int argc, char ** argv)
   // Handle arguments
   try {
     if (args.size() < 2) {
-      RCLCPP_ERROR(rclcpp::get_logger("ninshiki_cpp"), "Argument needed!\n\n%s", help_message);
+      RCLCPP_ERROR_STREAM(rclcpp::get_logger("ninshiki_cpp"), "Argument needed!\n\n" << help_message);
       return 1;
     }
     int i = 1;
     int pos = 0;
     while (i < args.size()) {
-      std::string arg = args[i++];
+      const std::string& arg = args[i++];
       if (arg[0] == '-') {
         if (arg == "-h" || arg == "--help") {
-          RCLCPP_INFO(rclcpp::get_logger("ninshiki_cpp"), "%s", help_message);
+          RCLCPP_INFO_STREAM(rclcpp::get_logger("ninshiki_cpp"), help_message);
           return 1;
         } else if (arg == "--detector") {
-          std::string value = args[i++];
+          const std::string& value = args[i++];
           if (value == "yolo") {
             detection_method = value;
           } else {
-            RCLCPP_ERROR(rclcpp::get_logger("ninshiki_cpp"), "No value provided for `--detector`!\n\n%s", help_message);
+            RCLCPP_ERROR_STREAM(rclcpp::get_logger("ninshiki_cpp"), "No value provided for `--detector`!\n\n" << help_message);
             return 1;
           }
         } else if (arg == "--GPU") {
@@ -80,7 +80,7 @@ int main(int argc, char ** argv)
           if (value == 0 || value == 1) {
             gpu = value;
           } else {
-            RCLCPP_ERROR(rclcpp::get_logger("ninshiki_cpp"), "No value provided for `--GPU`!\n\n%s", help_message);
+            RCLCPP_ERROR_STREAM(rclcpp::get_logger("ninshiki_cpp"), "No value provided for `--GPU`!\n\n" << help_message);
             return 1;
           }
         } else if (arg == "--MYRIAD") {
@@ -88,28 +88,25 @@ int main(int argc, char ** argv)
           if (value == 0 || value == 1) {
             myriad = value;
           } else {
-            RCLCPP_ERROR(rclcpp::get_logger("ninshiki_cpp"), "No value provided for `--MYRIAD`!\n\n%s", help_message);
+            RCLCPP_ERROR_STREAM(rclcpp::get_logger("ninshiki_cpp"), "No value provided for `--MYRIAD`!\n\n" << help_message);
             return 1;
           }
         } else if (arg == "--frequency") {
           frequency = std::stoi(args[i++]);
         } else {
-          RCLCPP_ERROR(rclcpp::get_logger("ninshiki_cpp"), "Unknown argument `%s`!\n\n%s", arg.c_str(), help_message);
+          RCLCPP_ERROR_STREAM(rclcpp::get_logger("ninshiki_cpp"), "Unknown argument `" << arg.c_str() << "`!\n\n" << help_message);
           return 1;
         }
       } else if (pos == 0) {
         path = arg;
         ++pos;
       } else {
-        RCLCPP_ERROR(rclcpp::get_logger("ninshiki_cpp"), "Unexpected positional argument `%s`!\n\n%s", arg.c_str(), help_message);
+        RCLCPP_ERROR_STREAM(rclcpp::get_logger("ninshiki_cpp"), "Unexpected positional argument `" << arg.c_str() << "`!\n\n" << help_message);
         return 1;
       }
     }
   } catch (const std::exception &e) {
-    RCLCPP_ERROR(rclcpp::get_logger("ninshiki_cpp"), "Invalid arguments: %s\n\n%s", e.what(), help_message);
-    return 1;
-  } catch (...) {
-    RCLCPP_ERROR(rclcpp::get_logger("ninshiki_cpp"), "Unknown error while parsing arguments!\n\n%s", help_message);
+    RCLCPP_ERROR_STREAM(rclcpp::get_logger("ninshiki_cpp"), "Invalid arguments: `" << e.what() << "`!\n\n" << help_message);
     return 1;
   }
 
