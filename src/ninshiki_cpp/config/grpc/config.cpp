@@ -54,8 +54,9 @@ void ConfigGrpc::SignIntHandler(int signum)
 
 void ConfigGrpc::Run(const std::string & path, std::shared_ptr<ninshiki_cpp::detector::ColorDetector> color_detection)
 {
+  nlohmann::json grpc_config = jitsuyo::load_config(path, "grpc.json");
   std::string server_address =
-    absl::StrFormat("0.0.0.0:%d", jitsuyo::load_config(path, "grpc.json")["port"].get<uint16_t>());
+    absl::StrFormat("0.0.0.0:%d", grpc_config["port"].get<uint16_t>());
 
   ServerBuilder builder;
   builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());

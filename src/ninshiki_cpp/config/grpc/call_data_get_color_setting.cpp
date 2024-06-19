@@ -20,9 +20,9 @@
 
 #include "ninshiki_cpp/config/grpc/call_data_get_color_setting.hpp"
 
+#include "jitsuyo/config.hpp"
 #include "ninshiki_interfaces/ninshiki.grpc.pb.h"
 #include "ninshiki_interfaces/ninshiki.pb.h"
-#include "jitsuyo/config.hpp"
 #include "rclcpp/rclcpp.hpp"
 
 namespace ninshiki_cpp
