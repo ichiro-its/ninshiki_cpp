@@ -18,6 +18,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
+#include "jitsuyo/config.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "ninshiki_cpp/config/grpc/call_data_base.hpp"
 #include "ninshiki_cpp/config/grpc/call_data_get_color_setting.hpp"
@@ -25,7 +26,6 @@
 #include "ninshiki_cpp/config/grpc/call_data_save_color_setting.hpp"
 #include "ninshiki_cpp/config/grpc/call_data_set_color_setting.hpp"
 #include "ninshiki_cpp/config/grpc/config.hpp"
-#include "jitsuyo/config.hpp"
 
 #include <chrono>
 #include <csignal>
