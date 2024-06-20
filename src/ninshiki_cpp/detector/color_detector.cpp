@@ -26,8 +26,9 @@
 #include <utility>
 #include <vector>
 
-#include "ninshiki_cpp/detector/color_detector.hpp"
+#include "jitsuyo/config.hpp"
 #include "jitsuyo/linux.hpp"
+#include "ninshiki_cpp/detector/color_detector.hpp"
 
 namespace ninshiki_cpp
 {
@@ -55,12 +56,11 @@ bool ColorDetector::load_configuration(const std::string & path)
     }
   }
 
-  std::ifstream input(ss, std::ifstream::in);
-  if (input.is_open() == false) {
+  nlohmann::json config = jitsuyo::load_config(path, "/color_classifier.json");
+  if (config.empty()) {
     return false;
   }
 
-  nlohmann::json config = nlohmann::json::parse(input);
   for (auto & item : config.items()) {
     // Get all config
     try {
@@ -109,15 +109,7 @@ bool ColorDetector::save_configuration()
     config.push_back(color);
   }
 
-  std::ofstream output(ss, std::ofstream::out);
-  if (output.is_open() == false) {
-    return false;
-  }
-
-  output << config.dump(2);
-  output.close();
-
-  return true;
+  return jitsuyo::save_config(config_path, "/color_classifier.json", config);
 }
 
 bool ColorDetector::sync_configuration()
