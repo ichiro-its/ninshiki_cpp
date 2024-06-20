@@ -23,7 +23,6 @@
 
 #include <memory>
 #include <string>
-#include <vector>
 
 int main(int argc, char ** argv)
 {
@@ -94,14 +93,14 @@ int main(int argc, char ** argv)
         } else if (arg == "--frequency") {
           frequency = std::stoi(args[i++]);
         } else {
-          RCLCPP_ERROR_STREAM(rclcpp::get_logger("ninshiki_cpp"), "Unknown argument `" << arg.c_str() << "`!\n\n" << help_message);
+          RCLCPP_ERROR_STREAM(rclcpp::get_logger("ninshiki_cpp"), "Unknown argument `" << arg << "`!\n\n" << help_message);
           return 1;
         }
       } else if (pos == 0) {
         path = arg;
         ++pos;
       } else {
-        RCLCPP_ERROR_STREAM(rclcpp::get_logger("ninshiki_cpp"), "Unexpected positional argument `" << arg.c_str() << "`!\n\n" << help_message);
+        RCLCPP_ERROR_STREAM(rclcpp::get_logger("ninshiki_cpp"), "Unexpected positional argument `" << arg << "`!\n\n" << help_message);
         return 1;
       }
     }
