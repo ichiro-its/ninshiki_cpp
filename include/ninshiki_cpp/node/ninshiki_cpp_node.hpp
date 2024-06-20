@@ -49,9 +49,9 @@ public:
 
   NinshikiCppNode(
     rclcpp::Node::SharedPtr node, const std::string & path,
-    int frequency, std::shared_ptr<DnnDetector> dnn_detection,
-    std::shared_ptr<ColorDetector> color_detection,
-    std::shared_ptr<LBPDetector> lbp_detection);
+    int frequency, const std::shared_ptr<DnnDetector> dnn_detection,
+    const std::shared_ptr<ColorDetector> color_detection,
+    const std::shared_ptr<LBPDetector> lbp_detection);
   void publish();
 
 private:
@@ -76,7 +76,7 @@ private:
   ConfigGrpc config_grpc;
   std::string path;
 
-  static const std::string get_node_prefix();
+  static std::string get_node_prefix();
 };
 
 }  // namespace ninshiki_cpp::node
