@@ -56,8 +56,8 @@ bool ColorDetector::load_configuration(const std::string & path)
     }
   }
 
-  nlohmann::json config = jitsuyo::load_config(path, "/color_classifier.json");
-  if (config.empty()) {
+  nlohmann::json config;
+  if (!jitsuyo::load_config(path, "/color_classifier.json", config)) {
     return false;
   }
 

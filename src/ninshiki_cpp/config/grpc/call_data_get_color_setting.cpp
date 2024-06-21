@@ -47,7 +47,12 @@ void CallDataGetColorSetting::WaitForRequest()
 
 void CallDataGetColorSetting::HandleRequest()
 {
-  reply_.set_json_color(jitsuyo::load_config(path_, "color_classifier.json").dump());
+  nlohmann::json data;
+  if (!jitsuyo::load_config(path_, "color_classifier.json", data)) {
+    RCLCPP_ERROR(rclcpp::get_logger("Get config"), "Failed to load config!");
+    return;
+  }
+  reply_.set_json_color(data.dump());
   RCLCPP_INFO(rclcpp::get_logger("Get config"), "config has been sent!");
 }
 }  // namespace ninshiki_cpp
