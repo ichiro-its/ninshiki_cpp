@@ -92,6 +92,6 @@ void NinshikiCppNode::publish()
   }
 }
 
-const std::string NinshikiCppNode::get_node_prefix() { return "ninshiki_cpp"; }
+std::string NinshikiCppNode::get_node_prefix() { return "ninshiki_cpp"; }
 
 }  // namespace ninshiki_cpp::node
