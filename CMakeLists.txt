@@ -14,12 +14,12 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 find_package(ament_cmake REQUIRED)
+find_package(jitsuyo REQUIRED)
 find_package(keisan REQUIRED)
 find_package(ninshiki_interfaces REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(shisen_cpp REQUIRED)
-find_package(jitsuyo REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(cv_bridge REQUIRED)
 
@@ -63,23 +63,23 @@ target_include_directories(${PROJECT_NAME}_exported PUBLIC
   $<INSTALL_INTERFACE:include>)
 
 ament_target_dependencies(${PROJECT_NAME}
+  jitsuyo
   keisan
   ninshiki_interfaces
   OpenCV
   rclcpp
   shisen_cpp
-  jitsuyo
   sensor_msgs
   cv_bridge
   gRPC)
 
 ament_target_dependencies(${PROJECT_NAME}_exported
+  jitsuyo
   keisan
   ninshiki_interfaces
   OpenCV
   rclcpp
   shisen_cpp
-  jitsuyo
   sensor_msgs
   cv_bridge)
 
@@ -118,6 +118,7 @@ if(BUILD_TESTING)
 endif()
 
 ament_export_dependencies(
+  jitsuyo
   keisan
   ninshiki_interfaces
   OpenCV
