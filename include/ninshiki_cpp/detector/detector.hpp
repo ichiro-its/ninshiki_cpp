@@ -21,7 +21,6 @@
 #ifndef NINSHIKI_CPP__DETECTOR__DETECTOR_HPP_
 #define NINSHIKI_CPP__DETECTOR__DETECTOR_HPP_
 
-#include "ninshiki_cpp/utils/utils.hpp"
 #include "ninshiki_interfaces/msg/detected_object.hpp"
 #include "ninshiki_interfaces/msg/detected_objects.hpp"
 

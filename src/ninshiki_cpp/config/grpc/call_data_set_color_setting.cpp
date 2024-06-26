@@ -19,9 +19,10 @@
 // THE SOFTWARE.
 
 #include "ninshiki_cpp/config/grpc/call_data_set_color_setting.hpp"
-#include "ninshiki_cpp/config/utils/config.hpp"
+
 #include "ninshiki_interfaces/ninshiki.grpc.pb.h"
 #include "ninshiki_interfaces/ninshiki.pb.h"
+#include "nlohmann/json.hpp"
 #include "rclcpp/rclcpp.hpp"
 
 namespace ninshiki_cpp
@@ -46,7 +47,6 @@ void CallDataSetColorSetting::WaitForRequest()
 
 void CallDataSetColorSetting::HandleRequest()
 {
-  Config config(path_);
   try {
     utils::Color color(
       request_.name(),

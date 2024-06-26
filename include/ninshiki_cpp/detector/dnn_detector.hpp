@@ -22,7 +22,6 @@
 #define NINSHIKI_CPP__DETECTOR__DNN_DETECTOR_HPP_
 
 #include "ninshiki_cpp/detector/detector.hpp"
-#include "ninshiki_cpp/utils/utils.hpp"
 #include "ninshiki_interfaces/msg/detected_object.hpp"
 #include "ninshiki_interfaces/msg/detected_objects.hpp"
 

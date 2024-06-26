@@ -19,7 +19,8 @@
 // THE SOFTWARE.
 
 #include "ninshiki_cpp/config/grpc/call_data_get_color_setting.hpp"
-#include "ninshiki_cpp/config/utils/config.hpp"
+
+#include "jitsuyo/config.hpp"
 #include "ninshiki_interfaces/ninshiki.grpc.pb.h"
 #include "ninshiki_interfaces/ninshiki.pb.h"
 #include "rclcpp/rclcpp.hpp"
@@ -46,8 +47,12 @@ void CallDataGetColorSetting::WaitForRequest()
 
 void CallDataGetColorSetting::HandleRequest()
 {
-  Config config(path_);
-  reply_.set_json_color(config.get_color_setting("color"));
+  nlohmann::json data;
+  if (!jitsuyo::load_config(path_, "color_classifier.json", data)) {
+    RCLCPP_ERROR(rclcpp::get_logger("Get config"), "Failed to load config!");
+    return;
+  }
+  reply_.set_json_color(data.dump());
   RCLCPP_INFO(rclcpp::get_logger("Get config"), "config has been sent!");
 }
 }  // namespace ninshiki_cpp

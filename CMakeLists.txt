@@ -14,6 +14,7 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 find_package(ament_cmake REQUIRED)
+find_package(jitsuyo REQUIRED)
 find_package(keisan REQUIRED)
 find_package(ninshiki_interfaces REQUIRED)
 find_package(OpenCV REQUIRED)
@@ -36,7 +37,6 @@ add_library(${PROJECT_NAME} SHARED
   "src/${PROJECT_NAME}/config/grpc/call_data_load_config.cpp"
   "src/${PROJECT_NAME}/config/grpc/call_data_save_color_setting.cpp"
   "src/${PROJECT_NAME}/config/grpc/call_data_set_color_setting.cpp"
-  "src/${PROJECT_NAME}/config/utils/config.cpp"
   "src/${PROJECT_NAME}/detector/color_detector.cpp"
   "src/${PROJECT_NAME}/detector/dnn_detector.cpp"
   "src/${PROJECT_NAME}/detector/lbp_detector.cpp"
@@ -44,8 +44,7 @@ add_library(${PROJECT_NAME} SHARED
   "src/${PROJECT_NAME}/utils/color.cpp"
   "src/${PROJECT_NAME}/utils/contours.cpp"
   "src/${PROJECT_NAME}/utils/circle.cpp"
-  "src/${PROJECT_NAME}/node/ninshiki_cpp_node.cpp"
-  "src/${PROJECT_NAME}/utils/utils.cpp")
+  "src/${PROJECT_NAME}/node/ninshiki_cpp_node.cpp")
 
 add_library(${PROJECT_NAME}_exported SHARED
   "src/${PROJECT_NAME}/detector/color_detector.cpp"
@@ -53,8 +52,7 @@ add_library(${PROJECT_NAME}_exported SHARED
   "src/${PROJECT_NAME}/detector/lbp_detector.cpp"
   "src/${PROJECT_NAME}/utils/color.cpp"
   "src/${PROJECT_NAME}/utils/contours.cpp"
-  "src/${PROJECT_NAME}/utils/circle.cpp"
-  "src/${PROJECT_NAME}/utils/utils.cpp")
+  "src/${PROJECT_NAME}/utils/circle.cpp")
 
 target_include_directories(${PROJECT_NAME} PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -65,6 +63,7 @@ target_include_directories(${PROJECT_NAME}_exported PUBLIC
   $<INSTALL_INTERFACE:include>)
 
 ament_target_dependencies(${PROJECT_NAME}
+  jitsuyo
   keisan
   ninshiki_interfaces
   OpenCV
@@ -75,6 +74,7 @@ ament_target_dependencies(${PROJECT_NAME}
   gRPC)
 
 ament_target_dependencies(${PROJECT_NAME}_exported
+  jitsuyo
   keisan
   ninshiki_interfaces
   OpenCV
@@ -122,6 +122,7 @@ if(BUILD_TESTING)
 endif()
 
 ament_export_dependencies(
+  jitsuyo
   keisan
   ninshiki_interfaces
   OpenCV

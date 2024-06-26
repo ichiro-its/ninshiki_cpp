@@ -19,7 +19,8 @@
 // THE SOFTWARE.
 
 #include "ninshiki_cpp/config/grpc/call_data_save_color_setting.hpp"
-#include "ninshiki_cpp/config/utils/config.hpp"
+
+#include "jitsuyo/config.hpp"
 #include "ninshiki_interfaces/ninshiki.grpc.pb.h"
 #include "ninshiki_interfaces/ninshiki.pb.h"
 #include "nlohmann/json.hpp"
@@ -47,12 +48,11 @@ void CallDataSaveColorSetting::WaitForRequest()
 
 void CallDataSaveColorSetting::HandleRequest()
 {
-  Config config(path_);
   try {
     std::string json_string = request_.json_color();
     nlohmann::json color_data = nlohmann::json::parse(json_string);
 
-    config.save_color_setting(color_data);
+    jitsuyo::save_config(path_, "color_classifier.json", color_data);
     RCLCPP_INFO(rclcpp::get_logger("Save config"), "config has been saved!");
   } catch (nlohmann::json::exception & e) {
     RCLCPP_ERROR(rclcpp::get_logger("Save config"), e.what());

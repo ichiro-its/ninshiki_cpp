@@ -19,9 +19,10 @@
 // THE SOFTWARE.
 
 #include "ninshiki_cpp/config/grpc/call_data_load_config.hpp"
-#include "ninshiki_cpp/config/utils/config.hpp"
+
 #include "ninshiki_interfaces/ninshiki.grpc.pb.h"
 #include "ninshiki_interfaces/ninshiki.pb.h"
+#include "nlohmann/json.hpp"
 #include "rclcpp/rclcpp.hpp"
 
 namespace ninshiki_cpp
