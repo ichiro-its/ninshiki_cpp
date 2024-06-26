@@ -22,8 +22,8 @@
 
 #include "ninshiki_interfaces/ninshiki.grpc.pb.h"
 #include "ninshiki_interfaces/ninshiki.pb.h"
-#include "rclcpp/rclcpp.hpp"
 #include "nlohmann/json.hpp"
+#include "rclcpp/rclcpp.hpp"
 
 namespace ninshiki_cpp
 {
