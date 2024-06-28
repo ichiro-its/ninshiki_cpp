@@ -21,6 +21,12 @@
 #ifndef NINSHIKI_CPP__NODE__NINSHIKI_CPP_NODE_HPP_
 #define NINSHIKI_CPP__NODE__NINSHIKI_CPP_NODE_HPP_
 
+#include <memory>
+#include <opencv2/dnn.hpp>
+#include <opencv2/highgui.hpp>
+#include <opencv2/imgproc.hpp>
+#include <string>
+
 #include "ninshiki_cpp/config/grpc/config.hpp"
 #include "ninshiki_cpp/detector/color_detector.hpp"
 #include "ninshiki_cpp/detector/detector.hpp"
@@ -30,12 +36,6 @@
 #include "rclcpp/rclcpp.hpp"
 #include "sensor_msgs/msg/image.hpp"
 #include "shisen_cpp/shisen_cpp.hpp"
-
-#include <memory>
-#include <opencv2/dnn.hpp>
-#include <opencv2/highgui.hpp>
-#include <opencv2/imgproc.hpp>
-#include <string>
 
 namespace ninshiki_cpp::node
 {
@@ -49,15 +49,10 @@ public:
 
   NinshikiCppNode(
     rclcpp::Node::SharedPtr node, const std::string & path,
-    int frequency, shisen_cpp::Options options,
-    std::shared_ptr<DnnDetector> dnn_detection,
-    std::shared_ptr<ColorDetector> color_detection,
-    std::shared_ptr<LBPDetector> lbp_detection);
+    int frequency, const std::shared_ptr<DnnDetector> dnn_detection,
+    const std::shared_ptr<ColorDetector> color_detection,
+    const std::shared_ptr<LBPDetector> lbp_detection);
   void publish();
-  void set_detection(
-    std::shared_ptr<DnnDetector> dnn_detection,
-    std::shared_ptr<ColorDetector> color_detection,
-    std::shared_ptr<LBPDetector> lbp_detection);
 
 private:
   using Contours = ninshiki_interfaces::msg::Contours;
