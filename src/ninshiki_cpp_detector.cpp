@@ -1,4 +1,4 @@
-// Copyright (c) 2021 ICHIRO ITS
+// Copyright (c) 2021-2024 ICHIRO ITS
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,7 @@
 
 int main(int argc, char ** argv)
 {
-  rclcpp::init(argc, argv);
+  auto args = rclcpp::init_and_remove_ros_arguments(argc, argv);
 
   // Default Value
   std::string path = "";
@@ -57,39 +57,37 @@ int main(int argc, char ** argv)
 
   // Handle arguments
   try {
-    if (argc < 2) {
-      std::cerr << "Argument needed!\n\n" << help_message << std::endl;
+    if (args.size() < 2) {
+      RCLCPP_ERROR_STREAM(rclcpp::get_logger("ninshiki_cpp"), "Argument needed!\n\n" << help_message);
       return 1;
     }
     int i = 1;
-    while (i < argc) {
-      std::string arg = argv[i++];
+    while (i < args.size()) {
+      const std::string& arg = args[i++];
       if (arg[0] == '-') {
         if (arg == "-h" || arg == "--help") {
-          std::cout << help_message << std::endl;
+          RCLCPP_INFO_STREAM(rclcpp::get_logger("ninshiki_cpp"), help_message);
           return 1;
         } else if (arg == "--GPU") {
-          int value = atoi(argv[i++]);
+          int value = std::stoi(args[i++]);
           if (value == 0 || value == 1) {
             gpu = value;
           } else {
-            std::cout << "Unknown option for GPU `" << arg << "`!\n\n" << help_message << std::endl;
+            RCLCPP_ERROR_STREAM(rclcpp::get_logger("ninshiki_cpp"), "No value provided for `--GPU`!\n\n" << help_message);
             return 1;
           }
         } else if (arg == "--MYRIAD") {
-          int value = atoi(argv[i++]);
+          int value = std::stoi(args[i++]);
           if (value == 0 || value == 1) {
             myriad = value;
           } else {
-            std::cout << "Unknown option for MYRIAD `" << arg << "`!\n\n"
-                      << help_message << std::endl;
+            RCLCPP_ERROR_STREAM(rclcpp::get_logger("ninshiki_cpp"), "No value provided for `--MYRIAD`!\n\n" << help_message);
             return 1;
           }
         } else if (arg == "--frequency") {
-          frequency = atoi(argv[i++]);
-        } else if (arg == "--method") {
+          frequency = std::stoi(args[i++]);
         } else {
-          std::cout << "Unknown argument `" << arg << "`!\n\n" << help_message << std::endl;
+          RCLCPP_ERROR_STREAM(rclcpp::get_logger("ninshiki_cpp"), "Unknown argument `" << arg << "`!\n\n" << help_message);
           return 1;
         }
       } else if (arg == "dnn") {
@@ -102,8 +100,8 @@ int main(int argc, char ** argv)
         path = arg;
       }
     }
-  } catch (...) {
-    std::cout << "Invalid arguments!\n\n" << help_message << std::endl;
+  } catch (const std::exception &e) {
+    RCLCPP_ERROR_STREAM(rclcpp::get_logger("ninshiki_cpp"), "Invalid arguments: `" << e.what() << "`!\n\n" << help_message);
     return 1;
   }
   
