@@ -143,8 +143,8 @@ void ColorDetector::configure_color_setting(utils::Color color)
 
 cv::Mat ColorDetector::classify(cv::Mat input)
 {
-  int h_min = (min_hue * 255) / 360;
-  int h_max = (max_hue * 255) / 360;
+  int h_min = (min_hue * 255) / 100;
+  int h_max = (max_hue * 255) / 100;
 
   int s_min = (min_saturation * 255) / 100;
   int s_max = (max_saturation * 255) / 100;

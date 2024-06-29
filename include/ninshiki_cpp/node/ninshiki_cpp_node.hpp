@@ -73,6 +73,8 @@ private:
   cv::Mat received_frame;
   cv::Mat hsv_frame;
 
+  int count = 0;
+
   ConfigGrpc config_grpc;
   std::string path;
 

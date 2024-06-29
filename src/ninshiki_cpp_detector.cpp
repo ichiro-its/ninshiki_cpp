@@ -34,7 +34,7 @@ int main(int argc, char ** argv)
 
   int gpu = 0;
   int myriad = 0;
-  int frequency = 16;
+  int frequency = 96;
 
   std::shared_ptr<ninshiki_cpp::detector::DnnDetector>dnn_detector = nullptr;
   std::shared_ptr<ninshiki_cpp::detector::ColorDetector>color_detector = nullptr;
