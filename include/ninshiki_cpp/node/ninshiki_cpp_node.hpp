@@ -70,8 +70,8 @@ private:
   std::shared_ptr<ColorDetector> color_detection;
   std::shared_ptr<LBPDetector> lbp_detection;
 
-  cv::Mat received_frame;
-  cv::Mat hsv_frame;
+  std::shared_ptr<cv::Mat> received_frame;
+  std::shared_ptr<cv::Mat> hsv_frame;
 
   int count = 0;
 

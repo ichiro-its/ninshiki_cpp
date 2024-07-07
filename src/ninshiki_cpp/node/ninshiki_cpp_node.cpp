@@ -36,7 +36,8 @@ NinshikiCppNode::NinshikiCppNode(
   std::shared_ptr<ColorDetector> color_detection,
   std::shared_ptr<LBPDetector> lbp_detection)
 : node(node), path(path), dnn_detection(dnn_detection),
-  color_detection(color_detection), lbp_detection(lbp_detection)
+  color_detection(color_detection), lbp_detection(lbp_detection),
+  received_frame(std::make_shared<cv::Mat>()), hsv_frame(std::make_shared<cv::Mat>())
 {
   detected_object_publisher = node->create_publisher<DetectedObjects>(
     get_node_prefix() + "/dnn_detection", 10);
@@ -46,16 +47,18 @@ NinshikiCppNode::NinshikiCppNode(
   image_subscriber =
     node->create_subscription<Image>("camera/image", 10, [this](const Image::SharedPtr message) {
       if (!message->data.empty()) {
-        received_frame = cv_bridge::toCvShare(message)->image;
+        received_frame = std::make_shared<cv::Mat>(cv_bridge::toCvShare(message)->image);
       }
     });
 
   node_timer = node->create_wall_timer(
     std::chrono::milliseconds(frequency),
     [this]() {
-      if (!received_frame.empty()) {
-        cv::cvtColor(received_frame, hsv_frame, cv::COLOR_BGR2HSV);
-        publish();
+      if (received_frame) {
+        if (!received_frame->empty()) {
+          cv::cvtColor(*received_frame, *hsv_frame, cv::COLOR_BGR2HSV);
+          publish();
+        }
       }
     }
   );
@@ -67,29 +70,24 @@ NinshikiCppNode::NinshikiCppNode(
 void NinshikiCppNode::publish()
 {
   if (dnn_detection) {
-    dnn_detection->detection(received_frame, 0.4, 0.3);
-    detected_object_publisher->publish(dnn_detection->detection_result);
+    auto detection_msg = dnn_detection->detection(*received_frame, 0.4, 0.3);
 
-    dnn_detection->detection_result.detected_objects.clear();
+    detected_object_publisher->publish(detection_msg);
   }
 
-  if (color_detection) {
-    color_detection->detection(hsv_frame);
-    color_segmentation_publisher->publish(color_detection->detection_result);
+  // if (color_detection) {
+  //   color_detection->detection(hsv_frame);
+  //   color_segmentation_publisher->publish(color_detection->detection_result);
 
-    color_detection->detection_result.contours.clear();
-  }
+  //   color_detection->detection_result.contours.clear();
+  // }
 
-  if (lbp_detection) {
-    lbp_detection->detection(received_frame);
-    detected_object_publisher->publish(lbp_detection->detection_result);
+  // if (lbp_detection) {
+  //   lbp_detection->detection(received_frame);
+  //   detected_object_publisher->publish(lbp_detection->detection_result);
 
-    lbp_detection->detection_result.detected_objects.clear();
-  }
-
-  if (!received_frame.empty()) {
-    received_frame.release();
-  }
+  //   lbp_detection->detection_result.detected_objects.clear();
+  // }
 }
 
 std::string NinshikiCppNode::get_node_prefix() { return "ninshiki_cpp"; }

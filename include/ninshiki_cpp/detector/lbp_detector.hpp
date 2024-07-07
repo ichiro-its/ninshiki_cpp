@@ -35,9 +35,12 @@ namespace ninshiki_cpp::detector
 class LBPDetector : public Detector
 {
 public:
+  using DetectedObject = ninshiki_interfaces::msg::DetectedObject;
+  using DetectedObjects = ninshiki_interfaces::msg::DetectedObjects;
+
   LBPDetector();
   bool loadClassifier(std::string config_path);
-  void detection(const cv::Mat & input) override;
+  ninshiki_interfaces::msg::DetectedObjects detection(const cv::Mat & input);
 
 private:
   bool classifier_loaded;

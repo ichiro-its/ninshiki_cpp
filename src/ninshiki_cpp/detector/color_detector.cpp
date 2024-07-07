@@ -197,7 +197,7 @@ void ColorDetector::find(cv::Mat binary_mat)
     cv::CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
 }
 
-void ColorDetector::detection(const cv::Mat & image)
+ninshiki_interfaces::msg::Contours ColorDetector::detection(const cv::Mat & image)
 {
   // iterate every color in colors
   for (auto & color : colors) {
@@ -213,6 +213,7 @@ void ColorDetector::detection(const cv::Mat & image)
     find(field_binary_mat);
 
     // Copy contours to ros2 msg
+    ninshiki_interfaces::msg::Contours temp_contours;
     if (contours.size() >= 0) {
       for (std::vector<cv::Point> & contour : contours) {
         ninshiki_interfaces::msg::Contour contour_msg;
@@ -225,9 +226,11 @@ void ColorDetector::detection(const cv::Mat & image)
           contour_msg.name = color_name;
           contour_msg.contour.push_back(point_msg);
         }
-        detection_result.contours.push_back(contour_msg);
+        temp_contours.contours.push_back(contour_msg);
       }
     }
+
+    return temp_contours;
   }
 }
 }  // namespace detector

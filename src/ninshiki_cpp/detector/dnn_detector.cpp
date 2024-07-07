@@ -67,16 +67,16 @@ void DnnDetector::set_computation_method(bool gpu, bool myriad)
   }
 }
 
-void DnnDetector::detection(const cv::Mat & image, float conf_threshold, float nms_threshold)
+ninshiki_interfaces::msg::DetectedObjects DnnDetector::detection(const cv::Mat & image, float conf_threshold, float nms_threshold)
 {
   if (model_suffix == "weights") {
-    detect_darknet(image, conf_threshold, nms_threshold);
+    return detect_darknet(image, conf_threshold, nms_threshold);
   } else {
-    detect_tensorflow(image, conf_threshold, nms_threshold);
+    return detect_tensorflow(image, conf_threshold, nms_threshold);
   }
 }
 
-void DnnDetector::detect_darknet(const cv::Mat & image, float conf_threshold, float nms_threshold)
+ninshiki_interfaces::msg::DetectedObjects DnnDetector::detect_darknet(const cv::Mat & image, float conf_threshold, float nms_threshold)
 {
   std::vector<cv::String> layer_output = net.getUnconnectedOutLayersNames();
 
@@ -163,12 +163,13 @@ void DnnDetector::detect_darknet(const cv::Mat & image, float conf_threshold, fl
     confidences = nms_confidences;
   }
 
+  DetectedObjects dnn_detection;
   if (boxes.size()) {
     for (size_t i = 0; i < boxes.size(); ++i) {
       cv::Rect box = boxes[i];
       if (box.width * box.height != 0) {
         // Add detected object into vector
-        ninshiki_interfaces::msg::DetectedObject detection_object;
+        DetectedObject detection_object;
         detection_object.label = classes[class_ids[i]];
         detection_object.score = confidences[i];
         detection_object.left = box.x;
@@ -176,13 +177,15 @@ void DnnDetector::detect_darknet(const cv::Mat & image, float conf_threshold, fl
         detection_object.right = box.width;
         detection_object.bottom = box.height;
 
-        detection_result.detected_objects.push_back(detection_object);
+        dnn_detection.detected_objects.push_back(detection_object);
       }
     }
   }
+  
+  return dnn_detection;
 }
 
-void DnnDetector::detect_tensorflow(
+ninshiki_interfaces::msg::DetectedObjects DnnDetector::detect_tensorflow(
   const cv::Mat & image, float conf_threshold, float nms_threshold)
 {
   static cv::Mat blob;
@@ -221,6 +224,7 @@ void DnnDetector::detect_tensorflow(
     }
   }
 
+  DetectedObjects dnn_detection;
   if (boxes.size()) {
     for (size_t i = 0; i < boxes.size(); ++i) {
       cv::Rect box = boxes[i];
@@ -234,10 +238,12 @@ void DnnDetector::detect_tensorflow(
         detection_object.right = (box.x + box.width) / img_width;
         detection_object.bottom = (box.y + box.height) / img_height;
 
-        detection_result.detected_objects.push_back(detection_object);
+        dnn_detection.detected_objects.push_back(detection_object);
       }
     }
   }
+
+  return dnn_detection;
 }
 
 }  // namespace detector

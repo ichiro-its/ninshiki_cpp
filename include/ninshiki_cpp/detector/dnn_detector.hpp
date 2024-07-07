@@ -38,12 +38,15 @@ namespace ninshiki_cpp::detector
 class DnnDetector : public Detector
 {
 public:
+  using DetectedObject = ninshiki_interfaces::msg::DetectedObject;
+  using DetectedObjects = ninshiki_interfaces::msg::DetectedObjects;
+
   explicit DnnDetector();
 
   void set_computation_method(bool gpu = false, bool myriad = false);
-  void detection(const cv::Mat & image, float conf_threshold, float nms_threshold);
-  void detect_darknet(const cv::Mat & image, float conf_threshold, float nms_threshold);
-  void detect_tensorflow(const cv::Mat & image, float conf_threshold, float nms_threshold);
+  ninshiki_interfaces::msg::DetectedObjects detection(const cv::Mat & image, float conf_threshold, float nms_threshold);
+  ninshiki_interfaces::msg::DetectedObjects detect_darknet(const cv::Mat & image, float conf_threshold, float nms_threshold);
+  ninshiki_interfaces::msg::DetectedObjects detect_tensorflow(const cv::Mat & image, float conf_threshold, float nms_threshold);
 
 private:
   std::string file_name;
