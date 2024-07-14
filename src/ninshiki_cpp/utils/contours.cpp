@@ -38,7 +38,7 @@ Contours::Contours()
 
 Contours::Contours(std::vector<std::vector<cv::Point>> contours)
 {
-  contours = contours;
+  this->contours = contours;
 }
 
 Contours::Contours(cv::Mat binary_mat)
@@ -336,6 +336,8 @@ std::vector<std::vector<cv::Point>> Contours::split_left(float x)
       left_contours.push_back(left_contour);
     }
   }
+
+  return left_contours;
 }
 std::vector<std::vector<cv::Point>> Contours::split_right(float x)
 {
