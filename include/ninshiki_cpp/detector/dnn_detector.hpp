@@ -54,6 +54,9 @@ private:
   bool myriad;
 
   cv::dnn::Net net;
+
+  int width;
+  int height;
 };
 
 }  // namespace ninshiki_cpp::detector

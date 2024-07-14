@@ -46,7 +46,18 @@ DnnDetector::DnnDetector()
     classes.push_back(line);
   }
 
-
+  std::ifstream ifs_cfg(config.c_str());
+  std::string cfg_line;
+  while (std::getline(ifs_cfg, cfg_line)) {
+    if (cfg_line.find("width") != std::string::npos) {
+      width = std::stoi(jitsuyo::split_string(cfg_line, "="));
+    } else if (cfg_line.find("height") != std::string::npos) {
+      height = std::stoi(jitsuyo::split_string(cfg_line, "="));
+    }
+    if (height != 0 && width != 0) {
+      break;
+    }
+  }
 }
 
 void DnnDetector::set_computation_method(bool gpu, bool myriad)
@@ -82,7 +93,7 @@ void DnnDetector::detect_darknet(const cv::Mat & image, float conf_threshold, fl
 
   // Create a 4D blob from a frame
   static cv::Mat blob;
-  cv::Size input_size = cv::Size(320, 320);
+  cv::Size input_size = cv::Size(width, height);
   cv::dnn::blobFromImage(image, blob, 1.0, input_size, cv::Scalar(), false, false, CV_8U);
 
   net.setInput(blob, "", 0.00392, cv::Scalar(0, 0, 0, 0));
