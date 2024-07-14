@@ -337,7 +337,7 @@ std::vector<std::vector<cv::Point>> Contours::split_left(float x)
     }
   }
 
-  return left_contours
+  return left_contours;
 }
 std::vector<std::vector<cv::Point>> Contours::split_right(float x)
 {
