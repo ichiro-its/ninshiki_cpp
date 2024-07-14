@@ -53,6 +53,8 @@ DnnDetector::DnnDetector()
       width = std::stoi(jitsuyo::split_string(cfg_line, "="));
     } else if (cfg_line.find("height") != std::string::npos) {
       height = std::stoi(jitsuyo::split_string(cfg_line, "="));
+    }
+    if (height != 0 && width != 0) {
       break;
     }
   }
