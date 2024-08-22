@@ -22,6 +22,7 @@
 
 #include <map>
 #include <string>
+#include <chrono>
 #include <vector>
 
 #include "jitsuyo/linux.hpp"
@@ -114,6 +115,8 @@ void DnnDetector::set_computation_method(bool gpu, bool myriad)
 
 void DnnDetector::detection(const cv::Mat & image, float conf_threshold, float nms_threshold)
 {
+  auto start_time = std::chrono::high_resolution_clock::now(); // Start timing
+
   if (model_suffix == "weights") {
     detect_darknet(image, conf_threshold, nms_threshold);
   } else if (model_suffix == "onnx") {
@@ -121,6 +124,10 @@ void DnnDetector::detection(const cv::Mat & image, float conf_threshold, float n
   } else {
     detect_tensorflow(image, conf_threshold, nms_threshold);
   }
+
+  auto end_time = std::chrono::high_resolution_clock::now(); // End timing
+	std::chrono::duration<double, std::milli> elapsed_time = end_time - start_time;
+	// printf("Inference time: %f ms, %d\n", elapsed_time.count(), counter++);
 }
 
 void DnnDetector::detect_darknet(const cv::Mat & image, float conf_threshold, float nms_threshold)
@@ -324,7 +331,10 @@ void DnnDetector::detect_onnx(
 
       // Add detected object into vector
       ninshiki_interfaces::msg::DetectedObject detection_object;
-      detection_object.label = classes[static_cast<const short>(detections[index + 5])];
+
+      short id = static_cast<const short>(detections[index + 5]);
+
+      detection_object.label = classes[id];
       detection_object.score = confidence;
       detection_object.left = x;
       detection_object.top = y;

@@ -64,6 +64,8 @@ private:
   bool myriad;
 
   cv::dnn::Net net;
+
+  int counter = 0;
 };
 
 }  // namespace ninshiki_cpp::detector
