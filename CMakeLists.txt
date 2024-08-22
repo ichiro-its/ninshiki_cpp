@@ -31,6 +31,7 @@ message(STATUS "Using protobuf ${Protobuf_VERSION}")
 find_package(gRPC CONFIG REQUIRED)
 message(STATUS "Using gRPC ${gRPC_VERSION}")
 
+# OpenVINO
 include_directories(${OpenCV_INCLUDE_DIRS} /opt/intel/openvino/runtime/include)
 
 add_library(${PROJECT_NAME} SHARED
@@ -88,6 +89,7 @@ ament_target_dependencies(${PROJECT_NAME}_exported
 target_link_libraries(${PROJECT_NAME}
   gRPC::grpc++_reflection
   gRPC::grpc++
+  ${OpenCV_LIBS}
   /opt/intel/openvino/runtime/lib/intel64/libopenvino.so
 )
 
