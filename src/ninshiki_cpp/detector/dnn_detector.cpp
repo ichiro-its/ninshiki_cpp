@@ -33,12 +33,57 @@ namespace detector
 
 DnnDetector::DnnDetector()
 {
+  bool is_using_yolov10 = true;
+
   file_name = static_cast<std::string>(getenv("HOME")) + "/yolo_model/obj.names";
-  std::string config = static_cast<std::string>(getenv("HOME")) + "/yolo_model/config.cfg";
-  std::string model = static_cast<std::string>(getenv("HOME")) +
-    "/yolo_model/yolo_weights.weights";
-  model_suffix = jitsuyo::split_string(model, ".");
-  net = cv::dnn::readNet(model, config, "");
+
+  if (is_using_yolov10) {
+    std::string model_path = static_cast<std::string>(getenv("HOME")) + "/yolo_model/yolo_weights.onnx";
+    model_suffix = jitsuyo::split_string(model_path, ".");
+
+    model_input_shape = cv::Size(640, 640);
+
+    ov::Core core;
+    std::shared_ptr<ov::Model> model = core.read_model(model_path);
+
+    if (model->is_dynamic()) {
+      model->reshape({1, 3, static_cast<long int>(model_input_shape.height), static_cast<long int>(model_input_shape.width)});
+    }
+
+    ov::preprocess::PrePostProcessor ppp = ov::preprocess::PrePostProcessor(model);
+
+    ppp.input().tensor().set_element_type(ov::element::u8).set_layout("NHWC").set_color_format(ov::preprocess::ColorFormat::BGR);
+    ppp.input().preprocess().convert_element_type(ov::element::f32).convert_color(ov::preprocess::ColorFormat::RGB).scale({ 255, 255, 255 });
+    ppp.input().model().set_layout("NCHW");
+    ppp.output().tensor().set_element_type(ov::element::f32);
+
+    model = ppp.build();
+    compiled_model = core.compile_model(model, "AUTO");
+    inference_request = compiled_model.create_infer_request();
+
+    short width, height;
+
+    const std::vector<ov::Output<ov::Node>> inputs = model->inputs();
+    const ov::Shape input_shape = inputs[0].get_shape();
+
+    height = input_shape[1];
+    width = input_shape[2];
+    model_input_shape = cv::Size2f(width, height);
+
+    const std::vector<ov::Output<ov::Node>> outputs = model->outputs();
+    const ov::Shape output_shape = outputs[0].get_shape();
+
+    height = output_shape[1];
+    width = output_shape[2];
+    model_output_shape = cv::Size(width, height);
+
+  } else {
+    std::string config = static_cast<std::string>(getenv("HOME")) + "/yolo_model/config.cfg";
+    std::string model = static_cast<std::string>(getenv("HOME")) +
+      "/yolo_model/yolo_weights.weights";
+    net = cv::dnn::readNet(model, config, "");
+    model_suffix = jitsuyo::split_string(model, ".");
+  }
 
   std::ifstream ifs(file_name.c_str());
   std::string line;
@@ -71,6 +116,8 @@ void DnnDetector::detection(const cv::Mat & image, float conf_threshold, float n
 {
   if (model_suffix == "weights") {
     detect_darknet(image, conf_threshold, nms_threshold);
+  } else if (model_suffix == "onnx") {
+    detect_onnx(image, conf_threshold, nms_threshold);
   } else {
     detect_tensorflow(image, conf_threshold, nms_threshold);
   }
@@ -238,6 +285,55 @@ void DnnDetector::detect_tensorflow(
       }
     }
   }
+}
+
+void DnnDetector::detect_onnx(
+  const cv::Mat & image, float conf_threshold, float nms_threshold)
+{
+  // Preprocessing
+  cv::Mat resized_image;
+	cv::resize(image, resized_image, model_input_shape, 0, 0, cv::INTER_AREA);
+
+	scale_factor.x = static_cast<float>(image.cols / model_input_shape.width);
+	scale_factor.y = static_cast<float>(image.rows / model_input_shape.height);
+
+	float *input_data = (float *)resized_image.data;
+	const ov::Tensor input_tensor = ov::Tensor(compiled_model.input().get_element_type(), compiled_model.input().get_shape(), input_data);
+	inference_request.set_input_tensor(input_tensor);
+
+  inference_request.infer();
+
+  // Postprocessing
+  const float *detections = inference_request.get_output_tensor().data<const float>();
+
+	/*
+	* 0  1  2  3      4          5
+	* x, y, w. h, confidence, class_id
+	*/
+
+	for (unsigned int i = 0; i < model_output_shape.height; ++i) {
+		const unsigned int index = i * model_output_shape.width;
+
+		const float &confidence = detections[index + 4];
+
+		if (confidence > conf_threshold) {
+			const float &x = detections[index + 0];
+			const float &y = detections[index + 1];
+			const float &w = detections[index + 2];
+			const float &h = detections[index + 3];
+
+      // Add detected object into vector
+      ninshiki_interfaces::msg::DetectedObject detection_object;
+      detection_object.label = classes[static_cast<const short>(detections[index + 5])];
+      detection_object.score = confidence;
+      detection_object.left = x;
+      detection_object.top = y;
+      detection_object.right = w;
+      detection_object.bottom = h;
+
+      detection_result.detected_objects.push_back(detection_object);
+		}
+	}
 }
 
 }  // namespace detector

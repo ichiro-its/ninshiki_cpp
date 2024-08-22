@@ -32,6 +32,8 @@
 #include <string>
 #include <vector>
 
+#include <openvino/openvino.hpp>
+
 namespace ninshiki_cpp::detector
 {
 
@@ -44,11 +46,19 @@ public:
   void detection(const cv::Mat & image, float conf_threshold, float nms_threshold);
   void detect_darknet(const cv::Mat & image, float conf_threshold, float nms_threshold);
   void detect_tensorflow(const cv::Mat & image, float conf_threshold, float nms_threshold);
+  void detect_onnx(const cv::Mat & image, float conf_threshold, float nms_threshold);
 
 private:
   std::string file_name;
   std::string model_suffix;
   std::vector<std::string> classes;
+
+	cv::Point2f scale_factor;
+  cv::Size2f model_input_shape;
+	cv::Size model_output_shape;
+
+  ov::InferRequest inference_request;
+  ov::CompiledModel compiled_model;
 
   bool gpu;
   bool myriad;
