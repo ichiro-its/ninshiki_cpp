@@ -42,7 +42,7 @@ DnnDetector::DnnDetector()
     std::string model_path = static_cast<std::string>(getenv("HOME")) + "/yolo_model/yolo_weights.onnx";
     model_suffix = jitsuyo::split_string(model_path, ".");
 
-    model_input_shape = cv::Size(640, 640);
+    model_input_shape = cv::Size(320, 320);
 
     ov::Core core;
     std::shared_ptr<ov::Model> model = core.read_model(model_path);
@@ -336,10 +336,10 @@ void DnnDetector::detect_onnx(
 
       detection_object.label = classes[id];
       detection_object.score = confidence;
-      detection_object.left = x;
-      detection_object.top = y;
-      detection_object.right = w;
-      detection_object.bottom = h;
+      detection_object.left = x * scale_factor.x;
+			detection_object.top = y * scale_factor.y;
+			detection_object.right = (w - x) * scale_factor.x;
+			detection_object.bottom = (h - y) * scale_factor.y;
 
       detection_result.detected_objects.push_back(detection_object);
 		}
