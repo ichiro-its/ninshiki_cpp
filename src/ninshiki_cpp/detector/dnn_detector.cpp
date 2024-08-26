@@ -126,8 +126,17 @@ void DnnDetector::detection(const cv::Mat & image, float conf_threshold, float n
   }
 
   auto end_time = std::chrono::high_resolution_clock::now(); // End timing
-	std::chrono::duration<double, std::milli> elapsed_time = end_time - start_time;
-	// printf("Inference time: %f ms, %d\n", elapsed_time.count(), counter++);
+	std::chrono::duration<double, std::milli> latency = end_time - start_time;
+
+  sum_latency += latency.count();
+  iteration_counter++;
+  if (latency.count() < min_latency) {
+    min_latency = latency.count();
+  }
+
+	printf("Inference time: %f ms, %d\n", latency.count(), iteration_counter);
+  printf("Average latency: %f ms\n", sum_latency / iteration_counter);
+  printf("-----------------------------\n");
 }
 
 void DnnDetector::detect_darknet(const cv::Mat & image, float conf_threshold, float nms_threshold)

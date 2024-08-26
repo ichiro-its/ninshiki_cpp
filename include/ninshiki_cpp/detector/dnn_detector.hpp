@@ -65,7 +65,10 @@ private:
 
   cv::dnn::Net net;
 
-  int counter = 0;
+  int iteration_counter = 0;
+  double min_latency = 10000.0;
+  double avg_latency;
+  double sum_latency;
 };
 
 }  // namespace ninshiki_cpp::detector
