@@ -13,10 +13,18 @@ jobs:
         uses: actions/checkout@v4.1.1
         with:
           path: ninshiki_cpp
+
+      - name: Checkout Jitsuyo
+        uses: actions/checkout@v4.1.1
+        with:
+          repository: ichiro-its/jitsuyo
+          path: jitsuyo
+          token: ${{ secrets.GH_TOKEN }}
  
       - name: Checkout Dependencies
         run: |
           git clone https://github.com/ichiro-its/shisen_interfaces.git
+          git clone https://github.com/ichiro-its/ninshiki_interfaces.git
           git clone https://github.com/ichiro-its/shisen_cpp.git
           git clone https://github.com/ichiro-its/keisan.git
 
