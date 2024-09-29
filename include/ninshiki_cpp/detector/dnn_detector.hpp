@@ -29,6 +29,7 @@
 #include <opencv2/dnn.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
+#include <openvino/openvino.hpp>
 #include <string>
 #include <vector>
 
@@ -44,6 +45,8 @@ public:
   void detection(const cv::Mat & image, float conf_threshold, float nms_threshold);
   void detect_darknet(const cv::Mat & image, float conf_threshold, float nms_threshold);
   void detect_tensorflow(const cv::Mat & image, float conf_threshold, float nms_threshold);
+  void detect_ir(const cv::Mat & image, float conf_threshold, float nms_threshold);
+  void initialize_openvino(const std::string & model_path);
 
 private:
   std::string file_name;
@@ -54,6 +57,12 @@ private:
   bool myriad;
 
   cv::dnn::Net net;
+
+  ov::Tensor input_tensor;
+  ov::InferRequest infer_request;
+  ov::CompiledModel compiled_model;
+
+  float rx, ry;
 };
 
 }  // namespace ninshiki_cpp::detector

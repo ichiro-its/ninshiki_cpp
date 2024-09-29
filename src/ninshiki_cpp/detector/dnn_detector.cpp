@@ -34,11 +34,18 @@ namespace detector
 DnnDetector::DnnDetector()
 {
   file_name = static_cast<std::string>(getenv("HOME")) + "/yolo_model/obj.names";
-  std::string config = static_cast<std::string>(getenv("HOME")) + "/yolo_model/config.cfg";
   std::string model = static_cast<std::string>(getenv("HOME")) +
-    "/yolo_model/yolo_weights.weights";
+    "/yolov8_ir_model/yolov8s_ir_320/yolov8s_320.xml";
   model_suffix = jitsuyo::split_string(model, ".");
-  net = cv::dnn::readNet(model, config, "");
+
+  if (model_suffix == "weights") {
+    std::string config = static_cast<std::string>(getenv("HOME")) + "/yolo_model/config.cfg";
+    net = cv::dnn::readNet(model, config, "");
+  } else if (model_suffix == "xml") {
+    initialize_openvino(model);
+  } else {
+    throw std::runtime_error("Model suffix is not supported");
+  }
 
   std::ifstream ifs(file_name.c_str());
   std::string line;
@@ -67,10 +74,28 @@ void DnnDetector::set_computation_method(bool gpu, bool myriad)
   }
 }
 
+void DnnDetector::initialize_openvino(const std::string & model_path)
+{
+  ov::Core core;
+  std::shared_ptr<ov::Model> model = core.read_model(model_path);
+  ov::preprocess::PrePostProcessor ppp = ov::preprocess::PrePostProcessor(model);
+
+  ppp.input().tensor().set_element_type(ov::element::u8).set_layout("NHWC").set_color_format(ov::preprocess::ColorFormat::RGB);
+  ppp.input().preprocess().convert_element_type(ov::element::f32).convert_color(ov::preprocess::ColorFormat::RGB).scale({ 255, 255, 255 });// .scale({ 112, 112, 112 });
+  ppp.input().model().set_layout("NCHW");
+  ppp.output().tensor().set_element_type(ov::element::f32);
+  model = ppp.build();
+
+  compiled_model = core.compile_model(model, "CPU");
+  infer_request = compiled_model.create_infer_request();
+}
+
 void DnnDetector::detection(const cv::Mat & image, float conf_threshold, float nms_threshold)
 {
   if (model_suffix == "weights") {
     detect_darknet(image, conf_threshold, nms_threshold);
+  } else if (model_suffix == "xml") {
+    detect_ir(image, conf_threshold, nms_threshold);
   } else {
     detect_tensorflow(image, conf_threshold, nms_threshold);
   }
@@ -237,6 +262,94 @@ void DnnDetector::detect_tensorflow(
         detection_result.detected_objects.push_back(detection_object);
       }
     }
+  }
+}
+
+void DnnDetector::detect_ir(const cv::Mat & image, float conf_threshold, float nms_threshold)
+{
+  // Preprocessing
+  try {
+    img_width = static_cast<double>(image.cols);
+    img_height = static_cast<double>(image.rows);
+
+    cv::Size new_shape = cv::Size(320, 320);
+    cv::Mat resized_image;
+
+    float ratio = float(new_shape.width / (img_width > img_height ? img_width : img_height));
+    int new_unpadW = int(round(img_width * ratio));
+    int new_unpadH = int(round(img_height * ratio));
+
+    cv::resize(image, resized_image, cv::Size(new_unpadW, new_unpadH), 0, 0, cv::INTER_AREA);
+    int dw = new_shape.width - new_unpadW;
+    int dh = new_shape.height - new_unpadH;
+    cv::Scalar color = cv::Scalar(100, 100, 100);
+    cv::copyMakeBorder(resized_image, resized_image, 0, dh, 0, dw, cv::BORDER_CONSTANT, color);
+
+    rx = (float)image.cols / (float)(resized_image.cols - dw);
+    ry = (float)image.rows / (float)(resized_image.rows - dh);
+    float* input_data = (float*)resized_image.data;
+
+    input_tensor = ov::Tensor(compiled_model.input().get_element_type(), compiled_model.input().get_shape(), input_data);
+    infer_request.set_input_tensor(input_tensor);
+  }catch (const std::exception& e) {
+    std::cerr << "exception: " << e.what() << std::endl;
+  }
+  catch (...) {
+    std::cerr << "unknown exception" << std::endl;
+  }
+
+  // Inference
+  infer_request.infer();
+  const ov::Tensor& output_tensor = infer_request.get_output_tensor();
+  ov::Shape output_shape = output_tensor.get_shape();
+  float* detections = output_tensor.data<float>();
+
+  // Postprocessing
+  std::vector<cv::Rect> boxes;
+  std::vector<int> class_ids;
+  std::vector<float> confidences;
+  int out_rows = output_shape[1];
+  int out_cols = output_shape[2];
+  const cv::Mat det_output(out_rows, out_cols, CV_32F, (float*)detections);
+
+  for (int i = 0; i < det_output.cols; ++i) {
+    const cv::Mat classes_scores = det_output.col(i).rowRange(4, classes.size() + 4);
+    cv::Point class_id_point;
+    double score;
+    cv::minMaxLoc(classes_scores, nullptr, &score, nullptr, &class_id_point);
+
+    if (score > conf_threshold) {
+      const float cx = det_output.at<float>(0, i);
+      const float cy = det_output.at<float>(1, i);
+      const float ow = det_output.at<float>(2, i);
+      const float oh = det_output.at<float>(3, i);
+      cv::Rect box;
+      box.x = static_cast<int>((cx - 0.5 * ow) );
+      box.y = static_cast<int>((cy - 0.5 * oh));
+      box.width = static_cast<int>(ow);
+      box.height = static_cast<int>(oh);
+
+      boxes.push_back(box);
+      class_ids.push_back(class_id_point.y);
+      confidences.push_back(score);
+    }
+  }
+
+  std::vector<int> nms_result;
+  cv::dnn::NMSBoxes(boxes, confidences, conf_threshold, nms_threshold, nms_result);
+
+  for (int i = 0; i < nms_result.size(); i++)
+  {
+    ninshiki_interfaces::msg::DetectedObject detection_object;
+    int idx = nms_result[i];
+    detection_object.label = classes[class_ids[idx]];
+    detection_object.score = confidences[idx];
+    detection_object.left = boxes[idx].x * rx;
+    detection_object.top = boxes[idx].y * ry;
+    detection_object.right = boxes[idx].width * rx;
+    detection_object.bottom = boxes[idx].height * ry;
+
+    detection_result.detected_objects.push_back(detection_object);
   }
 }
 
