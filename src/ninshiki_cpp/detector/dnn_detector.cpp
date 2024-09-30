@@ -22,6 +22,7 @@
 
 #include <map>
 #include <string>
+#include <chrono>
 #include <vector>
 
 #include "jitsuyo/linux.hpp"
@@ -33,9 +34,9 @@ namespace detector
 
 DnnDetector::DnnDetector()
 {
-  file_name = static_cast<std::string>(getenv("HOME")) + "/yolo_model/obj.names";
+  file_name = static_cast<std::string>(getenv("HOME")) + "/yolov8_ir_model/yolov8s_coco_320/obj.names";
   std::string model = static_cast<std::string>(getenv("HOME")) +
-    "/yolov8_ir_model/yolov8s_ir_320/yolov8s_320.xml";
+    "/yolov8_ir_model/yolov8s_coco_320/yolov8s.xml";
   model_suffix = jitsuyo::split_string(model, ".");
 
   if (model_suffix == "weights") {
@@ -58,6 +59,10 @@ DnnDetector::DnnDetector()
 
 void DnnDetector::set_computation_method(bool gpu, bool myriad)
 {
+  if (this->model_suffix == "xml") {
+    return;
+  }
+
   this->gpu = gpu;
   this->myriad = myriad;
 
@@ -86,18 +91,39 @@ void DnnDetector::initialize_openvino(const std::string & model_path)
   ppp.output().tensor().set_element_type(ov::element::f32);
   model = ppp.build();
 
-  compiled_model = core.compile_model(model, "CPU");
-  infer_request = compiled_model.create_infer_request();
+  this->compiled_model = core.compile_model(model, "CPU");
+  this->infer_request = compiled_model.create_infer_request();
 }
 
 void DnnDetector::detection(const cv::Mat & image, float conf_threshold, float nms_threshold)
 {
+  cv::imshow("Raw", image);
+  if (cv::waitKey(1) == 27) {
+    cv::destroyAllWindows();
+  }
+
+  auto start_time = std::chrono::high_resolution_clock::now();
+
   if (model_suffix == "weights") {
     detect_darknet(image, conf_threshold, nms_threshold);
   } else if (model_suffix == "xml") {
     detect_ir(image, conf_threshold, nms_threshold);
   } else {
     detect_tensorflow(image, conf_threshold, nms_threshold);
+  }
+
+  auto end_time = std::chrono::high_resolution_clock::now();
+	std::chrono::duration<double, std::milli> latency = end_time - start_time;
+
+  total_latency += latency.count();
+
+  printf("Inference time: %.2f ms, %d\n", latency.count(), ++iterations);
+  printf("Average latency: %.2f ms\n", total_latency / iterations);
+  printf("--------------------------------\n");
+
+  cv::imshow("Detection", image);
+  if (cv::waitKey(1) == 27) {
+    cv::destroyAllWindows();
   }
 }
 
@@ -285,10 +311,9 @@ void DnnDetector::detect_ir(const cv::Mat & image, float conf_threshold, float n
     cv::Scalar color = cv::Scalar(100, 100, 100);
     cv::copyMakeBorder(resized_image, resized_image, 0, dh, 0, dw, cv::BORDER_CONSTANT, color);
 
-    rx = (float)image.cols / (float)(resized_image.cols - dw);
-    ry = (float)image.rows / (float)(resized_image.rows - dh);
+    this->rx = (float)image.cols / (float)(resized_image.cols - dw);
+    this->ry = (float)image.rows / (float)(resized_image.rows - dh);
     float* input_data = (float*)resized_image.data;
-
     input_tensor = ov::Tensor(compiled_model.input().get_element_type(), compiled_model.input().get_shape(), input_data);
     infer_request.set_input_tensor(input_tensor);
   }catch (const std::exception& e) {
@@ -350,6 +375,33 @@ void DnnDetector::detect_ir(const cv::Mat & image, float conf_threshold, float n
     detection_object.bottom = boxes[idx].height * ry;
 
     detection_result.detected_objects.push_back(detection_object);
+
+    // draw bounding box
+    auto detection = detection_object;
+    auto box = boxes[idx];
+    auto classId = class_ids[idx];
+    auto confidence = confidences[idx];
+
+    box.x = this->rx * box.x;
+    box.y = this->ry * box.y;
+    box.width = this->rx * box.width;
+    box.height = this->ry * box.height;
+
+    float xmax = box.x + box.width;
+    float ymax = box.y + box.height;
+
+    // detection box
+    cv::Scalar color=  cv::Scalar(0, 0, 255);
+    cv::rectangle(image, cv::Point(box.x, box.y), cv::Point(xmax, ymax), color, 3);
+
+    // Detection box text
+    std::string classString = classes[classId] + ' ' + std::to_string(confidence).substr(0, 4);
+    cv::Size textSize = cv::getTextSize(classString, cv::FONT_HERSHEY_DUPLEX, 1, 2, 0);
+    cv::Rect textBox(box.x, box.y - 40, textSize.width + 10, textSize.height + 20);
+    cv::rectangle(image, textBox, color, cv::FILLED);
+    cv::putText(image, classString, cv::Point(box.x + 5, box.y - 10), cv::FONT_HERSHEY_DUPLEX, 1, cv::Scalar(0, 0, 0), 2, 0);
+
+    std::cout << "class: " << classes[classId] << " confidence: " << confidence << std::endl;
   }
 }
 

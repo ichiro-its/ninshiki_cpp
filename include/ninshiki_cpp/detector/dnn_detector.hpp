@@ -63,6 +63,10 @@ private:
   ov::CompiledModel compiled_model;
 
   float rx, ry;
+
+  int iterations = 0;
+  double avg_latency;
+  double total_latency;
 };
 
 }  // namespace ninshiki_cpp::detector
