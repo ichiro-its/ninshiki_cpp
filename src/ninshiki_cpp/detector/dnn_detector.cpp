@@ -34,9 +34,9 @@ namespace detector
 
 DnnDetector::DnnDetector()
 {
-  file_name = static_cast<std::string>(getenv("HOME")) + "/yolov8_ir_model/yolov8s_coco_320/obj.names";
+  file_name = static_cast<std::string>(getenv("HOME")) + "/yolo_model/obj.names";
   std::string model = static_cast<std::string>(getenv("HOME")) +
-    "/yolov8_ir_model/yolov8s_coco_320/yolov8s.xml";
+    "/yolov8s_320_23sept_400/best.xml";
   model_suffix = jitsuyo::split_string(model, ".");
 
   if (model_suffix == "weights") {
@@ -97,10 +97,10 @@ void DnnDetector::initialize_openvino(const std::string & model_path)
 
 void DnnDetector::detection(const cv::Mat & image, float conf_threshold, float nms_threshold)
 {
-  cv::imshow("Raw", image);
-  if (cv::waitKey(1) == 27) {
-    cv::destroyAllWindows();
-  }
+  // cv::imshow("Raw", image);
+  // if (cv::waitKey(1) == 27) {
+  //   cv::destroyAllWindows();
+  // }
 
   auto start_time = std::chrono::high_resolution_clock::now();
 
@@ -121,10 +121,10 @@ void DnnDetector::detection(const cv::Mat & image, float conf_threshold, float n
   printf("Average latency: %.2f ms\n", total_latency / iterations);
   printf("--------------------------------\n");
 
-  cv::imshow("Detection", image);
-  if (cv::waitKey(1) == 27) {
-    cv::destroyAllWindows();
-  }
+  // cv::imshow("Detection", image);
+  // if (cv::waitKey(1) == 27) {
+  //   cv::destroyAllWindows();
+  // }
 }
 
 void DnnDetector::detect_darknet(const cv::Mat & image, float conf_threshold, float nms_threshold)
