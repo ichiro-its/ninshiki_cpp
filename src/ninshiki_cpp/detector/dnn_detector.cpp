@@ -36,7 +36,7 @@ DnnDetector::DnnDetector()
 {
   file_name = static_cast<std::string>(getenv("HOME")) + "/yolo_model/obj.names";
   std::string model = static_cast<std::string>(getenv("HOME")) +
-    "/yolov8s_320_23sept_400/best.xml";
+    "/yolov8s_320_10oct_314/best.xml";
   model_suffix = jitsuyo::split_string(model, ".");
 
   if (model_suffix == "weights") {
@@ -97,11 +97,6 @@ void DnnDetector::initialize_openvino(const std::string & model_path)
 
 void DnnDetector::detection(const cv::Mat & image, float conf_threshold, float nms_threshold)
 {
-  // cv::imshow("Raw", image);
-  // if (cv::waitKey(1) == 27) {
-  //   cv::destroyAllWindows();
-  // }
-
   auto start_time = std::chrono::high_resolution_clock::now();
 
   if (model_suffix == "weights") {
@@ -120,11 +115,6 @@ void DnnDetector::detection(const cv::Mat & image, float conf_threshold, float n
   printf("Inference time: %.2f ms, %d\n", latency.count(), ++iterations);
   printf("Average latency: %.2f ms\n", total_latency / iterations);
   printf("--------------------------------\n");
-
-  // cv::imshow("Detection", image);
-  // if (cv::waitKey(1) == 27) {
-  //   cv::destroyAllWindows();
-  // }
 }
 
 void DnnDetector::detect_darknet(const cv::Mat & image, float conf_threshold, float nms_threshold)
@@ -365,8 +355,13 @@ void DnnDetector::detect_ir(const cv::Mat & image, float conf_threshold, float n
 
   for (int i = 0; i < nms_result.size(); i++)
   {
-    ninshiki_interfaces::msg::DetectedObject detection_object;
     int idx = nms_result[i];
+    if (class_ids[idx] == 6) {
+      continue;
+    }
+
+    ninshiki_interfaces::msg::DetectedObject detection_object;
+
     detection_object.label = classes[class_ids[idx]];
     detection_object.score = confidences[idx];
     detection_object.left = boxes[idx].x * rx;
@@ -375,33 +370,6 @@ void DnnDetector::detect_ir(const cv::Mat & image, float conf_threshold, float n
     detection_object.bottom = boxes[idx].height * ry;
 
     detection_result.detected_objects.push_back(detection_object);
-
-    // draw bounding box
-    auto detection = detection_object;
-    auto box = boxes[idx];
-    auto classId = class_ids[idx];
-    auto confidence = confidences[idx];
-
-    box.x = this->rx * box.x;
-    box.y = this->ry * box.y;
-    box.width = this->rx * box.width;
-    box.height = this->ry * box.height;
-
-    float xmax = box.x + box.width;
-    float ymax = box.y + box.height;
-
-    // detection box
-    cv::Scalar color=  cv::Scalar(0, 0, 255);
-    cv::rectangle(image, cv::Point(box.x, box.y), cv::Point(xmax, ymax), color, 3);
-
-    // Detection box text
-    std::string classString = classes[classId] + ' ' + std::to_string(confidence).substr(0, 4);
-    cv::Size textSize = cv::getTextSize(classString, cv::FONT_HERSHEY_DUPLEX, 1, 2, 0);
-    cv::Rect textBox(box.x, box.y - 40, textSize.width + 10, textSize.height + 20);
-    cv::rectangle(image, textBox, color, cv::FILLED);
-    cv::putText(image, classString, cv::Point(box.x + 5, box.y - 10), cv::FONT_HERSHEY_DUPLEX, 1, cv::Scalar(0, 0, 0), 2, 0);
-
-    std::cout << "class: " << classes[classId] << " confidence: " << confidence << std::endl;
   }
 }
 
