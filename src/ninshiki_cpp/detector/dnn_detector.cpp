@@ -115,9 +115,10 @@ void DnnDetector::detection(const cv::Mat & image, float conf_threshold, float n
 
   total_latency += latency.count();
 
-  printf("Inference time: %.2f ms, %d\n", latency.count(), ++iterations);
-  printf("Average latency: %.2f ms\n", total_latency / iterations);
-  printf("--------------------------------\n");
+  // Print Inference Time
+  // printf("Inference time: %.2f ms, %d\n", latency.count(), ++iterations);
+  // printf("Average latency: %.2f ms\n", total_latency / iterations);
+  // printf("--------------------------------\n");
 }
 
 void DnnDetector::detect_darknet(const cv::Mat & image, float conf_threshold, float nms_threshold)
