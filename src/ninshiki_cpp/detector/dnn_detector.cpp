@@ -36,7 +36,10 @@ DnnDetector::DnnDetector()
 {
   file_name = static_cast<std::string>(getenv("HOME")) + "/yolo_model/obj.names";
   std::string model = static_cast<std::string>(getenv("HOME")) +
+    // "/yolo_model/yolo_weights.weights";
     "/yolov8s_320_10oct_314/best.xml";
+    // "/yolov9s_ir_320_11oct_190/best.xml";
+
   model_suffix = jitsuyo::split_string(model, ".");
 
   if (model_suffix == "weights") {

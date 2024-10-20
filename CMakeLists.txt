@@ -34,9 +34,9 @@ message(STATUS "Using gRPC ${gRPC_VERSION}")
 # OpenVINO
 include_directories(
     ${OpenCV_INCLUDE_DIRS}
-    /opt/intel/openvino/runtime/include
-    /opt/intel/openvino/runtime/include/ie
-    /opt/intel/openvino/runtime/include/ngraph
+    /opt/intel/openvino_2023/runtime/include
+    /opt/intel/openvino_2023/runtime/include/ie
+    /opt/intel/openvino_2023/runtime/include/ngraph
 )
 
 message(STATUS "OpenCV library status:")
@@ -100,7 +100,7 @@ target_link_libraries(${PROJECT_NAME}
   gRPC::grpc++_reflection
   gRPC::grpc++
   ${OpenCV_LIBS}
-  /opt/intel/openvino/runtime/lib/intel64/libopenvino.so
+  /opt/intel/openvino_2023/runtime/lib/intel64/libopenvino.so
 )
 
 install(DIRECTORY "include" DESTINATION ".")
