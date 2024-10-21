@@ -357,7 +357,7 @@ void DnnDetector::detect_ir(const cv::Mat & image, float conf_threshold, float n
   std::vector<int> nms_result;
   cv::dnn::NMSBoxes(boxes, confidences, conf_threshold, nms_threshold, nms_result);
 
-  for (int i = 0; i < nms_result.size(); i++)
+  for (int i = 0; i < nms_result.size(); ++i)
   {
     int idx = nms_result[i];
     if (class_ids[idx] == 6) {
