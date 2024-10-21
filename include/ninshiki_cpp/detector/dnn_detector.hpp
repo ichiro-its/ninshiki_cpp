@@ -64,7 +64,7 @@ private:
 
   float rx, ry;
 
-  int iterations = 0;
+  int iterations;
   double avg_latency;
   double total_latency;
 };

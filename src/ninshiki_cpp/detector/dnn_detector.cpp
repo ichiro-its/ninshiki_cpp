@@ -57,6 +57,7 @@ DnnDetector::DnnDetector()
     classes.push_back(line);
   }
 
+  iterations = 0;
 
 }
 
