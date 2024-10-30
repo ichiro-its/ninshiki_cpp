@@ -22,6 +22,7 @@ find_package(rclcpp REQUIRED)
 find_package(shisen_cpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(cv_bridge REQUIRED)
+find_package(OpenVINO REQUIRED)
 
 find_package(Protobuf CONFIG REQUIRED)
 message(STATUS "Using protobuf ${Protobuf_VERSION}")
@@ -31,18 +32,11 @@ message(STATUS "Using protobuf ${Protobuf_VERSION}")
 find_package(gRPC CONFIG REQUIRED)
 message(STATUS "Using gRPC ${gRPC_VERSION}")
 
-# OpenVINO
-include_directories(
-    ${OpenCV_INCLUDE_DIRS}
-    /opt/intel/openvino_2023/runtime/include
-    /opt/intel/openvino_2023/runtime/include/ie
-    /opt/intel/openvino_2023/runtime/include/ngraph
-)
-
 message(STATUS "OpenCV library status:")
 message(STATUS "version:${OpenCV_VERSION}")
 message(STATUS "libraries:${OpenCV_LIBS}")
-message(STATUS "include path:${OpenCV_INCLUDE_DIRS}")
+message(STATUS "OpenCV include path:${OpenCV_INCLUDE_DIRS}")
+message(STATUS "OpenVINO include path env:$ENV{OpenVINO_INCLUDE_DIRS}")
 
 add_library(${PROJECT_NAME} SHARED
   "src/${PROJECT_NAME}/config/grpc/config.cpp"
@@ -73,7 +67,8 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 
 target_include_directories(${PROJECT_NAME}_exported PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include>)
+  $<INSTALL_INTERFACE:include>
+  $ENV{OpenVINO_INCLUDE_DIRS})
 
 ament_target_dependencies(${PROJECT_NAME}
   jitsuyo
@@ -99,8 +94,7 @@ ament_target_dependencies(${PROJECT_NAME}_exported
 target_link_libraries(${PROJECT_NAME}
   gRPC::grpc++_reflection
   gRPC::grpc++
-  ${OpenCV_LIBS}
-  /opt/intel/openvino_2023/runtime/lib/intel64/libopenvino.so
+  openvino::runtime
 )
 
 install(DIRECTORY "include" DESTINATION ".")
