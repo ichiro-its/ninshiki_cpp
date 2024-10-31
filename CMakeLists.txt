@@ -36,7 +36,7 @@ message(STATUS "OpenCV library status:")
 message(STATUS "version:${OpenCV_VERSION}")
 message(STATUS "libraries:${OpenCV_LIBS}")
 message(STATUS "OpenCV include path:${OpenCV_INCLUDE_DIRS}")
-message(STATUS "OpenVINO include path env:$ENV{OpenVINO_INCLUDE_DIRS}")
+message(STATUS "OpenVINO include path env:${OpenVINO_DIR}/../include")
 
 add_library(${PROJECT_NAME} SHARED
   "src/${PROJECT_NAME}/config/grpc/config.cpp"
@@ -68,7 +68,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 target_include_directories(${PROJECT_NAME}_exported PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
-  $ENV{OpenVINO_INCLUDE_DIRS})
+  ${OpenVINO_DIR}/../include)
 
 ament_target_dependencies(${PROJECT_NAME}
   jitsuyo
