@@ -24,7 +24,9 @@
 #include <string>
 #include <chrono>
 #include <vector>
+#include <nlohmann/json.hpp>
 
+#include "jitsuyo/config.hpp"
 #include "jitsuyo/linux.hpp"
 
 namespace ninshiki_cpp
@@ -34,19 +36,38 @@ namespace detector
 
 DnnDetector::DnnDetector()
 {
-  file_name = static_cast<std::string>(getenv("HOME")) + "/yolo_model/obj.names";
-  std::string model = static_cast<std::string>(getenv("HOME")) +
-    // "/yolo_model/yolo_weights.weights";
-    "/yolov8s_320_10oct_314/best.xml";
-    // "/yolov9s_ir_320_11oct_190/best.xml";
+}
 
-  model_suffix = jitsuyo::split_string(model, ".");
+void DnnDetector::load_configuration(const std::string & path)
+{
+  std::string ss = config_path + "/dnn_model.json";
+
+  nlohmann::json dnn_config;
+  if (!jitsuyo::load_config(path, "/dnn_model.json", dnn_config)) {
+    std::cerr << "Failed to load dnn configuration file" << std::endl;
+    return;
+  }
+
+  for (auto & item : dnn_config.items()) {
+    try {
+      if (item.key() == "model") {
+        model_path = static_cast<std::string>(getenv("HOME")) + item.value().dump();
+      } else if (item.key() == "config") {
+        config = static_cast<std::string>(getenv("HOME")) + item.value().dump();
+      } else if (item.key() == "classes") {
+        file_name = static_cast<std::string>(getenv("HOME")) + item.value().dump();
+      }
+    } catch (nlohmann::json::parse_error & ex) {
+      std::cerr << "parse error at byte " << ex.byte << std::endl;
+    }
+  }
+
+  model_suffix = jitsuyo::split_string(model_path, ".");
 
   if (model_suffix == "weights") {
-    std::string config = static_cast<std::string>(getenv("HOME")) + "/yolo_model/config.cfg";
-    net = cv::dnn::readNet(model, config, "");
+    net = cv::dnn::readNet(model_path, config, "");
   } else if (model_suffix == "xml") {
-    initialize_openvino(model);
+    initialize_openvino();
   } else {
     throw std::runtime_error("Model suffix is not supported");
   }
@@ -83,7 +104,7 @@ void DnnDetector::set_computation_method(bool gpu, bool myriad)
   }
 }
 
-void DnnDetector::initialize_openvino(const std::string & model_path)
+void DnnDetector::initialize_openvino()
 {
   ov::Core core;
   std::shared_ptr<ov::Model> model = core.read_model(model_path);

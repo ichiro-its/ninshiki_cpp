@@ -42,13 +42,16 @@ public:
   explicit DnnDetector();
 
   void set_computation_method(bool gpu = false, bool myriad = false);
+  void load_configuration(const std::string & path);
   void detection(const cv::Mat & image, float conf_threshold, float nms_threshold);
   void detect_darknet(const cv::Mat & image, float conf_threshold, float nms_threshold);
   void detect_tensorflow(const cv::Mat & image, float conf_threshold, float nms_threshold);
   void detect_ir(const cv::Mat & image, float conf_threshold, float nms_threshold);
-  void initialize_openvino(const std::string & model_path);
+  void initialize_openvino();
 
 private:
+  std::string model_path;
+  std::string config;
   std::string file_name;
   std::string model_suffix;
   std::vector<std::string> classes;
