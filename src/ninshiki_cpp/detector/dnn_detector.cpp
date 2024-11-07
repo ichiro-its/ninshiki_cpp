@@ -51,11 +51,11 @@ void DnnDetector::load_configuration(const std::string & path)
   for (auto & item : dnn_config.items()) {
     try {
       if (item.key() == "model") {
-        model_path = static_cast<std::string>(getenv("HOME")) + item.value().dump();
+        model_path = static_cast<std::string>(getenv("HOME")) + item.value().get<std::string>();
       } else if (item.key() == "config") {
-        config = static_cast<std::string>(getenv("HOME")) + item.value().dump();
+        config = static_cast<std::string>(getenv("HOME")) + item.value().get<std::string>();
       } else if (item.key() == "classes") {
-        file_name = static_cast<std::string>(getenv("HOME")) + item.value().dump();
+        file_name = static_cast<std::string>(getenv("HOME")) + item.value().get<std::string>();
       }
     } catch (nlohmann::json::parse_error & ex) {
       std::cerr << "parse error at byte " << ex.byte << std::endl;

@@ -25,7 +25,7 @@ from launch_ros.actions import Node
 
 def generate_launch_description():
     hostname = socket.gethostname()
-    ninshiki_config_path = os.path.expanduser(f'~/ros2-ws/configuration/{hostname}/color_classifier/')
+    ninshiki_config_path = os.path.expanduser(f'~/ros2-ws/configuration/{hostname}/detection/')
     shisen_config_path = os.path.expanduser(f'~/ros2-ws/configuration/{hostname}/camera/')
     
     return LaunchDescription([
