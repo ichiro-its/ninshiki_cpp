@@ -29,6 +29,7 @@
 #include <opencv2/dnn.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
+#include <openvino/openvino.hpp>
 #include <string>
 #include <vector>
 
@@ -41,11 +42,16 @@ public:
   explicit DnnDetector();
 
   void set_computation_method(bool gpu = false, bool myriad = false);
+  void load_configuration(const std::string & path);
   void detection(const cv::Mat & image, float conf_threshold, float nms_threshold);
   void detect_darknet(const cv::Mat & image, float conf_threshold, float nms_threshold);
   void detect_tensorflow(const cv::Mat & image, float conf_threshold, float nms_threshold);
+  void detect_ir(const cv::Mat & image, float conf_threshold, float nms_threshold);
+  void initialize_openvino();
 
 private:
+  std::string model_path;
+  std::string config;
   std::string file_name;
   std::string model_suffix;
   std::vector<std::string> classes;
@@ -54,6 +60,16 @@ private:
   bool myriad;
 
   cv::dnn::Net net;
+
+  ov::Tensor input_tensor;
+  ov::InferRequest infer_request;
+  ov::CompiledModel compiled_model;
+
+  float rx, ry;
+
+  int iterations;
+  double avg_latency;
+  double total_latency;
 };
 
 }  // namespace ninshiki_cpp::detector

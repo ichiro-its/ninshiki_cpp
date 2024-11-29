@@ -22,6 +22,7 @@ find_package(rclcpp REQUIRED)
 find_package(shisen_cpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(cv_bridge REQUIRED)
+find_package(OpenVINO REQUIRED)
 
 find_package(Protobuf CONFIG REQUIRED)
 message(STATUS "Using protobuf ${Protobuf_VERSION}")
@@ -30,6 +31,12 @@ message(STATUS "Using protobuf ${Protobuf_VERSION}")
 # Looks for gRPCConfig.cmake file installed by gRPC's cmake installation.
 find_package(gRPC CONFIG REQUIRED)
 message(STATUS "Using gRPC ${gRPC_VERSION}")
+
+message(STATUS "OpenCV library status:")
+message(STATUS "version:${OpenCV_VERSION}")
+message(STATUS "libraries:${OpenCV_LIBS}")
+message(STATUS "OpenCV include path:${OpenCV_INCLUDE_DIRS}")
+message(STATUS "OpenVINO include path env:${OpenVINO_DIR}/../include")
 
 add_library(${PROJECT_NAME} SHARED
   "src/${PROJECT_NAME}/config/grpc/config.cpp"
@@ -60,7 +67,8 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 
 target_include_directories(${PROJECT_NAME}_exported PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include>)
+  $<INSTALL_INTERFACE:include>
+  ${OpenVINO_DIR}/../include)
 
 ament_target_dependencies(${PROJECT_NAME}
   jitsuyo
@@ -86,6 +94,7 @@ ament_target_dependencies(${PROJECT_NAME}_exported
 target_link_libraries(${PROJECT_NAME}
   gRPC::grpc++_reflection
   gRPC::grpc++
+  openvino::runtime
 )
 
 install(DIRECTORY "include" DESTINATION ".")
