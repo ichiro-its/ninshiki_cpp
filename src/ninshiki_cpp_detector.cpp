@@ -104,7 +104,7 @@ int main(int argc, char ** argv)
     RCLCPP_ERROR_STREAM(rclcpp::get_logger("ninshiki_cpp"), "Invalid arguments: `" << e.what() << "`!\n\n" << help_message);
     return 1;
   }
-  
+
   if (!dnn_detector && !color_detector && !lbp_detector) {
     std::cout << "At least one detection method is needed!\n\n" << help_message << std::endl;
     return 1;
@@ -112,6 +112,7 @@ int main(int argc, char ** argv)
 
   if (dnn_detector) {
     dnn_detector->set_computation_method(gpu, myriad);
+    dnn_detector->load_configuration(path);
   }
 
   if (color_detector) {
