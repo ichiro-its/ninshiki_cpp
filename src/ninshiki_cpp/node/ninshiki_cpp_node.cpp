@@ -59,9 +59,6 @@ NinshikiCppNode::NinshikiCppNode(
       }
     }
   );
-
-  config_grpc.Run(path, color_detection);
-  RCLCPP_INFO(rclcpp::get_logger("GrpcServers"), "grpc running");
 }
 
 void NinshikiCppNode::publish()
@@ -93,5 +90,10 @@ void NinshikiCppNode::publish()
 }
 
 std::string NinshikiCppNode::get_node_prefix() { return "ninshiki_cpp"; }
+
+void NinshikiCppNode::run_config_service(const std::string & path)
+{
+  config_node = std::make_shared<detector::ConfigNode>(node, path, color_detection);
+}
 
 }  // namespace ninshiki_cpp::node
