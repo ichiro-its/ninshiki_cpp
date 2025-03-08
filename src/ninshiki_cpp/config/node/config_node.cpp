@@ -52,20 +52,15 @@ ConfigNode::ConfigNode(rclcpp::Node::SharedPtr node, const std::string & path,
       nlohmann::json config;
       try {
         config = nlohmann::json::parse(request->json_color);
-        jitsuyo::save_config(path, "color_classifier.json", config);
-
-        response->success = true;
       } catch (const std::exception & e) {
         RCLCPP_ERROR(node->get_logger(), "Exception occurred: %s", e.what());
         response->success = false;
         return;
       }
-
       if (!jitsuyo::save_config(path, "color_classifier.json", config)) {
         response->success = false;
         return;
       }
-
       response->success = true;
     }
   );
