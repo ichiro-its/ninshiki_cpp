@@ -25,7 +25,7 @@ namespace ninshiki_cpp::utils
 
 Rect::Rect(const cv::Rect & rect) : rect(rect) {}
 
-const cv::Mat & Rect::get_binary_mat(const cv::Size & mat_size, int line_size) const
+cv::Mat Rect::get_binary_mat(const cv::Size & mat_size, int line_size)
 {
   cv::Mat binary_mat(mat_size, CV_8UC1, cv::Scalar(0));
 
