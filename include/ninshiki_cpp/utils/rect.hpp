@@ -33,7 +33,7 @@ private:
 
 public:
   Rect(const cv::Rect & rect);
-  const cv::Mat & get_binary_mat(const cv::Size & mat_size, int line_size = cv::FILLED) const;
+  const cv::Mat get_binary_mat(const cv::Size & mat_size, int line_size = cv::FILLED) const;
 
   const cv::Point2f & get_center() const;
 };
