@@ -66,6 +66,7 @@ bool ColorDetector::load_configuration(const std::string & path)
     try {
       utils::Color color(
         item.key(),
+        item.value().at("invert_hue").get<bool>(),
         item.value().at("min_hsv")[0],
         item.value().at("max_hsv")[0],
         item.value().at("min_hsv")[1],
@@ -96,11 +97,13 @@ bool ColorDetector::save_configuration()
   nlohmann::json config = nlohmann::json::array();
 
   for (auto & item : colors) {
+    bool invert_hue = item.invert_hue;
     int min_hsv[] = {item.min_hue, item.min_saturation, item.min_value};
     int max_hsv[] = {item.max_hue, item.max_saturation, item.max_value};
 
     nlohmann::json color = {
       {item.name, {
+        {"invert_hue", invert_hue},
         {"min_hsv", min_hsv},
         {"max_hsv", max_hsv}
       }}
@@ -129,6 +132,7 @@ void ColorDetector::configure_color_setting(utils::Color color)
 {
   for (auto & item : colors) {
     if (item.name == color.name) {
+      item.invert_hue = color.invert_hue;
       item.min_hue = color.min_hue;
       item.max_hue = color.max_hue;
       item.min_saturation = color.min_saturation;
@@ -143,8 +147,8 @@ void ColorDetector::configure_color_setting(utils::Color color)
 
 cv::Mat ColorDetector::classify(cv::Mat input)
 {
-  int h_min = (min_hue * 255) / 100;
-  int h_max = (max_hue * 255) / 100;
+  int h_min = (min_hue * 180) / 360;
+  int h_max = (max_hue * 180) / 360;
 
   int s_min = (min_saturation * 255) / 100;
   int s_max = (max_saturation * 255) / 100;
@@ -157,7 +161,29 @@ cv::Mat ColorDetector::classify(cv::Mat input)
 
   cv::Mat output = input.clone();
 
-  cv::inRange(input, hsv_min, hsv_max, output);
+  if (invert_hue) {
+    cv::Mat mask1, mask2;
+
+    cv::inRange(input,
+      cv::Scalar(0, s_min, v_min),
+      cv::Scalar(h_min, s_max, v_max),
+      mask1
+    );
+
+    cv::inRange(input,
+      cv::Scalar(h_max, s_min, v_min),
+      cv::Scalar(180, s_max, v_max),
+      mask2
+    );
+
+    cv::bitwise_or(mask1, mask2, output);
+  } else {
+    cv::inRange(input,
+      cv::Scalar(h_min, s_min, v_min),
+      cv::Scalar(h_max, s_max, v_max),
+      output
+    );
+  }
 
   cv::Mat element = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(3, 3), cv::Point(1, 1));
   cv::morphologyEx(output, output, cv::MORPH_CLOSE, element);
@@ -202,6 +228,7 @@ void ColorDetector::detection(const cv::Mat & image)
   // iterate every color in colors
   for (auto & color : colors) {
     color_name = color.name;
+    invert_hue = color.invert_hue;
     min_hue = color.min_hue;
     max_hue = color.max_hue;
     min_saturation = color.min_saturation;

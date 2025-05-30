@@ -79,6 +79,7 @@ public:
 private:
   int classifier_type;
 
+  bool invert_hue;
   int min_hue;
   int max_hue;
   int min_saturation;

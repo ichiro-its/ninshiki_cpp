@@ -30,10 +30,12 @@ class Color
 {
 public:
   Color(
-    const std::string & name, int min_hue, int max_hue, int min_saturation,
-    int max_saturation, int min_value, int max_value);
+    const std::string & name, bool invert_hue, int min_hue,
+    int max_hue, int min_saturation, int max_saturation,
+    int min_value, int max_value);
 
   std::string name;
+  bool invert_hue;
   int min_hue;
   int max_hue;
   int min_saturation;
