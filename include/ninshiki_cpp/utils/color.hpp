@@ -30,18 +30,26 @@ class Color
 {
 public:
   Color(
-    const std::string & name, bool invert_hue, int min_hue,
-    int max_hue, int min_saturation, int max_saturation,
-    int min_value, int max_value);
+    const std::string & name, bool invert_hue, bool use_lab,
+    int min_hue, int max_hue, int min_saturation, int max_saturation,
+    int min_value, int max_value, int min_lightness, int max_lightness,
+    int min_a, int max_a, int min_b, int max_b);
 
   std::string name;
   bool invert_hue;
+  bool use_lab;
   int min_hue;
   int max_hue;
   int min_saturation;
   int max_saturation;
   int min_value;
   int max_value;
+  int min_lightness;
+  int max_lightness;
+  int min_a;
+  int max_a;
+  int min_b;
+  int max_b;
 };
 
 }  // namespace ninshiki_cpp::utils

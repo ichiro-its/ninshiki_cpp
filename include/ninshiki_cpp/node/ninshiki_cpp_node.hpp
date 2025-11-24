@@ -73,7 +73,6 @@ private:
   std::shared_ptr<LBPDetector> lbp_detection;
 
   cv::Mat received_frame;
-  cv::Mat hsv_frame;
 
   int count = 0;
 
