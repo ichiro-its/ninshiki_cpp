@@ -43,7 +43,7 @@ def generate_launch_description():
             executable='detector',
             name='detector',
             output='screen',
-            arguments=[ninshiki_config_path, "color"],
+            arguments=[ninshiki_config_path, "dnn", "color"],
             respawn=True,
             respawn_delay=1
         ),
