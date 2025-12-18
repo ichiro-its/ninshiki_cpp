@@ -53,6 +53,7 @@ public:
 
   cv::Mat classify(cv::Mat input);
   cv::Mat classify_gray(cv::Mat input);
+  cv::Mat classify_lab(cv::Mat input);
 
   int get_min_hue() {return min_hue;}
   int get_max_hue() {return max_hue;}
@@ -68,6 +69,20 @@ public:
   void set_min_value(int value) {min_value = keisan::clamp(value, 0, 100);}
   void set_max_value(int value) {max_value = keisan::clamp(value, 0, 100);}
 
+  int get_min_lightness() {return min_hue;}
+  int get_max_lightness() {return max_lightness;}
+  int get_min_a() {return min_a;}
+  int get_max_a() {return max_a;}
+  int get_min_b() {return min_b;}
+  int get_max_b() {return max_b;}
+
+  void set_min_lightness(int value) {min_lightness = keisan::clamp(value, 0, 255);}
+  void set_max_lightness(int value) {max_lightness = keisan::clamp(value, 0, 255);}
+  void set_min_a(int value) {min_a = keisan::clamp(value, -128, 128);}
+  void set_max_a(int value) {max_a = keisan::clamp(value, -128, 128);}
+  void set_min_b(int value) {min_b = keisan::clamp(value, -128, 128);}
+  void set_max_b(int value) {max_b = keisan::clamp(value, -128, 128);}
+
   // Function for Contours
   void find(cv::Mat binary_mat);
 
@@ -80,12 +95,19 @@ private:
   int classifier_type;
 
   bool invert_hue;
+  bool use_lab;
   int min_hue;
   int max_hue;
   int min_saturation;
   int max_saturation;
   int min_value;
   int max_value;
+  int min_lightness;
+  int max_lightness;
+  int min_a;
+  int max_a;
+  int min_b;
+  int max_b;
 
   std::vector<std::vector<cv::Point>> contours;
   std::vector<utils::Color> colors;

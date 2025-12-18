@@ -36,7 +36,7 @@ private:
 public:
   Circle(const std::vector<cv::Point> & contour);
 
-  void draw(cv::Mat & image, int line_size) const;
+  void draw(cv::Mat & image, int line_size, const cv::Scalar & color = cv::Scalar(0, 255, 238)) const;
   cv::Mat get_binary_mat(const cv::Size & mat_size, int line_size = cv::FILLED);
 
   const cv::Point2f & get_center() const;

@@ -29,19 +29,30 @@ namespace ninshiki_cpp::utils
 class Color
 {
 public:
-  Color(
-    const std::string & name, bool invert_hue, int min_hue,
-    int max_hue, int min_saturation, int max_saturation,
-    int min_value, int max_value);
+  struct Config
+  {
+    bool invert_hue = false;
+    bool use_lab = false;
+
+    int min_hue = 0;
+    int max_hue = 360;
+    int min_saturation = 0;
+    int max_saturation = 100;
+    int min_value = 0;
+    int max_value = 100;
+
+    int min_lightness = 0;
+    int max_lightness = 255;
+    int min_a = -128;
+    int max_a = 127;
+    int min_b = -128;
+    int max_b = 127;
+  };
+
+  Color(const std::string & name, const Config & config);
 
   std::string name;
-  bool invert_hue;
-  int min_hue;
-  int max_hue;
-  int min_saturation;
-  int max_saturation;
-  int min_value;
-  int max_value;
+  Config config;
 };
 
 }  // namespace ninshiki_cpp::utils

@@ -46,7 +46,7 @@ NinshikiCppNode::NinshikiCppNode(
   image_subscriber =
     node->create_subscription<Image>("camera/image", 10, [this](const Image::SharedPtr message) {
       if (!message->data.empty()) {
-        received_frame = cv_bridge::toCvShare(message)->image;
+        received_frame = cv_bridge::toCvCopy(message, "bgr8")->image;
       }
     });
 
@@ -54,7 +54,6 @@ NinshikiCppNode::NinshikiCppNode(
     std::chrono::milliseconds(frequency),
     [this]() {
       if (!received_frame.empty()) {
-        cv::cvtColor(received_frame, hsv_frame, cv::COLOR_BGR2HSV);
         publish();
       }
     }
@@ -71,7 +70,7 @@ void NinshikiCppNode::publish()
   }
 
   if (color_detection) {
-    color_detection->detection(hsv_frame);
+    color_detection->detection(received_frame);
     color_segmentation_publisher->publish(color_detection->detection_result);
 
     color_detection->detection_result.contours.clear();

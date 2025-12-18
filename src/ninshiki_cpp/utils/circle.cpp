@@ -28,9 +28,9 @@ Circle::Circle(const std::vector<cv::Point> & contour) : center(cv::Point2f(-1, 
   cv::minEnclosingCircle(contour, center, radius);
 }
 
-void Circle::draw(cv::Mat & image, int line_size) const
+void Circle::draw(cv::Mat & image, int line_size, const cv::Scalar & color) const
 {
-  cv::circle(image, center, radius, cv::Scalar(0, 255, 238), line_size);
+  cv::circle(image, center, radius, color, line_size);
 }
 
 cv::Mat Circle::get_binary_mat(const cv::Size & mat_size, int line_size)

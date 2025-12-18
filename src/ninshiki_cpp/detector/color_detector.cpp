@@ -66,13 +66,22 @@ bool ColorDetector::load_configuration(const std::string & path)
     try {
       utils::Color color(
         item.key(),
-        item.value().at("invert_hue").get<bool>(),
-        item.value().at("min_hsv")[0],
-        item.value().at("max_hsv")[0],
-        item.value().at("min_hsv")[1],
-        item.value().at("max_hsv")[1],
-        item.value().at("min_hsv")[2],
-        item.value().at("max_hsv")[2]
+        utils::Color::Config{
+          .invert_hue = item.value().at("invert_hue").get<bool>(),
+          .use_lab = item.value().at("use_lab").get<bool>(),
+          .min_hue = item.value().at("min_hsv")[0],
+          .max_hue = item.value().at("max_hsv")[0],
+          .min_saturation = item.value().at("min_hsv")[1],
+          .max_saturation = item.value().at("max_hsv")[1],
+          .min_value = item.value().at("min_hsv")[2],
+          .max_value = item.value().at("max_hsv")[2],
+          .min_lightness = item.value().at("min_lab")[0],
+          .max_lightness = item.value().at("max_lab")[0],
+          .min_a = item.value().at("min_lab")[1],
+          .max_a = item.value().at("max_lab")[1],
+          .min_b = item.value().at("min_lab")[2],
+          .max_b = item.value().at("max_lab")[2]
+        }
       );
 
       colors.push_back(color);
@@ -97,15 +106,21 @@ bool ColorDetector::save_configuration()
   nlohmann::json config = nlohmann::json::array();
 
   for (auto & item : colors) {
-    bool invert_hue = item.invert_hue;
-    int min_hsv[] = {item.min_hue, item.min_saturation, item.min_value};
-    int max_hsv[] = {item.max_hue, item.max_saturation, item.max_value};
+    bool invert_hue = item.config.invert_hue;
+    bool use_lab = item.config.use_lab;
+    int min_hsv[] = {item.config.min_hue, item.config.min_saturation, item.config.min_value};
+    int max_hsv[] = {item.config.max_hue, item.config.max_saturation, item.config.max_value};
+    int min_lab[] = {item.config.min_lightness, item.config.min_a, item.config.min_b};
+    int max_lab[] = {item.config.max_lightness, item.config.max_a, item.config.max_b};
 
     nlohmann::json color = {
       {item.name, {
         {"invert_hue", invert_hue},
+        {"use_lab", use_lab},
         {"min_hsv", min_hsv},
-        {"max_hsv", max_hsv}
+        {"max_hsv", max_hsv},
+        {"min_lab", min_lab},
+        {"max_lab", max_lab},
       }}
     };
 
@@ -132,13 +147,7 @@ void ColorDetector::configure_color_setting(utils::Color color)
 {
   for (auto & item : colors) {
     if (item.name == color.name) {
-      item.invert_hue = color.invert_hue;
-      item.min_hue = color.min_hue;
-      item.max_hue = color.max_hue;
-      item.min_saturation = color.min_saturation;
-      item.max_saturation = color.max_saturation;
-      item.min_value = color.min_value;
-      item.max_value = color.max_value;
+      item.config = color.config;
 
       break;
     }
@@ -178,12 +187,32 @@ cv::Mat ColorDetector::classify(cv::Mat input)
 
     cv::bitwise_or(mask1, mask2, output);
   } else {
-    cv::inRange(input,
-      cv::Scalar(h_min, s_min, v_min),
-      cv::Scalar(h_max, s_max, v_max),
-      output
-    );
+    cv::inRange(input, hsv_min, hsv_max, output);
   }
+
+  cv::Mat element = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(3, 3), cv::Point(1, 1));
+  cv::morphologyEx(output, output, cv::MORPH_CLOSE, element);
+
+  return output;
+}
+
+cv::Mat ColorDetector::classify_lab(cv::Mat input)
+{
+  int l_min = min_lightness;
+  int l_max = max_lightness;
+
+  int a_min = min_a + 128;
+  int a_max = max_a + 128;
+
+  int b_min = min_b + 128;
+  int b_max = max_b + 128;
+
+  cv::Scalar lab_min = cv::Scalar(l_min, a_min, b_min);
+  cv::Scalar lab_max = cv::Scalar(l_max, a_max, b_max);
+
+  cv::Mat output = input.clone();
+
+  cv::inRange(input, lab_min, lab_max, output);
 
   cv::Mat element = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(3, 3), cv::Point(1, 1));
   cv::morphologyEx(output, output, cv::MORPH_CLOSE, element);
@@ -228,16 +257,32 @@ void ColorDetector::detection(const cv::Mat & image)
   // iterate every color in colors
   for (auto & color : colors) {
     color_name = color.name;
-    invert_hue = color.invert_hue;
-    min_hue = color.min_hue;
-    max_hue = color.max_hue;
-    min_saturation = color.min_saturation;
-    max_saturation = color.max_saturation;
-    min_value = color.min_value;
-    max_value = color.max_value;
+    invert_hue = color.config.invert_hue;
+    use_lab = color.config.use_lab;
+    min_hue = color.config.min_hue;
+    max_hue = color.config.max_hue;
+    min_saturation = color.config.min_saturation;
+    max_saturation = color.config.max_saturation;
+    min_value = color.config.min_value;
+    max_value = color.config.max_value;
+    min_lightness = color.config.min_lightness;
+    max_lightness = color.config.max_lightness;
+    min_a = color.config.min_a;
+    max_a = color.config.max_a;
+    min_b = color.config.min_b;
+    max_b = color.config.max_b;
 
-    cv::Mat field_binary_mat = classify(image);
-    find(field_binary_mat);
+    if (!use_lab) {
+      cv::Mat hsv_image;
+      cv::cvtColor(image, hsv_image, cv::COLOR_BGR2HSV);
+      cv::Mat field_binary_mat = classify(hsv_image);
+      find(field_binary_mat);
+    } else {
+      cv::Mat lab_image;
+      cv::cvtColor(image, lab_image, cv::COLOR_BGR2Lab);
+      cv::Mat field_binary_mat = classify_lab(lab_image);
+      find(field_binary_mat);
+    }
 
     // Copy contours to ros2 msg
     if (contours.size() >= 0) {

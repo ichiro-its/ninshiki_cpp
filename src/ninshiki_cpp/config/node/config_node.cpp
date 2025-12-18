@@ -72,10 +72,22 @@ ConfigNode::ConfigNode(rclcpp::Node::SharedPtr node, const std::string & path,
       try {
         utils::Color color(
           request->name,
-          request->invert_hue,
-          request->min_hue, request->max_hue,
-          request->min_saturation, request->max_saturation,
-          request->min_value, request->max_value
+          utils::Color::Config{
+            .invert_hue = request->invert_hue,
+            .use_lab = request->use_lab,
+            .min_hue = request->min_hue,
+            .max_hue = request->max_hue,
+            .min_saturation = request->min_saturation,
+            .max_saturation = request->max_saturation,
+            .min_value = request->min_value,
+            .max_value = request->max_value,
+            .min_lightness = request->min_lightness,
+            .max_lightness = request->max_lightness,
+            .min_a = request->min_a,
+            .max_a = request->max_a,
+            .min_b = request->min_b,
+            .max_b = request->max_b,
+          }
         );
 
         color_detection->configure_color_setting(color);
