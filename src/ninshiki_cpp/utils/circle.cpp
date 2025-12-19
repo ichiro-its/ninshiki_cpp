@@ -23,25 +23,29 @@
 namespace ninshiki_cpp::utils
 {
 
-Circle::Circle(const std::vector<cv::Point> & contour)
-: center(cv::Point2f(-1, -1)), radius(0.0)
+Circle::Circle(const std::vector<cv::Point> & contour) : center(cv::Point2f(-1, -1)), radius(0.0)
 {
-    cv::minEnclosingCircle(contour, center, radius);
+  cv::minEnclosingCircle(contour, center, radius);
 }
 
-void Circle::draw(cv::Mat & image, int line_size) const
+void Circle::draw(cv::Mat & image, int line_size, const cv::Scalar & color) const
 {
-    cv::circle(image, center, radius, cv::Scalar(0, 255, 238), line_size);
+  cv::circle(image, center, radius, color, line_size);
 }
 
-const cv::Point2f & Circle::get_center() const
+cv::Mat Circle::get_binary_mat(const cv::Size & mat_size, int line_size)
 {
-    return center;
+  cv::Mat binary_mat(mat_size, CV_8UC1, cv::Scalar(0));
+
+  if (radius > 0.0) {
+    cv::circle(binary_mat, center, radius, cv::Scalar(255), line_size);
+  }
+
+  return binary_mat;
 }
 
-const float Circle::get_radius() const
-{
-    return radius;
-}
+const cv::Point2f & Circle::get_center() const { return center; }
 
-} // namespace ninshiki_cpp::utils
+const float Circle::get_radius() const { return radius; }
+
+}  // namespace ninshiki_cpp::utils

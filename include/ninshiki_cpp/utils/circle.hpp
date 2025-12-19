@@ -30,20 +30,19 @@ namespace ninshiki_cpp::utils
 class Circle
 {
 private:
-
-    cv::Point2f center;
-    float radius;
+  cv::Point2f center;
+  float radius;
 
 public:
+  Circle(const std::vector<cv::Point> & contour);
 
-    Circle(const std::vector<cv::Point> & contour);
+  void draw(cv::Mat & image, int line_size, const cv::Scalar & color = cv::Scalar(0, 255, 238)) const;
+  cv::Mat get_binary_mat(const cv::Size & mat_size, int line_size = cv::FILLED);
 
-    void draw(cv::Mat & image, int line_size) const;
-
-    const cv::Point2f & get_center() const;
-    const float get_radius() const;
+  const cv::Point2f & get_center() const;
+  const float get_radius() const;
 };
 
 }  // namespace ninshiki_cpp::utils
 
-#endif // NINSHIKI_CPP__UTILS__CIRCLE_HPP_
+#endif  // NINSHIKI_CPP__UTILS__CIRCLE_HPP_

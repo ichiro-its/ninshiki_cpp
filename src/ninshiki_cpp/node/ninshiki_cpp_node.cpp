@@ -46,7 +46,7 @@ NinshikiCppNode::NinshikiCppNode(
   image_subscriber =
     node->create_subscription<Image>("camera/image", 10, [this](const Image::SharedPtr message) {
       if (!message->data.empty()) {
-        received_frame = cv_bridge::toCvShare(message)->image;
+        received_frame = cv_bridge::toCvCopy(message, "bgr8")->image;
       }
     });
 
@@ -54,14 +54,10 @@ NinshikiCppNode::NinshikiCppNode(
     std::chrono::milliseconds(frequency),
     [this]() {
       if (!received_frame.empty()) {
-        cv::cvtColor(received_frame, hsv_frame, cv::COLOR_BGR2HSV);
         publish();
       }
     }
   );
-
-  config_grpc.Run(path, color_detection);
-  RCLCPP_INFO(rclcpp::get_logger("GrpcServers"), "grpc running");
 }
 
 void NinshikiCppNode::publish()
@@ -74,7 +70,7 @@ void NinshikiCppNode::publish()
   }
 
   if (color_detection) {
-    color_detection->detection(hsv_frame);
+    color_detection->detection(received_frame);
     color_segmentation_publisher->publish(color_detection->detection_result);
 
     color_detection->detection_result.contours.clear();
@@ -93,5 +89,10 @@ void NinshikiCppNode::publish()
 }
 
 std::string NinshikiCppNode::get_node_prefix() { return "ninshiki_cpp"; }
+
+void NinshikiCppNode::run_config_service(const std::string & path)
+{
+  config_node = std::make_shared<detector::ConfigNode>(node, path, color_detection);
+}
 
 }  // namespace ninshiki_cpp::node

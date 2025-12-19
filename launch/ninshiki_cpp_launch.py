@@ -1,15 +1,15 @@
 # Copyright (c) 2024 ICHIRO ITS
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
 # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be included in
 # all copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
@@ -25,9 +25,9 @@ from launch_ros.actions import Node
 
 def generate_launch_description():
     hostname = socket.gethostname()
-    ninshiki_config_path = os.path.expanduser(f'~/ros2-ws/configuration/{hostname}/color_classifier/')
-    shisen_config_path = os.path.expanduser(f'~/ros2-ws/configuration/{hostname}/camera/')
-    
+    ninshiki_config_path = os.path.expanduser(f'~/ichiro-ws/configuration/{hostname}/detection/')
+    shisen_config_path = os.path.expanduser(f'~/ichiro-ws/configuration/{hostname}/camera/')
+
     return LaunchDescription([
         Node(
             package='shisen_cpp',

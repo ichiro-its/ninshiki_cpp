@@ -27,7 +27,7 @@
 #include <opencv2/imgproc.hpp>
 #include <string>
 
-#include "ninshiki_cpp/config/grpc/config.hpp"
+#include "ninshiki_cpp/config/node/config_node.hpp"
 #include "ninshiki_cpp/detector/color_detector.hpp"
 #include "ninshiki_cpp/detector/detector.hpp"
 #include "ninshiki_cpp/detector/dnn_detector.hpp"
@@ -54,6 +54,8 @@ public:
     const std::shared_ptr<LBPDetector> lbp_detection);
   void publish();
 
+  void run_config_service(const std::string & path);
+
 private:
   using Contours = ninshiki_interfaces::msg::Contours;
   using DetectedObjects = ninshiki_interfaces::msg::DetectedObjects;
@@ -71,11 +73,10 @@ private:
   std::shared_ptr<LBPDetector> lbp_detection;
 
   cv::Mat received_frame;
-  cv::Mat hsv_frame;
 
   int count = 0;
 
-  ConfigGrpc config_grpc;
+  std::shared_ptr<detector::ConfigNode> config_node;
   std::string path;
 
   static std::string get_node_prefix();

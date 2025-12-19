@@ -1,4 +1,4 @@
-// Copyright (c) 2024 Ichiro ITS
+// Copyright (c) 2024 ICHIRO ITS
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -18,40 +18,26 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#ifndef NINSHIKI_CPP__CONFIG__GRPC__CONFIG_HPP_
-#define NINSHIKI_CPP__CONFIG__GRPC__CONFIG_HPP_
+#ifndef NINSHIKI_CPP__UTILS__RECT_HPP_
+#define NINSHIKI_CPP__UTILS__RECT_HPP_
 
-#include "grpcpp/grpcpp.h"
-#include "ninshiki_cpp/detector/color_detector.hpp"
-#include "ninshiki_interfaces/ninshiki.grpc.pb.h"
-#include "ninshiki_interfaces/ninshiki.pb.h"
+#include <opencv2/opencv.hpp>
 
-#include <memory>
-#include <thread>
-
-namespace ninshiki_cpp
+namespace ninshiki_cpp::utils
 {
-class ConfigGrpc
+
+class Rect
 {
-public:
-  explicit ConfigGrpc();
-  explicit ConfigGrpc(const std::string & path);
-  using ColorDetector = detector::ColorDetector;
-
-  ~ConfigGrpc();
-
-  void Run(const std::string & path, std::shared_ptr<ColorDetector> color_detection);
-
 private:
-  std::string path;
-  static void SignIntHandler(int signum);
+  cv::Rect rect;
 
-  static inline std::unique_ptr<grpc::ServerCompletionQueue> cq_;
-  static inline std::unique_ptr<grpc::Server> server_;
-  std::thread thread_;
-  ninshiki_interfaces::proto::Config::AsyncService service_;
+public:
+  Rect(const cv::Rect & rect);
+  const cv::Mat get_binary_mat(const cv::Size & mat_size, int line_size = cv::FILLED) const;
+
+  const cv::Point2f & get_center() const;
 };
 
-}  // namespace ninshiki_cpp
+}  // namespace ninshiki_cpp::utils
 
-#endif  // NINSHIKI_CPP__CONFIG__GRPC__CONFIG_HPP_
+#endif  // NINSHIKI_CPP__UTILS__RECT_HPP_

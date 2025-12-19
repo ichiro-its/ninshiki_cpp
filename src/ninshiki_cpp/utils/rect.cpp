@@ -1,4 +1,4 @@
-// Copyright (c) 2024 Ichiro ITS
+// Copyright (c) 2024 ICHIRO ITS
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -18,31 +18,25 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#ifndef NINSHIKI_CPP_CONFIG__GRPC__CALL_DATA_SET_COLOR_SETTING_HPP__
-#define NINSHIKI_CPP_CONFIG__GRPC__CALL_DATA_SET_COLOR_SETTING_HPP__
+#include "ninshiki_cpp/utils/rect.hpp"
 
-#include "rclcpp/rclcpp.hpp"
-#include "ninshiki_cpp/config/grpc/call_data.hpp"
-#include "ninshiki_cpp/detector/color_detector.hpp"
-#include "ninshiki_cpp/utils/color.hpp"
-
-namespace ninshiki_cpp
+namespace ninshiki_cpp::utils
 {
-class CallDataSetColorSetting
-: CallData<ninshiki_interfaces::proto::ColorSetting, ninshiki_interfaces::proto::Empty>
+
+Rect::Rect(const cv::Rect & rect) : rect(rect) {}
+
+const cv::Mat Rect::get_binary_mat(const cv::Size & mat_size, int line_size) const
 {
-public:
-  CallDataSetColorSetting(
-    ninshiki_interfaces::proto::Config::AsyncService * service, grpc::ServerCompletionQueue * cq,
-    const std::string & path, std::shared_ptr<ninshiki_cpp::detector::ColorDetector> color_detection);
-    using ColorDetector = ninshiki_cpp::detector::ColorDetector;
+  cv::Mat binary_mat(mat_size, CV_8UC1, cv::Scalar(0));
 
-protected:
-  void AddNextToCompletionQueue() override;
-  void WaitForRequest() override;
-  void HandleRequest() override;
-  std::shared_ptr<ColorDetector> color_detection_;
-};
-}  // namespace ninshiki_cpp
+  cv::rectangle(binary_mat, rect, cv::Scalar(255), line_size);
 
-#endif  // NINSHIKI_CPP__CONFIG__GRPC__CALL_DATA_SET_COLOR_SETTING_HPP__
+  return binary_mat;
+}
+
+const cv::Point2f & Rect::get_center() const
+{
+  return cv::Point2f(rect.x + rect.width / 2, rect.y + rect.height / 2);
+}
+
+}  // namespace ninshiki_cpp::utils
