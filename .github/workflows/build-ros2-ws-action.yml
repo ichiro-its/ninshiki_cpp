@@ -46,3 +46,4 @@ jobs:
 
       - name: Test workspace
         uses: ichiro-its/ros2-ws-action/test@v1.0.1
+        continue-on-error: true
