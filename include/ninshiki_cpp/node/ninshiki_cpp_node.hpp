@@ -25,6 +25,9 @@
 #include <opencv2/dnn.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
+#include <rclcpp/rclcpp.hpp>
+#include <sensor_msgs/msg/image.hpp>
+#include <std_msgs/msg/header.hpp>
 #include <string>
 
 #include "ninshiki_cpp/config/node/config_node.hpp"
@@ -33,12 +36,16 @@
 #include "ninshiki_cpp/detector/dnn_detector.hpp"
 #include "ninshiki_cpp/detector/lbp_detector.hpp"
 #include "ninshiki_interfaces/msg/detected_objects.hpp"
-#include "rclcpp/rclcpp.hpp"
-#include "sensor_msgs/msg/image.hpp"
 #include "shisen_cpp/shisen_cpp.hpp"
 
 namespace ninshiki_cpp::node
 {
+
+struct FrameData
+{
+  cv::Mat frame;
+  std_msgs::msg::Header header;
+};
 
 class NinshikiCppNode
 {
@@ -72,7 +79,7 @@ private:
   std::shared_ptr<ColorDetector> color_detection;
   std::shared_ptr<LBPDetector> lbp_detection;
 
-  cv::Mat received_frame;
+  FrameData received_frame;
 
   int count = 0;
 

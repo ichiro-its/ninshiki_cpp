@@ -46,14 +46,15 @@ NinshikiCppNode::NinshikiCppNode(
   image_subscriber =
     node->create_subscription<Image>("camera/image", 10, [this](const Image::SharedPtr message) {
       if (!message->data.empty()) {
-        received_frame = cv_bridge::toCvCopy(message, "bgr8")->image;
+        received_frame.header = message->header;
+        received_frame.frame  = cv_bridge::toCvCopy(message, "bgr8")->image;
       }
     });
 
   node_timer = node->create_wall_timer(
     std::chrono::milliseconds(frequency),
     [this]() {
-      if (!received_frame.empty()) {
+      if (!received_frame.frame.empty()) {
         publish();
       }
     }
@@ -63,28 +64,34 @@ NinshikiCppNode::NinshikiCppNode(
 void NinshikiCppNode::publish()
 {
   if (dnn_detection) {
-    dnn_detection->detection(received_frame, 0.4, 0.3);
+    dnn_detection->detection(received_frame.frame, 0.4, 0.3);
+    dnn_detection->detection_result.header = received_frame.header;
+
     detected_object_publisher->publish(dnn_detection->detection_result);
 
     dnn_detection->detection_result.detected_objects.clear();
   }
 
   if (color_detection) {
-    color_detection->detection(received_frame);
+    color_detection->detection(received_frame.frame);
+    color_detection->detection_result.header = received_frame.header;
+
     color_segmentation_publisher->publish(color_detection->detection_result);
 
     color_detection->detection_result.contours.clear();
   }
 
   if (lbp_detection) {
-    lbp_detection->detection(received_frame);
+    lbp_detection->detection(received_frame.frame);
+    lbp_detection->detection_result.header = received_frame.header;
+
     detected_object_publisher->publish(lbp_detection->detection_result);
 
     lbp_detection->detection_result.detected_objects.clear();
   }
 
-  if (!received_frame.empty()) {
-    received_frame.release();
+  if (!received_frame.frame.empty()) {
+    received_frame.frame.release();
   }
 }
 
