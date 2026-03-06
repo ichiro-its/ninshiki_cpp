@@ -110,14 +110,34 @@ void DnnDetector::initialize_openvino()
   std::shared_ptr<ov::Model> model = core.read_model(model_path);
   ov::preprocess::PrePostProcessor ppp = ov::preprocess::PrePostProcessor(model);
 
-  ppp.input().tensor().set_element_type(ov::element::u8).set_layout("NHWC").set_color_format(ov::preprocess::ColorFormat::RGB);
-  ppp.input().preprocess().convert_element_type(ov::element::f32).convert_color(ov::preprocess::ColorFormat::RGB).scale({ 255, 255, 255 });// .scale({ 112, 112, 112 });
+  ppp.input().tensor().set_element_type(ov::element::u8).set_layout("NHWC").set_color_format(ov::preprocess::ColorFormat::BGR);
+  ppp.input().preprocess().convert_element_type(ov::element::f32).convert_color(ov::preprocess::ColorFormat::RGB).scale({ 255.0f, 255.0f, 255.0f });
   ppp.input().model().set_layout("NCHW");
   ppp.output().tensor().set_element_type(ov::element::f32);
   model = ppp.build();
 
-  this->compiled_model = core.compile_model(model, "CPU");
+  ov::AnyMap device_config = {
+    ov::hint::performance_mode(ov::hint::PerformanceMode::LATENCY),
+    ov::hint::enable_cpu_pinning(false),
+    ov::inference_num_threads(1)
+  };
+  
+  this->compiled_model = core.compile_model(model, "GPU", device_config);
   this->infer_request = compiled_model.create_infer_request();
+
+  // Map pre-allocated tensor memory once for zero-copy
+  input_tensor = infer_request.get_input_tensor();
+  this->tensor_mat = cv::Mat(320, 320, CV_8UC3, input_tensor.data<uint8_t>());
+
+  // Register async callback
+  infer_request.set_callback([this](std::exception_ptr ex) {
+    if (ex) {
+      std::cerr << "OpenVINO inference exception!" << std::endl;
+      this->is_inferencing = false;
+      return;
+    }
+    this->postprocess_ir();
+  });
 }
 
 void DnnDetector::detection(const cv::Mat & image, float conf_threshold, float nms_threshold)
@@ -307,48 +327,17 @@ void DnnDetector::detect_tensorflow(
   }
 }
 
-void DnnDetector::detect_ir(const cv::Mat & image, float conf_threshold, float nms_threshold)
+void DnnDetector::postprocess_ir()
 {
-  // Preprocessing
-  try {
-    img_width = static_cast<double>(image.cols);
-    img_height = static_cast<double>(image.rows);
-
-    cv::Size new_shape = cv::Size(320, 320);
-    cv::Mat resized_image;
-
-    float ratio = float(new_shape.width / (img_width > img_height ? img_width : img_height));
-    int new_unpadW = int(round(img_width * ratio));
-    int new_unpadH = int(round(img_height * ratio));
-
-    cv::resize(image, resized_image, cv::Size(new_unpadW, new_unpadH), 0, 0, cv::INTER_AREA);
-    int dw = new_shape.width - new_unpadW;
-    int dh = new_shape.height - new_unpadH;
-    cv::Scalar color = cv::Scalar(100, 100, 100);
-    cv::copyMakeBorder(resized_image, resized_image, 0, dh, 0, dw, cv::BORDER_CONSTANT, color);
-
-    this->rx = (float)image.cols / (float)(resized_image.cols - dw);
-    this->ry = (float)image.rows / (float)(resized_image.rows - dh);
-    float* input_data = (float*)resized_image.data;
-    input_tensor = ov::Tensor(compiled_model.input().get_element_type(), compiled_model.input().get_shape(), input_data);
-    infer_request.set_input_tensor(input_tensor);
-  }catch (const std::exception& e) {
-    std::cerr << "exception: " << e.what() << std::endl;
-  }
-  catch (...) {
-    std::cerr << "unknown exception" << std::endl;
-  }
-
-  // Inference
-  infer_request.infer();
-  const ov::Tensor& output_tensor = infer_request.get_output_tensor();
-  ov::Shape output_shape = output_tensor.get_shape();
-  float* detections = output_tensor.data<float>();
-
   // Postprocessing
   std::vector<cv::Rect> boxes;
   std::vector<int> class_ids;
   std::vector<float> confidences;
+
+  const ov::Tensor& output_tensor = infer_request.get_output_tensor();
+  ov::Shape output_shape = output_tensor.get_shape();
+  float* detections = output_tensor.data<float>();
+
   int out_rows = output_shape[1];
   int out_cols = output_shape[2];
   const cv::Mat det_output(out_rows, out_cols, CV_32F, (float*)detections);
@@ -359,7 +348,7 @@ void DnnDetector::detect_ir(const cv::Mat & image, float conf_threshold, float n
     double score;
     cv::minMaxLoc(classes_scores, nullptr, &score, nullptr, &class_id_point);
 
-    if (score > conf_threshold) {
+    if (score > conf_threshold_) {
       const float cx = det_output.at<float>(0, i);
       const float cy = det_output.at<float>(1, i);
       const float ow = det_output.at<float>(2, i);
@@ -377,17 +366,19 @@ void DnnDetector::detect_ir(const cv::Mat & image, float conf_threshold, float n
   }
 
   std::vector<int> nms_result;
-  cv::dnn::NMSBoxes(boxes, confidences, conf_threshold, nms_threshold, nms_result);
+  cv::dnn::NMSBoxes(boxes, confidences, conf_threshold_, nms_threshold_, nms_result);
 
-  for (int i = 0; i < nms_result.size(); ++i)
-  {
+  std::lock_guard<std::mutex> lock(async_mutex);
+  async_detection_result.detected_objects.clear();
+
+  for (int i = 0; i < nms_result.size(); ++i) {
     int idx = nms_result[i];
     if (class_ids[idx] == 6) {
       continue;
     }
 
     ninshiki_interfaces::msg::DetectedObject detection_object;
-
+    
     detection_object.label = classes[class_ids[idx]];
     detection_object.score = confidences[idx];
     detection_object.left = boxes[idx].x * rx;
@@ -395,8 +386,58 @@ void DnnDetector::detect_ir(const cv::Mat & image, float conf_threshold, float n
     detection_object.right = boxes[idx].width * rx;
     detection_object.bottom = boxes[idx].height * ry;
 
-    detection_result.detected_objects.push_back(detection_object);
+    async_detection_result.detected_objects.push_back(detection_object);
   }
+
+  is_inferencing = false;
+}
+
+void DnnDetector::detect_ir(const cv::Mat & image, float conf_threshold, float nms_threshold)
+{
+  std::lock_guard<std::mutex> lock(async_mutex);
+
+  // Always copy the latest available detection result to return immediately
+  detection_result = async_detection_result;
+
+  // If already running inference, drop this frame and return the previous bounding boxes
+  if (is_inferencing) {
+    return;
+  }
+
+  this->conf_threshold_ = conf_threshold;
+  this->nms_threshold_ = nms_threshold;
+
+  // Preprocessing (Zero-Copy using pre-allocated tensor_mat)
+  try {
+    img_width = static_cast<double>(image.cols);
+    img_height = static_cast<double>(image.rows);
+
+    cv::Size new_shape = cv::Size(320, 320);
+
+    float ratio = float(new_shape.width / (img_width > img_height ? img_width : img_height));
+    int new_unpadW = int(round(img_width * ratio));
+    int new_unpadH = int(round(img_height * ratio));
+
+    cv::resize(image, this->resized_image, cv::Size(new_unpadW, new_unpadH), 0, 0, cv::INTER_AREA);
+    int dw = new_shape.width - new_unpadW;
+    int dh = new_shape.height - new_unpadH;
+    
+    // Copy directly into OpenVINO shared tensor memory
+    cv::copyMakeBorder(this->resized_image, this->tensor_mat, 0, dh, 0, dw, cv::BORDER_CONSTANT, cv::Scalar(100, 100, 100));
+
+    this->rx = (float)image.cols / (float)(new_shape.width - dw);
+    this->ry = (float)image.rows / (float)(new_shape.height - dh);
+  } catch (const std::exception& e) {
+    std::cerr << "OpenVINO preprocessing exception: " << e.what() << std::endl;
+    return;
+  } catch (...) {
+    std::cerr << "OpenVINO unknown preprocessing exception" << std::endl;
+    return;
+  }
+
+  // Start Asynchronous Inference
+  is_inferencing = true;
+  infer_request.start_async();
 }
 
 }  // namespace detector
