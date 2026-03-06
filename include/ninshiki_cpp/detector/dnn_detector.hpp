@@ -79,10 +79,13 @@ private:
 
   // Async Postprocessing
   void postprocess_ir();
+  void postprocess_ir();
   float conf_threshold_;
   float nms_threshold_;
 
   float rx, ry;
+
+  std::chrono::time_point<std::chrono::high_resolution_clock> openvino_start_time;
 
   int iterations;
   double avg_latency;

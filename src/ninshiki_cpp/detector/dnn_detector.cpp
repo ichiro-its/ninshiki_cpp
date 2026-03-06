@@ -119,7 +119,8 @@ void DnnDetector::initialize_openvino()
   ov::AnyMap device_config = {
     ov::hint::performance_mode(ov::hint::PerformanceMode::LATENCY),
     ov::hint::enable_cpu_pinning(false),
-    ov::inference_num_threads(1)
+    // inference_num_threads only can be used in cpu mode
+    // ov::inference_num_threads(1)
   };
   
   this->compiled_model = core.compile_model(model, "GPU", device_config);
@@ -146,21 +147,31 @@ void DnnDetector::detection(const cv::Mat & image, float conf_threshold, float n
 
   if (model_suffix == "weights") {
     detect_darknet(image, conf_threshold, nms_threshold);
+    
+    auto end_time = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double, std::milli> latency = end_time - start_time;
+    total_latency += latency.count();
+    iterations++;
+
+    // Print Inference Time (Sync)
+    printf("Inference time: %.2f ms, %d\n", latency.count(), iterations);
+    printf("Average latency: %.2f ms\n", total_latency / iterations);
+    printf("--------------------------------\n");
   } else if (model_suffix == "xml") {
     detect_ir(image, conf_threshold, nms_threshold);
   } else {
     detect_tensorflow(image, conf_threshold, nms_threshold);
+
+    auto end_time = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double, std::milli> latency = end_time - start_time;
+    total_latency += latency.count();
+    iterations++;
+
+    // Print Inference Time (Sync)
+    printf("Inference time: %.2f ms, %d\n", latency.count(), iterations);
+    printf("Average latency: %.2f ms\n", total_latency / iterations);
+    printf("--------------------------------\n");
   }
-
-  auto end_time = std::chrono::high_resolution_clock::now();
-	std::chrono::duration<double, std::milli> latency = end_time - start_time;
-
-  total_latency += latency.count();
-
-  // Print Inference Time
-  // printf("Inference time: %.2f ms, %d\n", latency.count(), ++iterations);
-  // printf("Average latency: %.2f ms\n", total_latency / iterations);
-  // printf("--------------------------------\n");
 }
 
 void DnnDetector::detect_darknet(const cv::Mat & image, float conf_threshold, float nms_threshold)
@@ -389,6 +400,16 @@ void DnnDetector::postprocess_ir()
     async_detection_result.detected_objects.push_back(detection_object);
   }
 
+  auto end_time = std::chrono::high_resolution_clock::now();
+  std::chrono::duration<double, std::milli> latency = end_time - openvino_start_time;
+  total_latency += latency.count();
+  iterations++;
+
+  // Print Inference Time (Async OpenVINO)
+  printf("Inference time: %.2f ms, %d\n", latency.count(), iterations);
+  printf("Average latency: %.2f ms\n", total_latency / iterations);
+  printf("--------------------------------\n");
+
   is_inferencing = false;
 }
 
@@ -436,6 +457,7 @@ void DnnDetector::detect_ir(const cv::Mat & image, float conf_threshold, float n
   }
 
   // Start Asynchronous Inference
+  openvino_start_time = std::chrono::high_resolution_clock::now();
   is_inferencing = true;
   infer_request.start_async();
 }
