@@ -79,7 +79,6 @@ private:
 
   // Async Postprocessing
   void postprocess_ir();
-  void postprocess_ir();
   float conf_threshold_;
   float nms_threshold_;
 
