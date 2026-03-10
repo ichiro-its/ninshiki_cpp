@@ -154,9 +154,9 @@ void DnnDetector::detection(const cv::Mat & image, float conf_threshold, float n
     iterations++;
 
     // Print Inference Time (Sync)
-    printf("Inference time: %.2f ms, %d\n", latency.count(), iterations);
-    printf("Average latency: %.2f ms\n", total_latency / iterations);
-    printf("--------------------------------\n");
+    // printf("Inference time: %.2f ms, %d\n", latency.count(), iterations);
+    // printf("Average latency: %.2f ms\n", total_latency / iterations);
+    // printf("--------------------------------\n");
   } else if (model_suffix == "xml") {
     detect_ir(image, conf_threshold, nms_threshold);
   } else {
@@ -168,9 +168,9 @@ void DnnDetector::detection(const cv::Mat & image, float conf_threshold, float n
     iterations++;
 
     // Print Inference Time (Sync)
-    printf("Inference time: %.2f ms, %d\n", latency.count(), iterations);
-    printf("Average latency: %.2f ms\n", total_latency / iterations);
-    printf("--------------------------------\n");
+    // printf("Inference time: %.2f ms, %d\n", latency.count(), iterations);
+    // printf("Average latency: %.2f ms\n", total_latency / iterations);
+    // printf("--------------------------------\n");
   }
 }
 
@@ -406,9 +406,9 @@ void DnnDetector::postprocess_ir()
   iterations++;
 
   // Print Inference Time (Async OpenVINO)
-  printf("Inference time: %.2f ms, %d\n", latency.count(), iterations);
-  printf("Average latency: %.2f ms\n", total_latency / iterations);
-  printf("--------------------------------\n");
+  // printf("Inference time: %.2f ms, %d\n", latency.count(), iterations);
+  // printf("Average latency: %.2f ms\n", total_latency / iterations);
+  // printf("--------------------------------\n");
 
   is_inferencing = false;
 }
