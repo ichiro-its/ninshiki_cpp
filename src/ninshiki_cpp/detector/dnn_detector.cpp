@@ -359,7 +359,7 @@ void DnnDetector::postprocess_ir()
     double score;
     cv::minMaxLoc(classes_scores, nullptr, &score, nullptr, &class_id_point);
 
-    if (score > conf_threshold_) {
+    if (score > conf_threshold) {
       const float cx = det_output.at<float>(0, i);
       const float cy = det_output.at<float>(1, i);
       const float ow = det_output.at<float>(2, i);
@@ -377,7 +377,7 @@ void DnnDetector::postprocess_ir()
   }
 
   std::vector<int> nms_result;
-  cv::dnn::NMSBoxes(boxes, confidences, conf_threshold_, nms_threshold_, nms_result);
+  cv::dnn::NMSBoxes(boxes, confidences, conf_threshold, nms_threshold, nms_result);
 
   std::lock_guard<std::mutex> lock(async_mutex);
   async_detection_result.detected_objects.clear();
@@ -425,8 +425,8 @@ void DnnDetector::detect_ir(const cv::Mat & image, float conf_threshold, float n
     return;
   }
 
-  this->conf_threshold_ = conf_threshold;
-  this->nms_threshold_ = nms_threshold;
+  this->conf_threshold = conf_threshold;
+  this->nms_threshold = nms_threshold;
 
   // Preprocessing (Zero-Copy using pre-allocated tensor_mat)
   try {
