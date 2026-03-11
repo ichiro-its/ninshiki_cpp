@@ -32,6 +32,8 @@
 #include <openvino/openvino.hpp>
 #include <string>
 #include <vector>
+#include <atomic>
+#include <mutex>
 
 namespace ninshiki_cpp::detector
 {
@@ -65,7 +67,24 @@ private:
   ov::InferRequest infer_request;
   ov::CompiledModel compiled_model;
 
+  // Pre-allocated memory for zero-copy
+  cv::Mat padded_image;
+  cv::Mat resized_image;
+  cv::Mat tensor_mat;
+
+  // Async state
+  std::mutex async_mutex;
+  std::atomic<bool> is_inferencing{false};
+  ninshiki_interfaces::msg::DetectedObjects async_detection_result;
+
+  // Async Postprocessing
+  void postprocess_ir();
+  float conf_threshold;
+  float nms_threshold;
+
   float rx, ry;
+
+  std::chrono::time_point<std::chrono::high_resolution_clock> openvino_start_time;
 
   int iterations;
   double avg_latency;
