@@ -30,9 +30,9 @@ def generate_launch_description():
     ninshiki_config_path = os.path.expanduser(f'~/ichiro-ws/configuration/{hostname}/detection/')
     shisen_config_path = os.path.expanduser(f'~/ichiro-ws/configuration/{hostname}/camera/')
 
-    gpu_arg = DeclareLaunchArgument('gpu', defaultValue='0', description='Enable GPU (0 or 1)')
-    myriad_arg = DeclareLaunchArgument('myriad', defaultValue='0', description='Enable Myriad/NCS2 (0 or 1)')
-    frequency_arg = DeclareLaunchArgument('frequency', defaultValue='96', description='Publisher frequency in Hz')
+    gpu_arg = DeclareLaunchArgument('gpu', default_value='0', description='Enable GPU (0 or 1)')
+    myriad_arg = DeclareLaunchArgument('myriad', default_value='0', description='Enable Myriad/NCS2 (0 or 1)')
+    frequency_arg = DeclareLaunchArgument('frequency', default_value='96', description='Publisher frequency in Hz')
 
     detector_args = [ninshiki_config_path, "dnn", "color"]
 
