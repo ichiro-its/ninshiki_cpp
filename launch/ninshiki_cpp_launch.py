@@ -21,6 +21,8 @@
 import os
 import socket
 from launch import LaunchDescription
+from launch.actions import DeclareLaunchArgument
+from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
 def generate_launch_description():
@@ -28,7 +30,16 @@ def generate_launch_description():
     ninshiki_config_path = os.path.expanduser(f'~/ichiro-ws/configuration/{hostname}/detection/')
     shisen_config_path = os.path.expanduser(f'~/ichiro-ws/configuration/{hostname}/camera/')
 
+    gpu_arg = DeclareLaunchArgument('gpu', defaultValue='0', description='Enable GPU (0 or 1)')
+    myriad_arg = DeclareLaunchArgument('myriad', defaultValue='0', description='Enable Myriad/NCS2 (0 or 1)')
+    frequency_arg = DeclareLaunchArgument('frequency', defaultValue='96', description='Publisher frequency in Hz')
+
+    detector_args = [ninshiki_config_path, "dnn", "color"]
+
     return LaunchDescription([
+        gpu_arg,
+        myriad_arg,
+        frequency_arg,
         Node(
             package='shisen_cpp',
             executable='camera',
@@ -43,7 +54,14 @@ def generate_launch_description():
             executable='detector',
             name='detector',
             output='screen',
-            arguments=[ninshiki_config_path, "dnn", "color"],
+            arguments=[
+                ninshiki_config_path,
+                "dnn",
+                "color",
+                "--GPU", LaunchConfiguration('gpu'),
+                "--MYRIAD", LaunchConfiguration('myriad'),
+                "--frequency", LaunchConfiguration('frequency'),
+            ],
             respawn=True,
             respawn_delay=1
         ),
