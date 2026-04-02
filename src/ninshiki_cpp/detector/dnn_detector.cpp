@@ -173,6 +173,10 @@ void DnnDetector::detection(const cv::Mat & image, float conf_threshold, float n
   std::chrono::duration<double, std::milli> latency = end_time - start_time;
   total_latency += latency.count();
   iterations++;
+
+  printf("Inference time: %.2f ms, %d\n", latency.count(), iterations);
+  printf("Average latency: %.2f ms\n", total_latency / iterations);
+  printf("--------------------------------\n");
 }
 
 void DnnDetector::detect_darknet(const cv::Mat & image, float conf_threshold, float nms_threshold)
@@ -400,6 +404,10 @@ void DnnDetector::postprocess_ir()
   std::chrono::duration<double, std::milli> latency = end_time - openvino_start_time;
   total_latency += latency.count();
   iterations++;
+
+  printf("Inference time: %.2f ms, %d\n", latency.count(), iterations);
+  printf("Average latency: %.2f ms\n", total_latency / iterations);
+  printf("--------------------------------\n");
 
   is_inferencing = false;  // set under result_mutex (postprocess done, no more writer conflict)
 }
