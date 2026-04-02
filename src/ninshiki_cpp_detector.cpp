@@ -111,8 +111,8 @@ int main(int argc, char ** argv)
   }
 
   if (dnn_detector) {
-    dnn_detector->set_computation_method(gpu, myriad);
     dnn_detector->load_configuration(path);
+    dnn_detector->set_computation_method(gpu, myriad);
   }
 
   if (color_detector) {
