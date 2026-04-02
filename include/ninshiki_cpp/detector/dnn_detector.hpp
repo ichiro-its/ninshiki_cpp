@@ -63,6 +63,11 @@ private:
 
   cv::dnn::Net net;
 
+  // Cached network layer metadata — initialized once, reused every detection
+  std::vector<cv::String> layer_output;
+  std::vector<int> out_layers;
+  std::string out_layer_type;
+
   ov::Tensor input_tensor;
   ov::InferRequest infer_request;
   ov::CompiledModel compiled_model;
@@ -72,8 +77,9 @@ private:
   cv::Mat resized_image;
   cv::Mat tensor_mat;
 
-  // Async state
-  std::mutex async_mutex;
+  // Async state — two mutexes to avoid deadlock between main thread and callback thread
+  std::mutex inference_mutex;   // guards is_inferencing flag only
+  std::mutex result_mutex;       // guards async_detection_result
   std::atomic<bool> is_inferencing{false};
   ninshiki_interfaces::msg::DetectedObjects async_detection_result;
 

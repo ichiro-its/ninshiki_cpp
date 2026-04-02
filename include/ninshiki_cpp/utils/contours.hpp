@@ -54,6 +54,7 @@ public:
 
   float center_x();
   float center_y();
+  cv::Point2f center();  // computes both x and y in a single contour traversal
 
   float min_x();
   float min_y();

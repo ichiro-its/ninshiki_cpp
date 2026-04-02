@@ -168,7 +168,7 @@ cv::Mat ColorDetector::classify(cv::Mat input)
   cv::Scalar hsv_min = cv::Scalar(h_min, s_min, v_min);
   cv::Scalar hsv_max = cv::Scalar(h_max, s_max, v_max);
 
-  cv::Mat output = input.clone();
+  cv::Mat output;
 
   if (invert_hue) {
     cv::Mat mask1, mask2;
@@ -190,7 +190,7 @@ cv::Mat ColorDetector::classify(cv::Mat input)
     cv::inRange(input, hsv_min, hsv_max, output);
   }
 
-  cv::Mat element = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(3, 3), cv::Point(1, 1));
+  static const cv::Mat element = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(3, 3), cv::Point(1, 1));
   cv::morphologyEx(output, output, cv::MORPH_CLOSE, element);
 
   return output;
@@ -210,11 +210,10 @@ cv::Mat ColorDetector::classify_lab(cv::Mat input)
   cv::Scalar lab_min = cv::Scalar(l_min, a_min, b_min);
   cv::Scalar lab_max = cv::Scalar(l_max, a_max, b_max);
 
-  cv::Mat output = input.clone();
-
+  cv::Mat output;
   cv::inRange(input, lab_min, lab_max, output);
 
-  cv::Mat element = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(3, 3), cv::Point(1, 1));
+  static const cv::Mat element = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(3, 3), cv::Point(1, 1));
   cv::morphologyEx(output, output, cv::MORPH_CLOSE, element);
 
   return output;
@@ -225,19 +224,8 @@ cv::Mat ColorDetector::classify_gray(cv::Mat input)
   int v_min = (min_value * 255) / 100;
   int v_max = (max_value * 255) / 100;
 
-  cv::Mat output = input.clone();
-
-  int pixel_num = input.cols * input.rows;
-  int j = -1;
-  for (int i = 0; i < pixel_num; i++) {
-    if (i % input.cols == 0) {
-      j++;
-    }
-
-    cv::Point pixel(i % input.cols, j);
-    output.at<uint8_t>(pixel) = (input.at<uint8_t>(pixel) > v_min &&
-      input.at<uint8_t>(pixel) < v_max);
-  }
+  cv::Mat output;
+  cv::inRange(input, cv::Scalar(v_min), cv::Scalar(v_max), output);
 
   return output;
 }
@@ -254,6 +242,10 @@ void ColorDetector::find(cv::Mat binary_mat)
 
 void ColorDetector::detection(const cv::Mat & image)
 {
+  // Pre-convert the image ONCE per color space, lazily
+  cv::Mat hsv_image;
+  cv::Mat lab_image;
+
   // iterate every color in colors
   for (auto & color : colors) {
     color_name = color.name;
@@ -273,13 +265,15 @@ void ColorDetector::detection(const cv::Mat & image)
     max_b = color.config.max_b;
 
     if (!use_lab) {
-      cv::Mat hsv_image;
-      cv::cvtColor(image, hsv_image, cv::COLOR_BGR2HSV);
+      if (hsv_image.empty()) {
+        cv::cvtColor(image, hsv_image, cv::COLOR_BGR2HSV);
+      }
       cv::Mat field_binary_mat = classify(hsv_image);
       find(field_binary_mat);
     } else {
-      cv::Mat lab_image;
-      cv::cvtColor(image, lab_image, cv::COLOR_BGR2Lab);
+      if (lab_image.empty()) {
+        cv::cvtColor(image, lab_image, cv::COLOR_BGR2Lab);
+      }
       cv::Mat field_binary_mat = classify_lab(lab_image);
       find(field_binary_mat);
     }

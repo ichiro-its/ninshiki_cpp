@@ -110,6 +110,13 @@ void DnnDetector::set_computation_method(bool gpu, bool myriad)
     net.setPreferableBackend(cv::dnn::DNN_BACKEND_INFERENCE_ENGINE);
     net.setPreferableTarget(cv::dnn::DNN_TARGET_CPU);
   }
+
+  // Cache layer metadata once — avoid repeated graph introspection on every detection
+  if (this->model_suffix == "weights") {
+    layer_output = net.getUnconnectedOutLayersNames();
+    out_layers = net.getUnconnectedOutLayers();
+    out_layer_type = net.getLayer(out_layers[0])->type;
+  }
 }
 
 void DnnDetector::initialize_openvino(const std::string & device)
@@ -170,8 +177,6 @@ void DnnDetector::detection(const cv::Mat & image, float conf_threshold, float n
 
 void DnnDetector::detect_darknet(const cv::Mat & image, float conf_threshold, float nms_threshold)
 {
-  std::vector<cv::String> layer_output = net.getUnconnectedOutLayersNames();
-
   // Create a 4D blob from a frame
   static cv::Mat blob;
   cv::Size input_size = cv::Size(320, 320);
@@ -184,9 +189,6 @@ void DnnDetector::detect_darknet(const cv::Mat & image, float conf_threshold, fl
   // Get width and height from image
   img_width = static_cast<double>(image.cols);
   img_height = static_cast<double>(image.rows);
-
-  static std::vector<int> out_layers = net.getUnconnectedOutLayers();
-  static std::string out_layer_type = net.getLayer(out_layers[0])->type;
 
   std::vector<int> class_ids;
   std::vector<float> confidences;
@@ -373,7 +375,7 @@ void DnnDetector::postprocess_ir()
   std::vector<int> nms_result;
   cv::dnn::NMSBoxes(boxes, confidences, conf_threshold, nms_threshold, nms_result);
 
-  std::lock_guard<std::mutex> lock(async_mutex);
+  std::lock_guard<std::mutex> lock(result_mutex);
   async_detection_result.detected_objects.clear();
 
   for (int i = 0; i < nms_result.size(); ++i) {
@@ -399,25 +401,32 @@ void DnnDetector::postprocess_ir()
   total_latency += latency.count();
   iterations++;
 
-  is_inferencing = false;
+  is_inferencing = false;  // set under result_mutex (postprocess done, no more writer conflict)
 }
 
 void DnnDetector::detect_ir(const cv::Mat & image, float conf_threshold, float nms_threshold)
 {
-  std::lock_guard<std::mutex> lock(async_mutex);
+  // Check and set is_inferencing under inference_mutex only
+  {
+    std::lock_guard<std::mutex> lock(inference_mutex);
 
-  // Always copy the latest available detection result to return immediately
-  detection_result = async_detection_result;
+    // Brief copy of the latest result — needs result_mutex too
+    {
+      std::lock_guard<std::mutex> lock_result(result_mutex);
+      detection_result = async_detection_result;
+    }
 
-  // If already running inference, drop this frame and return the previous bounding boxes
-  if (is_inferencing) {
-    return;
+    if (is_inferencing) {
+      return;  // Drop this frame, return stale result
+    }
+
+    is_inferencing = true;
   }
 
+  // Preprocessing runs WITHOUT holding any lock — no deadlock risk
   this->conf_threshold = conf_threshold;
   this->nms_threshold = nms_threshold;
 
-  // Preprocessing (Zero-Copy using pre-allocated tensor_mat)
   try {
     img_width = static_cast<double>(image.cols);
     img_height = static_cast<double>(image.rows);
@@ -431,7 +440,7 @@ void DnnDetector::detect_ir(const cv::Mat & image, float conf_threshold, float n
     cv::resize(image, this->resized_image, cv::Size(new_unpadW, new_unpadH), 0, 0, cv::INTER_AREA);
     int dw = new_shape.width - new_unpadW;
     int dh = new_shape.height - new_unpadH;
-    
+
     // Copy directly into OpenVINO shared tensor memory
     cv::copyMakeBorder(this->resized_image, this->tensor_mat, 0, dh, 0, dw, cv::BORDER_CONSTANT, cv::Scalar(100, 100, 100));
 
@@ -439,15 +448,18 @@ void DnnDetector::detect_ir(const cv::Mat & image, float conf_threshold, float n
     this->ry = (float)image.rows / (float)(new_shape.height - dh);
   } catch (const std::exception& e) {
     std::cerr << "OpenVINO preprocessing exception: " << e.what() << std::endl;
+    std::lock_guard<std::mutex> lock(inference_mutex);
+    is_inferencing = false;
     return;
   } catch (...) {
     std::cerr << "OpenVINO unknown preprocessing exception" << std::endl;
+    std::lock_guard<std::mutex> lock(inference_mutex);
+    is_inferencing = false;
     return;
   }
 
   // Start Asynchronous Inference
   openvino_start_time = std::chrono::high_resolution_clock::now();
-  is_inferencing = true;
   infer_request.start_async();
 }
 

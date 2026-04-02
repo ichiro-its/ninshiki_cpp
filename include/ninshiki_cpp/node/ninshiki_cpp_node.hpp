@@ -22,6 +22,7 @@
 #define NINSHIKI_CPP__NODE__NINSHIKI_CPP_NODE_HPP_
 
 #include <memory>
+#include <mutex>
 #include <opencv2/dnn.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
@@ -59,7 +60,7 @@ public:
     int frequency, const std::shared_ptr<DnnDetector> dnn_detection,
     const std::shared_ptr<ColorDetector> color_detection,
     const std::shared_ptr<LBPDetector> lbp_detection);
-  void publish();
+  void publish(const cv::Mat & frame, const std_msgs::msg::Header & header);
 
   void run_config_service(const std::string & path);
 
@@ -80,6 +81,7 @@ private:
   std::shared_ptr<LBPDetector> lbp_detection;
 
   FrameData received_frame;
+  std::mutex frame_mutex;  // guards received_frame against concurrent subscriber/timer access
 
   int count = 0;
 
