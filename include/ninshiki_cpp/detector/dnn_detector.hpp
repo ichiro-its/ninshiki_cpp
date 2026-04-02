@@ -49,7 +49,7 @@ public:
   void detect_darknet(const cv::Mat & image, float conf_threshold, float nms_threshold);
   void detect_tensorflow(const cv::Mat & image, float conf_threshold, float nms_threshold);
   void detect_ir(const cv::Mat & image, float conf_threshold, float nms_threshold);
-  void initialize_openvino();
+  void initialize_openvino(const std::string & device);
 
 private:
   std::string model_path;
