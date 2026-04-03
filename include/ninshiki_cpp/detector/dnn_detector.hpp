@@ -80,7 +80,9 @@ private:
   {
     float conf_threshold;
     float nms_threshold;
-    float rx, ry;
+    float rx, ry;    // position scale: model coords 
+    float rw, rh;    // dimension scale: model coords 
+    float dw, dh;    // letterbox padding offset
     std::chrono::time_point<std::chrono::high_resolution_clock> start_time;
     std::chrono::time_point<std::chrono::high_resolution_clock> preprocess_end_time;
   };
@@ -88,7 +90,10 @@ private:
   std::vector<bool> request_pending;  // which requests are in-flight
   std::mutex pending_mutex;           // guards request_pending
 
-  void postprocess_ir(size_t req_idx, const PreprocessData & pre);
+  void postprocess_ir(size_t req_idx, const PreprocessData & pre,
+    std::chrono::duration<double, std::milli> inference_duration,
+    std::chrono::duration<double, std::milli> preprocess_duration,
+    std::chrono::duration<double, std::milli> total_duration);
 
   std::mutex result_mutex;            // guards async_detection_result
   ninshiki_interfaces::msg::DetectedObjects async_detection_result;
