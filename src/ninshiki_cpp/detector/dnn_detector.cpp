@@ -121,7 +121,8 @@ void DnnDetector::set_computation_method(bool gpu, bool myriad)
 
 void DnnDetector::initialize_openvino(const std::string & device)
 {
-  ov::Core core;
+  printf("[initialize_openvino] device=%s, model_path=%s\n", device.c_str(), model_path.c_str());
+  core = ov::Core();
   std::shared_ptr<ov::Model> model = core.read_model(model_path);
   ov::preprocess::PrePostProcessor ppp = ov::preprocess::PrePostProcessor(model);
 
@@ -138,34 +139,26 @@ void DnnDetector::initialize_openvino(const std::string & device)
 
   compiled_model = core.compile_model(model, device, device_config);
 
-  // Pre-allocate NUM_CONCURRENT_REQUESTS infer requests — all share the compiled model
-  infer_requests.reserve(NUM_CONCURRENT_REQUESTS);
-  input_tensors.reserve(NUM_CONCURRENT_REQUESTS);
-  tensor_mats.reserve(NUM_CONCURRENT_REQUESTS);
-  resized_images.reserve(NUM_CONCURRENT_REQUESTS);
-  preprocess_data.reserve(NUM_CONCURRENT_REQUESTS);
-  request_pending.reserve(NUM_CONCURRENT_REQUESTS);
+  // Single request for now — multi-request pipeline next
+  infer_requests.reserve(1);
+  preprocess_data.reserve(1);
+  request_pending.reserve(1);
+  infer_requests.push_back(compiled_model.create_infer_request());
+  preprocess_data.push_back({});
+  request_pending.push_back(false);
 
-  for (size_t i = 0; i < NUM_CONCURRENT_REQUESTS; ++i) {
-    infer_requests.push_back(compiled_model.create_infer_request());
-    preprocess_data.push_back({});
-    request_pending.push_back(false);
+  infer_requests[0].set_callback([this](std::exception_ptr ex) mutable {
+    if (ex) {
+      std::cerr << "OpenVINO inference exception on request 0!" << std::endl;
+      std::lock_guard<std::mutex> lock(this->pending_mutex);
+      this->request_pending[0] = false;
+      return;
+    }
+    auto pre = this->preprocess_data[0];
+    this->postprocess_ir(0, pre);
+  });
 
-    // Pre-allocate a 320x320 tensor buffer for each request
-    input_tensors.emplace_back(ov::element::u8, ov::Shape{1, 320, 320, 3});
-    // Create cv::Mat view into the pre-allocated tensor — safe for async GPU reads
-    tensor_mats.emplace_back(320, 320, CV_8UC3, input_tensors[i].data<uint8_t>());
-
-    infer_requests[i].set_callback([this, i](std::exception_ptr ex) {
-      if (ex) {
-        std::cerr << "OpenVINO inference exception on request " << i << "!" << std::endl;
-        std::lock_guard<std::mutex> lock(this->pending_mutex);
-        this->request_pending[i] = false;
-        return;
-      }
-      this->postprocess_ir(i, this->preprocess_data[i]);
-    });
-  }
+  printf("[initialize_openvino] request created successfully\n");
 }
 
 void DnnDetector::detection(const cv::Mat & image, float conf_threshold, float nms_threshold)
@@ -425,13 +418,24 @@ void DnnDetector::postprocess_ir(size_t req_idx, const PreprocessData & pre)
 
 void DnnDetector::detect_ir(const cv::Mat & image, float conf_threshold, float nms_threshold)
 {
-  // Select next request in circular queue — spin if all are in-flight (max 3 slots)
-  size_t req_idx;
+  printf("[detect_ir] ENTER, rows=%d cols=%d\n", image.rows, image.cols);
+
+  // Guard: ensure initialize_openvino() was called
+  if (infer_requests.empty()) {
+    std::cerr << "detect_ir called but no infer requests initialized!" << std::endl;
+    return;
+  }
+
+  // If previous inference still running, return stale result
   {
     std::lock_guard<std::mutex> lock(pending_mutex);
-    while (request_pending[request_idx]) {
-      request_idx = (request_idx + 1) % NUM_CONCURRENT_REQUESTS;
+    if (request_pending[0]) {
+      printf("[detect_ir] still running, returning stale\n");
+      std::lock_guard<std::mutex> lock_result(result_mutex);
+      detection_result = async_detection_result;
+      return;
     }
+    request_pending[0] = true;
   }
 
   // Brief copy of the latest result
@@ -442,49 +446,46 @@ void DnnDetector::detect_ir(const cv::Mat & image, float conf_threshold, float n
 
   auto start_time = std::chrono::high_resolution_clock::now();
 
-  // Store per-request preprocessing data — read by callback, so must be valid at inference time
-  preprocess_data[req_idx].conf_threshold = conf_threshold;
-  preprocess_data[req_idx].nms_threshold = nms_threshold;
-  preprocess_data[req_idx].start_time = start_time;
+  // Store preprocessing data for callback
+  preprocess_data[0].conf_threshold = conf_threshold;
+  preprocess_data[0].nms_threshold = nms_threshold;
+  preprocess_data[0].start_time = start_time;
 
-  // Preprocessing: resize + pad on CPU, copy into pre-allocated 320x320 tensor
-  try {
-    img_width = static_cast<double>(image.cols);
-    img_height = static_cast<double>(image.rows);
+  img_width = static_cast<double>(image.cols);
+  img_height = static_cast<double>(image.rows);
 
-    cv::Size new_shape = cv::Size(320, 320);
-    float ratio = float(new_shape.width / (img_width > img_height ? img_width : img_height));
-    int new_unpadW = int(round(img_width * ratio));
-    int new_unpadH = int(round(img_height * ratio));
+  // Letterbox resize to 320x320
+  cv::Size model_input(320, 320);
+  float ratio = static_cast<float>(model_input.width / (img_width > img_height ? img_width : img_height));
+  int new_unpadW = static_cast<int>(round(img_width * ratio));
+  int new_unpadH = static_cast<int>(round(img_height * ratio));
+  int dw = model_input.width - new_unpadW;
+  int dh = model_input.height - new_unpadH;
+  preprocess_data[0].rx = static_cast<float>(img_width) / static_cast<float>(model_input.width - dw);
+  preprocess_data[0].ry = static_cast<float>(img_height) / static_cast<float>(model_input.height - dh);
 
-    preprocess_data[req_idx].rx = static_cast<float>(image.cols) / static_cast<float>(new_shape.width - (new_shape.width - new_unpadW));
-    preprocess_data[req_idx].ry = static_cast<float>(image.rows) / static_cast<float>(new_shape.height - (new_shape.height - new_unpadH));
+  // Resize image
+  cv::Mat resized_320;
+  cv::resize(image, resized_320, model_input, 0, 0, cv::INTER_AREA);
 
-    // Resize then pad into the pre-allocated tensor buffer
-    cv::resize(image, resized_images[req_idx], cv::Size(new_unpadW, new_unpadH), 0, 0, cv::INTER_AREA);
-    int dw = new_shape.width - new_unpadW;
-    int dh = new_shape.height - new_unpadH;
-    cv::copyMakeBorder(resized_images[req_idx], tensor_mats[req_idx], 0, dh, 0, dw, cv::BORDER_CONSTANT, cv::Scalar(100, 100, 100));
-  } catch (const std::exception & e) {
-    std::cerr << "OpenVINO preprocessing exception: " << e.what() << std::endl;
-    return;
-  } catch (...) {
-    std::cerr << "OpenVINO unknown preprocessing exception" << std::endl;
-    return;
-  }
-
-  preprocess_data[req_idx].preprocess_end_time = std::chrono::high_resolution_clock::now();
-
-  {
+  if (!resized_320.data) {
+    std::cerr << "cv::resize failed!" << std::endl;
     std::lock_guard<std::mutex> lock(pending_mutex);
-    request_pending[req_idx] = true;
+    request_pending[0] = false;
+    return;
   }
 
-  // Set pre-allocated tensor and start async — works for both CPU and GPU
-  infer_requests[req_idx].set_input_tensor(input_tensors[req_idx]);
-  infer_requests[req_idx].start_async();
+  preprocess_data[0].preprocess_end_time = std::chrono::high_resolution_clock::now();
 
-  request_idx = (request_idx + 1) % NUM_CONCURRENT_REQUESTS;
+  printf("[detect_ir] starting async\n");
+
+  // Set input tensor and start async
+  ov::Tensor input_tensor(
+    ov::element::u8,
+    ov::Shape{1, 320, 320, 3},
+    resized_320.data);
+  infer_requests[0].set_input_tensor(input_tensor);
+  infer_requests[0].start_async();
 }
 
 }  // namespace detector
