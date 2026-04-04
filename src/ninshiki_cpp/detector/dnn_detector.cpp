@@ -375,27 +375,78 @@ void DnnDetector::postprocess_ir(size_t req_idx, const PreprocessData & pre,
 {
   const ov::Tensor & output_tensor = infer_requests[req_idx].get_output_tensor();
   ov::Shape output_shape = output_tensor.get_shape();
+
+  // Print output shape for debugging OpenVINO version differences
+  printf("[postprocess_ir] output_shape: [");
+  for (size_t d = 0; d < output_shape.size(); ++d) {
+    printf("%zu%s", output_shape[d], d < output_shape.size() - 1 ? ", " : "");
+  }
+  printf("]\n");
+
   auto detections = output_tensor.data<float>();
 
-  int out_rows = static_cast<int>(output_shape[1]);
-  int out_cols = static_cast<int>(output_shape[2]);
+  int out_rows, out_cols;
+  if (output_shape.size() == 3) {
+    // OpenVINO 2024: {1, 4+num_classes, num_detections} (rows=4+num_classes, cols=num_detections)
+    // OpenVINO 2026: may be {1, num_detections, 4+num_classes} (rows=num_detections, cols=4+num_classes)
+    // Detect which layout by checking which dimension matches classes.size() + 4
+    int dim1 = static_cast<int>(output_shape[1]);
+    int dim2 = static_cast<int>(output_shape[2]);
+    if (dim1 == classes.size() + 4) {
+      // 2024 layout: [1, 4+classes, num_dets]
+      out_rows = dim1;
+      out_cols = dim2;
+    } else if (dim2 == classes.size() + 4) {
+      // 2026 layout: [1, num_dets, 4+classes]
+      out_rows = dim2;
+      out_cols = dim1;
+    } else {
+      // Fallback: assume 2024 layout
+      out_rows = dim1;
+      out_cols = dim2;
+    }
+  } else {
+    out_rows = static_cast<int>(output_shape[1]);
+    out_cols = static_cast<int>(output_shape[2]);
+  }
+
   const cv::Mat det_output(out_rows, out_cols, CV_32F, static_cast<float*>(detections));
+
+  // Detect layout: 2024 = [1, 4+classes, num_dets], 2026 = [1, num_dets, 4+classes]
+  bool is_transposed = (static_cast<int>(output_shape[1]) == classes.size() + 4) ? false : true;
+  int num_detections = is_transposed ? static_cast<int>(output_shape[1]) : static_cast<int>(output_shape[2]);
+
+  printf("[postprocess_ir] layout: %s, num_dets=%d\n", is_transposed ? "2026 (transposed)" : "2024 (standard)", num_detections);
 
   std::vector<cv::Rect> boxes;
   std::vector<int> class_ids;
   std::vector<float> confidences;
 
-  for (int i = 0; i < det_output.cols; ++i) {
-    const cv::Mat classes_scores = det_output.col(i).rowRange(4, classes.size() + 4);
+  for (int i = 0; i < num_detections; ++i) {
+    float cx, cy, ow, oh;
+    cv::Mat classes_scores;
+
+    if (!is_transposed) {
+      // 2024 layout: [4+classes x num_dets] — iterate over columns (detections)
+      classes_scores = det_output.col(i).rowRange(4, classes.size() + 4);
+      cx = det_output.at<float>(0, i);
+      cy = det_output.at<float>(1, i);
+      ow = det_output.at<float>(2, i);
+      oh = det_output.at<float>(3, i);
+    } else {
+      // 2026 layout: [num_dets x 4+classes] — iterate over rows (detections)
+      classes_scores = det_output.row(i).colRange(4, classes.size() + 4);
+      cx = det_output.at<float>(i, 0);
+      cy = det_output.at<float>(i, 1);
+      ow = det_output.at<float>(i, 2);
+      oh = det_output.at<float>(i, 3);
+    }
+
     cv::Point class_id_point;
     double score;
     cv::minMaxLoc(classes_scores, nullptr, &score, nullptr, &class_id_point);
 
     if (score > pre.conf_threshold) {
-      const float cx = det_output.at<float>(0, i);
-      const float cy = det_output.at<float>(1, i);
-      const float ow = det_output.at<float>(2, i);
-      const float oh = det_output.at<float>(3, i);
       boxes.emplace_back(
         static_cast<int>((cx - 0.5 * ow)),
         static_cast<int>((cy - 0.5 * oh)),
