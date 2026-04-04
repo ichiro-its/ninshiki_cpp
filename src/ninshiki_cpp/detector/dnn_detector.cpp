@@ -375,11 +375,11 @@ void DnnDetector::postprocess_ir(size_t req_idx, const PreprocessData & pre,
 {
   const ov::Tensor & output_tensor = infer_requests[req_idx].get_output_tensor();
   ov::Shape output_shape = output_tensor.get_shape();
-  float * detections = output_tensor.data<float>();
+  auto detections = output_tensor.data<float>();
 
   int out_rows = static_cast<int>(output_shape[1]);
   int out_cols = static_cast<int>(output_shape[2]);
-  const cv::Mat det_output(out_rows, out_cols, CV_32F, detections);
+  const cv::Mat det_output(out_rows, out_cols, CV_32F, static_cast<float*>(detections));
 
   std::vector<cv::Rect> boxes;
   std::vector<int> class_ids;
