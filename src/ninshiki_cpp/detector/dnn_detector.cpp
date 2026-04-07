@@ -378,6 +378,65 @@ void DnnDetector::postprocess_ir(size_t req_idx, const PreprocessData & pre,
   std::chrono::duration<double, std::milli> preprocess_duration,
   std::chrono::duration<double, std::milli> total_duration)
 {
+  if (nms_free) {
+    // No NMS needed if model handles it internally
+    const ov::Tensor & output_tensor = infer_requests[req_idx].get_output_tensor();
+    ov::Shape output_shape = output_tensor.get_shape();
+    auto detections = output_tensor.data<float>();
+
+    int num_detections = static_cast<int>(output_shape[1]);
+    int num_cols = static_cast<int>(output_shape[2]);  // should be 6
+    const cv::Mat det_output(num_detections, num_cols, CV_32F, static_cast<float*>(detections));
+
+    {
+      std::lock_guard<std::mutex> lock(result_mutex);
+      async_detection_result.detected_objects.clear();
+
+      for (int i = 0; i < num_detections; ++i) {
+        float x1 = det_output.at<float>(i, 0);
+        float y1 = det_output.at<float>(i, 1);
+        float x2 = det_output.at<float>(i, 2);
+        float y2 = det_output.at<float>(i, 3);
+        float conf = det_output.at<float>(i, 4);
+        int class_id = static_cast<int>(det_output.at<float>(i, 5));
+
+        if (conf < pre.conf_threshold) {
+          continue;
+        }
+        if (class_id == 6) {
+          continue;
+        }
+
+        ninshiki_interfaces::msg::DetectedObject detection_object;
+        detection_object.label = classes[class_id];
+        detection_object.score = conf;
+
+        int bx = static_cast<int>(x1);
+        int by = static_cast<int>(y1);
+        int bw = static_cast<int>(x2 - x1);
+        int bh = static_cast<int>(y2 - y1);
+
+        detection_object.left = static_cast<float>(bx) * pre.rx;
+        detection_object.top = static_cast<float>(by) * pre.ry;
+        detection_object.right = static_cast<float>(bw) * pre.rx;
+        detection_object.bottom = static_cast<float>(bh) * pre.ry;
+
+        async_detection_result.detected_objects.push_back(detection_object);
+      }
+    }
+
+    auto callback_time = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double, std::milli> total_duration = callback_time - pre.start_time;
+    total_latency += total_duration.count();
+    iterations++;
+    printf("[Req %zu] preprocess: %.2f ms  |  inference: %.2f ms  |  total: %.2f ms [NMS-FREE]\n",
+      req_idx, preprocess_duration.count(), inference_duration.count(), total_duration.count());
+    printf("Average latency: %.2f ms\n", total_latency / iterations);
+    std::lock_guard<std::mutex> lock(pending_mutex);
+    request_pending[req_idx] = false;
+    return;
+  }
+
   const ov::Tensor & output_tensor = infer_requests[req_idx].get_output_tensor();
   ov::Shape output_shape = output_tensor.get_shape();
   auto detections = output_tensor.data<float>();
