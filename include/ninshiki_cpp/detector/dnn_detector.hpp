@@ -44,6 +44,7 @@ public:
   explicit DnnDetector();
 
   void set_computation_method(bool gpu = false, bool myriad = false);
+  void set_nms_free(bool nms_free);
   void load_configuration(const std::string & path);
   void detection(const cv::Mat & image, float conf_threshold, float nms_threshold);
   void detect_darknet(const cv::Mat & image, float conf_threshold, float nms_threshold);
@@ -60,6 +61,7 @@ private:
 
   bool gpu;
   bool myriad;
+  bool nms_free = false;
 
   cv::dnn::Net net;
 
