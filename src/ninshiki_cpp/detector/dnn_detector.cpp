@@ -121,6 +121,11 @@ void DnnDetector::set_computation_method(bool gpu, bool myriad)
   }
 }
 
+void DnnDetector::set_nms_free(bool nms_free)
+{
+  this->nms_free = nms_free;
+}
+
 void DnnDetector::initialize_openvino(const std::string & device)
 {
   printf("[initialize_openvino] device=%s, model_path=%s\n", device.c_str(), model_path.c_str());
