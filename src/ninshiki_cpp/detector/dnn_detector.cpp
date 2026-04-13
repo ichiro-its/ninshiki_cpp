@@ -209,9 +209,9 @@ void DnnDetector::detection(const cv::Mat & image, float conf_threshold, float n
   total_latency += latency.count();
   iterations++;
 
-  printf("Inference time: %.2f ms, %d\n", latency.count(), iterations);
-  printf("Average latency: %.2f ms\n", total_latency / iterations);
-  printf("--------------------------------\n");
+  // printf("Inference time: %.2f ms, %d\n", latency.count(), iterations);
+  // printf("Average latency: %.2f ms\n", total_latency / iterations);
+  // printf("--------------------------------\n");
 }
 
 void DnnDetector::detect_darknet(const cv::Mat & image, float conf_threshold, float nms_threshold)
@@ -429,9 +429,9 @@ void DnnDetector::postprocess_ir(size_t req_idx, const PreprocessData & pre,
     std::chrono::duration<double, std::milli> total_duration = callback_time - pre.start_time;
     total_latency += total_duration.count();
     iterations++;
-    printf("[Req %zu] preprocess: %.2f ms  |  inference: %.2f ms  |  total: %.2f ms [NMS-FREE]\n",
-      req_idx, preprocess_duration.count(), inference_duration.count(), total_duration.count());
-    printf("Average latency: %.2f ms\n", total_latency / iterations);
+    // printf("[Req %zu] preprocess: %.2f ms  |  inference: %.2f ms  |  total: %.2f ms [NMS-FREE]\n",
+    //   req_idx, preprocess_duration.count(), inference_duration.count(), total_duration.count());
+    // printf("Average latency: %.2f ms\n", total_latency / iterations);
     std::lock_guard<std::mutex> lock(pending_mutex);
     request_pending[req_idx] = false;
     return;
@@ -443,7 +443,7 @@ void DnnDetector::postprocess_ir(size_t req_idx, const PreprocessData & pre,
 
   int out_rows = static_cast<int>(output_shape[1]);
   int out_cols = static_cast<int>(output_shape[2]);
-  const cv::Mat det_output(out_rows, out_cols, CV_32F, static_cast<float*>(detections));
+  const cv::Mat det_output(out_rows, out_cols, CV_32F, const_cast<float*>(detections));
 
   std::vector<cv::Rect> boxes;
   std::vector<int> class_ids;
@@ -499,9 +499,9 @@ void DnnDetector::postprocess_ir(size_t req_idx, const PreprocessData & pre,
   total_latency += total_duration.count();
   iterations++;
 
-  printf("[Req %zu] preprocess: %.2f ms  |  inference: %.2f ms  |  total: %.2f ms\n",
-    req_idx, preprocess_duration.count(), inference_duration.count(), total_duration.count());
-  printf("Average latency: %.2f ms\n", total_latency / iterations);
+  // printf("[Req %zu] preprocess: %.2f ms  |  inference: %.2f ms  |  total: %.2f ms\n",
+  //   req_idx, preprocess_duration.count(), inference_duration.count(), total_duration.count());
+  // printf("Average latency: %.2f ms\n", total_latency / iterations);
 
   std::lock_guard<std::mutex> lock(pending_mutex);
   request_pending[req_idx] = false;
