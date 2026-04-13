@@ -46,6 +46,7 @@ NinshikiCppNode::NinshikiCppNode(
   image_subscriber =
     node->create_subscription<Image>("camera/image", 10, [this](const Image::SharedPtr message) {
       if (!message->data.empty()) {
+        std::lock_guard<std::mutex> lock(frame_mutex);
         received_frame.header = message->header;
         received_frame.frame  = cv_bridge::toCvCopy(message, "bgr8")->image;
       }
@@ -54,18 +55,25 @@ NinshikiCppNode::NinshikiCppNode(
   node_timer = node->create_wall_timer(
     std::chrono::milliseconds(frequency),
     [this]() {
-      if (!received_frame.frame.empty()) {
-        publish();
+      FrameData local_frame;
+      {
+        std::lock_guard<std::mutex> lock(frame_mutex);
+        if (received_frame.frame.empty()) {
+          return;
+        }
+        local_frame.header = received_frame.header;
+        local_frame.frame = received_frame.frame.clone();
       }
+      publish(local_frame.frame, local_frame.header);
     }
   );
 }
 
-void NinshikiCppNode::publish()
+void NinshikiCppNode::publish(const cv::Mat & frame, const std_msgs::msg::Header & header)
 {
   if (dnn_detection) {
-    dnn_detection->detection(received_frame.frame, 0.4, 0.3);
-    dnn_detection->detection_result.header = received_frame.header;
+    dnn_detection->detection(frame, 0.4, 0.3);
+    dnn_detection->detection_result.header = header;
 
     detected_object_publisher->publish(dnn_detection->detection_result);
 
@@ -73,8 +81,8 @@ void NinshikiCppNode::publish()
   }
 
   if (color_detection) {
-    color_detection->detection(received_frame.frame);
-    color_detection->detection_result.header = received_frame.header;
+    color_detection->detection(frame);
+    color_detection->detection_result.header = header;
 
     color_segmentation_publisher->publish(color_detection->detection_result);
 
@@ -82,16 +90,12 @@ void NinshikiCppNode::publish()
   }
 
   if (lbp_detection) {
-    lbp_detection->detection(received_frame.frame);
-    lbp_detection->detection_result.header = received_frame.header;
+    lbp_detection->detection(frame);
+    lbp_detection->detection_result.header = header;
 
     detected_object_publisher->publish(lbp_detection->detection_result);
 
     lbp_detection->detection_result.detected_objects.clear();
-  }
-
-  if (!received_frame.frame.empty()) {
-    received_frame.frame.release();
   }
 }
 

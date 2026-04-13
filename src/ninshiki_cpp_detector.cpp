@@ -35,6 +35,7 @@ int main(int argc, char ** argv)
   int gpu = 0;
   int myriad = 0;
   int frequency = 96;
+  int nms_free = 0;
 
   std::shared_ptr<ninshiki_cpp::detector::DnnDetector>dnn_detector = nullptr;
   std::shared_ptr<ninshiki_cpp::detector::ColorDetector>color_detector = nullptr;
@@ -53,7 +54,8 @@ int main(int argc, char ** argv)
     "-h, --help           show this help message and exit\n"
     "--GPU {0,1}          if we chose the computation using GPU\n"
     "--MYRIAD {0,1}       if we chose the computation using Compute Stick\n"
-    "--frequency          specify publisher frequency";
+    "--frequency          specify publisher frequency\n"
+    "--nms-free {0,1}     enable or disable NMS mode";
 
   // Handle arguments
   try {
@@ -86,6 +88,14 @@ int main(int argc, char ** argv)
           }
         } else if (arg == "--frequency") {
           frequency = std::stoi(args[i++]);
+        } else if (arg == "--nms-free") {
+          int value = std::stoi(args[i++]);
+          if (value == 0 || value == 1) {
+            nms_free = value;
+          } else {
+            RCLCPP_ERROR_STREAM(rclcpp::get_logger("ninshiki_cpp"), "No value provided for `--nms-free`!\n\n" << help_message);
+            return 1;
+          }
         } else {
           RCLCPP_ERROR_STREAM(rclcpp::get_logger("ninshiki_cpp"), "Unknown argument `" << arg << "`!\n\n" << help_message);
           return 1;
@@ -111,8 +121,9 @@ int main(int argc, char ** argv)
   }
 
   if (dnn_detector) {
-    dnn_detector->set_computation_method(gpu, myriad);
     dnn_detector->load_configuration(path);
+    dnn_detector->set_computation_method(gpu, myriad);
+    dnn_detector->set_nms_free(nms_free);
   }
 
   if (color_detector) {

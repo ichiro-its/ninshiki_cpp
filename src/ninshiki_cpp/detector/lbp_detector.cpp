@@ -73,7 +73,7 @@ void LBPDetector::detection(const cv::Mat & input)
 
     detection_object.label = "LBPDetector Detected Object";
     detection_object.left = rectangle.x / img_width;
-    detection_object.top = rectangle.x / img_height;
+    detection_object.top = rectangle.y / img_height;
     detection_object.right = (rectangle.x + rectangle.width) / img_width;
     detection_object.bottom = (rectangle.y + rectangle.height) / img_height;
 

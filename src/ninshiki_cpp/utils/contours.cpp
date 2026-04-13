@@ -48,8 +48,7 @@ Contours::Contours(cv::Mat binary_mat)
 
 cv::Mat Contours::get_binary_mat(cv::Size mat_size)
 {
-  cv::Mat binary_mat(mat_size, CV_8UC1);
-  binary_mat = cv::Scalar(0);
+  cv::Mat binary_mat = cv::Mat::zeros(mat_size, CV_8UC1);
 
   if (contours.size() > 0) {
     cv::fillPoly(binary_mat, contours, 255);
@@ -59,8 +58,7 @@ cv::Mat Contours::get_binary_mat(cv::Size mat_size)
 
 cv::Mat Contours::get_binary_mat_line(cv::Size mat_size, int line_size)
 {
-  cv::Mat binary_mat(mat_size, CV_8UC1);
-  binary_mat = cv::Scalar(0);
+  cv::Mat binary_mat = cv::Mat::zeros(mat_size, CV_8UC1);
 
   if (contours.size() > 0) {
     for (unsigned int i = 0; i < contours.size(); i++) {
@@ -93,10 +91,14 @@ void Contours::join_all()
   }
 
   std::vector<cv::Point> join_contour;
-  for (std::vector<cv::Point> & contour : contours) {
-    for (unsigned int i = 0; i < contour.size(); i++) {
-      join_contour.push_back(contour[i]);
-    }
+  size_t total_points = 0;
+  for (const auto & contour : contours) {
+    total_points += contour.size();
+  }
+  join_contour.reserve(total_points);
+
+  for (const auto & contour : contours) {
+    join_contour.insert(join_contour.end(), contour.begin(), contour.end());
   }
 
   contours.clear();
@@ -171,17 +173,25 @@ std::vector<cv::Point> Contours::get_all_point_contour()
 float Contours::center_x()
 {
   std::vector<cv::Point> all_contour = get_all_point_contour();
-  cv::Moments moments = cv::moments(all_contour, false);
+  cv::Moments m = cv::moments(all_contour, false);
 
-  return moments.m10 / moments.m00;
+  return m.m10 / m.m00;
 }
 
 float Contours::center_y()
 {
   std::vector<cv::Point> all_contour = get_all_point_contour();
-  cv::Moments moments = cv::moments(all_contour, false);
+  cv::Moments m = cv::moments(all_contour, false);
 
-  return moments.m01 / moments.m00;
+  return m.m01 / m.m00;
+}
+
+cv::Point2f Contours::center()
+{
+  std::vector<cv::Point> all_contour = get_all_point_contour();
+  cv::Moments m = cv::moments(all_contour, false);
+
+  return cv::Point2f(m.m10 / m.m00, m.m01 / m.m00);
 }
 
 float Contours::min_x()

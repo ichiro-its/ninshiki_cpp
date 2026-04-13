@@ -32,6 +32,8 @@
 #include <openvino/openvino.hpp>
 #include <string>
 #include <vector>
+#include <atomic>
+#include <mutex>
 
 namespace ninshiki_cpp::detector
 {
@@ -42,12 +44,13 @@ public:
   explicit DnnDetector();
 
   void set_computation_method(bool gpu = false, bool myriad = false);
+  void set_nms_free(bool nms_free);
   void load_configuration(const std::string & path);
   void detection(const cv::Mat & image, float conf_threshold, float nms_threshold);
   void detect_darknet(const cv::Mat & image, float conf_threshold, float nms_threshold);
   void detect_tensorflow(const cv::Mat & image, float conf_threshold, float nms_threshold);
   void detect_ir(const cv::Mat & image, float conf_threshold, float nms_threshold);
-  void initialize_openvino();
+  void initialize_openvino(const std::string & device);
 
 private:
   std::string model_path;
@@ -58,14 +61,44 @@ private:
 
   bool gpu;
   bool myriad;
+  bool nms_free = false;
 
   cv::dnn::Net net;
 
-  ov::Tensor input_tensor;
-  ov::InferRequest infer_request;
+  // Cached network layer metadata — initialized once, reused every detection
+  std::vector<cv::String> layer_output;
+  std::vector<int> out_layers;
+  std::string out_layer_type;
+
+  ov::Core core;
   ov::CompiledModel compiled_model;
 
-  float rx, ry;
+  // Async state — multi-request pipeline
+  static constexpr size_t NUM_CONCURRENT_REQUESTS = 3;
+  std::vector<ov::InferRequest> infer_requests;
+  size_t request_idx = 0;             // circular index for next available slot
+
+  struct PreprocessData
+  {
+    float conf_threshold;
+    float nms_threshold;
+    float rx, ry;    // position scale: model coords 
+    float rw, rh;    // dimension scale: model coords 
+    float dw, dh;    // letterbox padding offset
+    std::chrono::time_point<std::chrono::high_resolution_clock> start_time;
+    std::chrono::time_point<std::chrono::high_resolution_clock> preprocess_end_time;
+  };
+  std::vector<PreprocessData> preprocess_data;
+  std::vector<bool> request_pending;  // which requests are in-flight
+  std::mutex pending_mutex;           // guards request_pending
+
+  void postprocess_ir(size_t req_idx, const PreprocessData & pre,
+    std::chrono::duration<double, std::milli> inference_duration,
+    std::chrono::duration<double, std::milli> preprocess_duration,
+    std::chrono::duration<double, std::milli> total_duration);
+
+  std::mutex result_mutex;            // guards async_detection_result
+  ninshiki_interfaces::msg::DetectedObjects async_detection_result;
 
   int iterations;
   double avg_latency;
