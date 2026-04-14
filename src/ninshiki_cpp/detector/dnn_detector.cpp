@@ -386,7 +386,7 @@ void DnnDetector::postprocess_ir(size_t req_idx, const PreprocessData & pre,
 
     int num_detections = static_cast<int>(output_shape[1]);
     int num_cols = static_cast<int>(output_shape[2]);  // should be 6
-    const cv::Mat det_output(num_detections, num_cols, CV_32F, static_cast<float*>(detections));
+    const cv::Mat det_output(num_detections, num_cols, CV_32F, const_cast<float*>(detections));
 
     {
       std::lock_guard<std::mutex> lock(result_mutex);
