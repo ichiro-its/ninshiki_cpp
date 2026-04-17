@@ -81,8 +81,7 @@ void DnnDetector::load_configuration(const std::string & path)
     classes.push_back(line);
   }
 
-  iterations = 0;
-
+  inference_count = 0;
 }
 
 void DnnDetector::set_computation_method(bool gpu, bool myriad)
@@ -121,14 +120,10 @@ void DnnDetector::set_computation_method(bool gpu, bool myriad)
   }
 }
 
-void DnnDetector::set_nms_free(bool nms_free)
-{
-  this->nms_free = nms_free;
-}
-
 void DnnDetector::initialize_openvino(const std::string & device)
 {
   printf("[initialize_openvino] device=%s, model_path=%s\n", device.c_str(), model_path.c_str());
+
   core = ov::Core();
   std::shared_ptr<ov::Model> model = core.read_model(model_path);
   ov::preprocess::PrePostProcessor ppp = ov::preprocess::PrePostProcessor(model);
@@ -141,77 +136,50 @@ void DnnDetector::initialize_openvino(const std::string & device)
 
   ov::AnyMap device_config;
   if (device == "GPU") {
-    // Intel Iris Xe / integrated GPU — throughput mode + high priority host tasks
+    // Intel Iris Xe / integrated GPU — latency mode + high priority host tasks
     device_config = {
-      ov::hint::performance_mode(ov::hint::PerformanceMode::THROUGHPUT),
+      ov::hint::performance_mode(ov::hint::PerformanceMode::LATENCY),
       ov::intel_gpu::hint::host_task_priority(ov::hint::Priority::HIGH),
       ov::intel_gpu::hint::queue_priority(ov::hint::Priority::HIGH),
-    };
-  } else if (device == "CPU") {
-    // x86 CPU — throughput mode with NUMA awareness
-    device_config = {
-      ov::hint::performance_mode(ov::hint::PerformanceMode::THROUGHPUT),
-      ov::num_streams(ov::streams::NUMA),
+      ov::intel_gpu::hint::queue_throttle(ov::intel_gpu::hint::ThrottleLevel::LOW),
     };
   } else {
     device_config = {
-      ov::hint::performance_mode(ov::hint::PerformanceMode::THROUGHPUT),
+      ov::hint::performance_mode(ov::hint::PerformanceMode::LATENCY),
     };
   }
 
   compiled_model = core.compile_model(model, device, device_config);
+  infer_request = compiled_model.create_infer_request();
 
-  // Multi-request pipeline — keeps GPU/CPU saturated between frames
-  infer_requests.reserve(NUM_CONCURRENT_REQUESTS);
-  preprocess_data.reserve(NUM_CONCURRENT_REQUESTS);
-  request_pending.reserve(NUM_CONCURRENT_REQUESTS);
-  for (size_t i = 0; i < NUM_CONCURRENT_REQUESTS; ++i) {
-    infer_requests.push_back(compiled_model.create_infer_request());
-    preprocess_data.push_back({});
-    request_pending.push_back(false);
-
-    // Per-request callback — captures request index by value so each slot is independent
-    infer_requests[i].set_callback([this, i](std::exception_ptr ex) mutable {
-      if (ex) {
-        std::cerr << "OpenVINO inference exception on request " << i << "!" << std::endl;
-        std::lock_guard<std::mutex> lock(this->pending_mutex);
-        this->request_pending[i] = false;
-        return;
-      }
-      // Copy data synchronously before any slot gets reused
-      PreprocessData pre = this->preprocess_data[i];
-      auto callback_time = std::chrono::high_resolution_clock::now();
-      std::chrono::duration<double, std::milli> inference_duration = callback_time - pre.preprocess_end_time;
-      std::chrono::duration<double, std::milli> total_duration = callback_time - pre.start_time;
-      std::chrono::duration<double, std::milli> preprocess_duration = pre.preprocess_end_time - pre.start_time;
-      this->postprocess_ir(i, pre, inference_duration, preprocess_duration, total_duration);
-    });
-  }
-
-  printf("[initialize_openvino] %zu requests created successfully\n", NUM_CONCURRENT_REQUESTS);
+  printf("[initialize_openvino] openvino initialized successfully\n");
 }
 
 void DnnDetector::detection(const cv::Mat & image, float conf_threshold, float nms_threshold)
 {
-  auto start_time = std::chrono::high_resolution_clock::now();
+  std::chrono::steady_clock::time_point start_time, end_time;
+
+  if (profiling) start_time = std::chrono::steady_clock::now();
 
   if (model_suffix == "weights") {
     detect_darknet(image, conf_threshold, nms_threshold);
   } else if (model_suffix == "xml") {
     detect_ir(image, conf_threshold, nms_threshold);
-    return;
   } else {
     detect_tensorflow(image, conf_threshold, nms_threshold);
   }
 
-  auto end_time = std::chrono::high_resolution_clock::now();
-  std::chrono::duration<double, std::milli> latency = end_time - start_time;
-  total_latency += latency.count();
-  iterations++;
+  if (profiling) {
+    end_time = std::chrono::steady_clock::now();
 
-  printf("Inference time: %.2f ms, %d\n", latency.count(), iterations);
-  printf("Average latency: %.2f ms\n", total_latency / iterations);
-  printf("--------------------------------\n");
+    double latency = std::chrono::duration<double, std::milli>(end_time - start_time).count();
+    total_latency += latency;
+    inference_count++;
+
+    std::cout << "[Frame " << inference_count << "] Total time: " << latency << " ms | "
+              << "Average latency: " << (total_latency / inference_count) << " ms" << std::endl;
+    std::cout << "--------------------------------" << std::endl;
+  }
 }
 
 void DnnDetector::detect_darknet(const cv::Mat & image, float conf_threshold, float nms_threshold)
@@ -373,221 +341,171 @@ void DnnDetector::detect_tensorflow(
   }
 }
 
-void DnnDetector::postprocess_ir(size_t req_idx, const PreprocessData & pre,
-  std::chrono::duration<double, std::milli> inference_duration,
-  std::chrono::duration<double, std::milli> preprocess_duration,
-  std::chrono::duration<double, std::milli> total_duration)
+void DnnDetector::detect_ir(const cv::Mat & image, float conf_threshold, float nms_threshold)
 {
-  if (nms_free) {
-    // No NMS needed if model handles it internally
-    const ov::Tensor & output_tensor = infer_requests[req_idx].get_output_tensor();
-    ov::Shape output_shape = output_tensor.get_shape();
-    auto detections = output_tensor.data<float>();
-
-    int num_detections = static_cast<int>(output_shape[1]);
-    int num_cols = static_cast<int>(output_shape[2]);  // should be 6
-    const cv::Mat det_output(num_detections, num_cols, CV_32F, static_cast<float*>(detections));
-
-    {
-      std::lock_guard<std::mutex> lock(result_mutex);
-      async_detection_result.detected_objects.clear();
-
-      for (int i = 0; i < num_detections; ++i) {
-        float x1 = det_output.at<float>(i, 0);
-        float y1 = det_output.at<float>(i, 1);
-        float x2 = det_output.at<float>(i, 2);
-        float y2 = det_output.at<float>(i, 3);
-        float conf = det_output.at<float>(i, 4);
-        int class_id = static_cast<int>(det_output.at<float>(i, 5));
-
-        if (conf < pre.conf_threshold) {
-          continue;
-        }
-        if (class_id == 6) {
-          continue;
-        }
-
-        ninshiki_interfaces::msg::DetectedObject detection_object;
-        detection_object.label = classes[class_id];
-        detection_object.score = conf;
-
-        int bx = static_cast<int>(x1);
-        int by = static_cast<int>(y1);
-        int bw = static_cast<int>(x2 - x1);
-        int bh = static_cast<int>(y2 - y1);
-
-        detection_object.left = static_cast<float>(bx) * pre.rx;
-        detection_object.top = static_cast<float>(by) * pre.ry;
-        detection_object.right = static_cast<float>(bw) * pre.rx;
-        detection_object.bottom = static_cast<float>(bh) * pre.ry;
-
-        async_detection_result.detected_objects.push_back(detection_object);
-      }
-    }
-
-    auto callback_time = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double, std::milli> total_duration = callback_time - pre.start_time;
-    total_latency += total_duration.count();
-    iterations++;
-    printf("[Req %zu] preprocess: %.2f ms  |  inference: %.2f ms  |  total: %.2f ms [NMS-FREE]\n",
-      req_idx, preprocess_duration.count(), inference_duration.count(), total_duration.count());
-    printf("Average latency: %.2f ms\n", total_latency / iterations);
-    std::lock_guard<std::mutex> lock(pending_mutex);
-    request_pending[req_idx] = false;
+  if (!infer_request) {
+    std::cerr << "detect_ir called but infer request not initialized!" << std::endl;
     return;
   }
 
-  const ov::Tensor & output_tensor = infer_requests[req_idx].get_output_tensor();
+  // Preprocessing
+  std::chrono::steady_clock::time_point t0, t1, t2, t3;
+
+  if (profiling) t0 = std::chrono::steady_clock::now();
+
+  try {
+    img_width = static_cast<double>(image.cols);
+    img_height = static_cast<double>(image.rows);
+
+    cv::Size new_shape(320, 320);
+    cv::Mat resized_image;
+
+    float ratio = static_cast<float>(new_shape.width) / static_cast<float>(img_width > img_height ? img_width : img_height);
+    int new_unpadW = static_cast<int>(round(img_width * ratio));
+    int new_unpadH = static_cast<int>(round(img_height * ratio));
+
+    cv::resize(image, resized_image, cv::Size(new_unpadW, new_unpadH), 0, 0, cv::INTER_AREA);
+    int dw = new_shape.width - new_unpadW;
+    int dh = new_shape.height - new_unpadH;
+
+    // Apply letterbox padding
+    cv::Mat resized_320;
+    cv::copyMakeBorder(resized_image, resized_320, 0, dh, 0, dw, cv::BORDER_CONSTANT, cv::Scalar(100, 100, 100));
+
+    rx = static_cast<float>(img_width) / static_cast<float>(resized_320.cols - dw);
+    ry = static_cast<float>(img_height) / static_cast<float>(resized_320.rows - dh);
+
+    // Create tensor using model's actual input shape
+    ov::Shape input_shape = compiled_model.input().get_shape();
+    ov::Tensor input_tensor(ov::element::u8, input_shape, resized_320.data);
+    infer_request.set_input_tensor(input_tensor);
+  } catch (const std::exception& e) {
+    std::cerr << "exception: " << e.what() << std::endl;
+  }
+  catch (...) {
+    std::cerr << "unknown exception" << std::endl;
+  }
+
+  if (profiling) t1 = std::chrono::steady_clock::now();
+
+  // Inference
+  infer_request.infer();
+  if (profiling) t2 = std::chrono::steady_clock::now();
+
+  const ov::Tensor & output_tensor = infer_request.get_output_tensor();
   ov::Shape output_shape = output_tensor.get_shape();
   auto detections = output_tensor.data<float>();
 
-  int out_rows = static_cast<int>(output_shape[1]);
-  int out_cols = static_cast<int>(output_shape[2]);
-  const cv::Mat det_output(out_rows, out_cols, CV_32F, static_cast<float*>(detections));
+  // Postprocessing
+  if (nms_free) {
+    // No NMS needed if model handles it internally
+    int num_detections = static_cast<int>(output_shape[1]);
+    int num_cols = static_cast<int>(output_shape[2]);  // should be 6
+    const cv::Mat det_output(num_detections, num_cols, CV_32F, const_cast<float*>(detections));
 
-  std::vector<cv::Rect> boxes;
-  std::vector<int> class_ids;
-  std::vector<float> confidences;
+    auto & out = detection_result.detected_objects;
+    out.reserve(num_detections);
 
-  for (int i = 0; i < det_output.cols; ++i) {
-    const cv::Mat classes_scores = det_output.col(i).rowRange(4, classes.size() + 4);
-    cv::Point class_id_point;
-    double score;
-    cv::minMaxLoc(classes_scores, nullptr, &score, nullptr, &class_id_point);
+    for (int i = 0; i < num_detections; ++i) {
+      const float* row = det_output.ptr<float>(i);
 
-    if (score > pre.conf_threshold) {
-      const float cx = det_output.at<float>(0, i);
-      const float cy = det_output.at<float>(1, i);
-      const float ow = det_output.at<float>(2, i);
-      const float oh = det_output.at<float>(3, i);
+      float conf = row[4];
+      int class_id = static_cast<int>(row[5]);
+
+      if (conf < conf_threshold || class_id == 6) continue;
+
+      float x1 = row[0];
+      float y1 = row[1];
+      float x2 = row[2];
+      float y2 = row[3];
+
+      auto& obj = out.emplace_back();
+      obj.label = classes[class_id];
+      obj.score = conf;
+      obj.left = static_cast<int>(x1) * rx;
+      obj.top = static_cast<int>(y1) * ry;
+      obj.right = static_cast<int>(x2 - x1) * rx;
+      obj.bottom = static_cast<int>(y2 - y1) * ry;
+    }
+  } else {
+    int out_rows = static_cast<int>(output_shape[1]);
+    int out_cols = static_cast<int>(output_shape[2]);
+    const cv::Mat det_output(out_rows, out_cols, CV_32F, const_cast<float*>(detections));
+
+    std::vector<cv::Rect> boxes;
+    std::vector<int> class_ids;
+    std::vector<float> confidences;
+
+    boxes.reserve(out_cols);
+    class_ids.reserve(out_cols);
+    confidences.reserve(out_cols);
+
+    const float* data = reinterpret_cast<const float*>(det_output.data);
+
+    for (int i = 0; i < out_cols; ++i) {
+      float cx = data[0 * out_cols + i];
+      float cy = data[1 * out_cols + i];
+      float ow = data[2 * out_cols + i];
+      float oh = data[3 * out_cols + i];
+
+      int best_class = -1;
+      float best_score = -1.0f;
+
+      for (int c = 0; c < static_cast<int>(classes.size()); ++c) {
+        float score = data[(4 + c) * out_cols + i];
+        if (score > best_score) {
+          best_score = score;
+          best_class = c;
+        }
+      }
+
+      if (best_score < conf_threshold) continue;
+
       boxes.emplace_back(
-        static_cast<int>((cx - 0.5 * ow)),
-        static_cast<int>((cy - 0.5 * oh)),
+        static_cast<int>(cx - 0.5f * ow),
+        static_cast<int>(cy - 0.5f * oh),
         static_cast<int>(ow),
-        static_cast<int>(oh));
-      class_ids.push_back(class_id_point.y);
-      confidences.push_back(static_cast<float>(score));
+        static_cast<int>(oh)
+      );
+
+      class_ids.emplace_back(best_class);
+      confidences.emplace_back(best_score);
+    }
+
+    std::vector<int> nms_result;
+    cv::dnn::NMSBoxes(boxes, confidences, conf_threshold, nms_threshold, nms_result);
+
+    auto& out = detection_result.detected_objects;
+    out.reserve(nms_result.size());
+
+    for (int idx : nms_result) {
+      int class_id = class_ids[idx];
+      if (class_id == 6) continue;
+
+      const auto& box = boxes[idx];
+
+      auto& obj = out.emplace_back();
+      obj.label = classes[class_id];
+      obj.score = confidences[idx];
+      obj.left = box.x * rx;
+      obj.top = box.y * ry;
+      obj.right = box.width * rx;
+      obj.bottom = box.height * ry;
     }
   }
 
-  std::vector<int> nms_result;
-  cv::dnn::NMSBoxes(boxes, confidences, pre.conf_threshold, pre.nms_threshold, nms_result);
 
-  {
-    std::lock_guard<std::mutex> lock(result_mutex);
-    async_detection_result.detected_objects.clear();
+  if (profiling) {
+    t3 = std::chrono::steady_clock::now();
 
-    for (int nms_idx : nms_result) {
-      if (class_ids[nms_idx] == 6) {
-        continue;
-      }
-      ninshiki_interfaces::msg::DetectedObject detection_object;
-      detection_object.label = classes[class_ids[nms_idx]];
-      detection_object.score = confidences[nms_idx];
-      int bx = boxes[nms_idx].x;
-      int by = boxes[nms_idx].y;
-      int bw = boxes[nms_idx].width;
-      int bh = boxes[nms_idx].height;
-      detection_object.left = static_cast<float>(bx) * pre.rx;
-      detection_object.top = static_cast<float>(by) * pre.ry;
-      detection_object.right = static_cast<float>(bw) * pre.rx;
-      detection_object.bottom = static_cast<float>(bh) * pre.ry;
-      async_detection_result.detected_objects.push_back(detection_object);
-    }
+    double preprocess_duration = std::chrono::duration<double, std::milli>(t1 - t0).count();
+    double inference_duration = std::chrono::duration<double, std::milli>(t2 - t1).count();
+    double postprocess_duration = std::chrono::duration<double, std::milli>(t3 - t2).count();
+
+    std::cout << "Preprocessing time: " << preprocess_duration << " ms" << std::endl;
+    std::cout << "Inference time: " << inference_duration << " ms" << std::endl;
+    std::cout << "Postprocessing time: " << postprocess_duration << " ms" << std::endl;
   }
-
-  total_latency += total_duration.count();
-  iterations++;
-
-  printf("[Req %zu] preprocess: %.2f ms  |  inference: %.2f ms  |  total: %.2f ms\n",
-    req_idx, preprocess_duration.count(), inference_duration.count(), total_duration.count());
-  printf("Average latency: %.2f ms\n", total_latency / iterations);
-
-  std::lock_guard<std::mutex> lock(pending_mutex);
-  request_pending[req_idx] = false;
-}
-
-void DnnDetector::detect_ir(const cv::Mat & image, float conf_threshold, float nms_threshold)
-{
-  // Guard: ensure initialize_openvino() was called
-  if (infer_requests.empty()) {
-    std::cerr << "detect_ir called but no infer requests initialized!" << std::endl;
-    return;
-  }
-
-  // Find next available slot (circular scan across all NUM_CONCURRENT_REQUESTS)
-  size_t slot = 0;
-  {
-    std::lock_guard<std::mutex> lock(pending_mutex);
-    for (size_t i = 0; i < NUM_CONCURRENT_REQUESTS; ++i) {
-      size_t idx = (request_idx + i) % NUM_CONCURRENT_REQUESTS;
-      if (!request_pending[idx]) {
-        slot = idx;
-        request_idx = (idx + 1) % NUM_CONCURRENT_REQUESTS;
-        request_pending[slot] = true;
-        break;
-      }
-    }
-  }
-
-  // All slots busy — return stale result
-  if (!request_pending[slot]) {
-    printf("[detect_ir] all slots busy, returning stale\n");
-    std::lock_guard<std::mutex> lock(result_mutex);
-    detection_result = async_detection_result;
-    return;
-  }
-
-  // Brief copy of the latest result
-  {
-    std::lock_guard<std::mutex> lock(result_mutex);
-    detection_result = async_detection_result;
-  }
-
-  auto start_time = std::chrono::high_resolution_clock::now();
-
-  // Store preprocessing data for this slot
-  preprocess_data[slot].conf_threshold = conf_threshold;
-  preprocess_data[slot].nms_threshold = nms_threshold;
-  preprocess_data[slot].start_time = start_time;
-
-  img_width = static_cast<double>(image.cols);
-  img_height = static_cast<double>(image.rows);
-
-  cv::Size new_shape(320, 320);
-  cv::Mat resized_image;
-
-  float ratio = static_cast<float>(new_shape.width) / static_cast<float>(img_width > img_height ? img_width : img_height);
-  int new_unpadW = static_cast<int>(round(img_width * ratio));
-  int new_unpadH = static_cast<int>(round(img_height * ratio));
-
-  cv::resize(image, resized_image, cv::Size(new_unpadW, new_unpadH), 0, 0, cv::INTER_AREA);
-  int dw = new_shape.width - new_unpadW;
-  int dh = new_shape.height - new_unpadH;
-
-  // Apply letterbox padding
-  cv::Mat resized_320;
-  cv::copyMakeBorder(resized_image, resized_320, 0, dh, 0, dw, cv::BORDER_CONSTANT, cv::Scalar(100, 100, 100));
-
-  preprocess_data[slot].rx = static_cast<float>(img_width) / static_cast<float>(resized_320.cols - dw);
-  preprocess_data[slot].ry = static_cast<float>(img_height) / static_cast<float>(resized_320.rows - dh);
-  preprocess_data[slot].dw = static_cast<float>(dw);
-  preprocess_data[slot].dh = static_cast<float>(dh);
-
-  if (!resized_320.data) {
-    std::cerr << "cv::resize failed!" << std::endl;
-    std::lock_guard<std::mutex> lock(pending_mutex);
-    request_pending[slot] = false;
-    return;
-  }
-
-  preprocess_data[slot].preprocess_end_time = std::chrono::high_resolution_clock::now();
-
-  // Create tensor using model's actual input shape
-  ov::Shape input_shape = compiled_model.input().get_shape();
-  ov::Tensor input_tensor(ov::element::u8, input_shape, resized_320.data);
-  infer_requests[slot].set_input_tensor(input_tensor);
-  infer_requests[slot].start_async();
 }
 
 }  // namespace detector

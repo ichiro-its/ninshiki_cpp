@@ -33,8 +33,8 @@ def generate_launch_description():
     gpu_arg = DeclareLaunchArgument('gpu', default_value='0', description='Enable GPU (0 or 1)')
     myriad_arg = DeclareLaunchArgument('myriad', default_value='0', description='Enable Myriad/NCS2 (0 or 1)')
     frequency_arg = DeclareLaunchArgument('frequency', default_value='96', description='Publisher frequency in Hz')
-    nms_free_arg = DeclareLaunchArgument('nms_free', default_value='0',
-        description='Enable NMS-free mode for YOLO26 (1) or YOLO11 (0, default)')
+    nms_free_arg = DeclareLaunchArgument('nms_free', default_value='0', description='Enable NMS-free mode for YOLO26 (0 or 1)')
+    profile_arg = DeclareLaunchArgument('profile', default_value='0', description='Enable latency profiling (0 or 1)')
 
     detector_args = [ninshiki_config_path, "dnn", "color"]
 
@@ -43,6 +43,7 @@ def generate_launch_description():
         myriad_arg,
         frequency_arg,
         nms_free_arg,
+        profile_arg,
         Node(
             package='shisen_cpp',
             executable='camera',
@@ -65,6 +66,7 @@ def generate_launch_description():
                 "--MYRIAD", LaunchConfiguration('myriad'),
                 "--frequency", LaunchConfiguration('frequency'),
                 "--nms-free", LaunchConfiguration('nms_free'),
+                "--profile", LaunchConfiguration('profile'),
             ],
             respawn=True,
             respawn_delay=1

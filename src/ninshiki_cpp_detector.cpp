@@ -36,6 +36,7 @@ int main(int argc, char ** argv)
   int myriad = 0;
   int frequency = 96;
   int nms_free = 0;
+  int profile = 0;
 
   std::shared_ptr<ninshiki_cpp::detector::DnnDetector>dnn_detector = nullptr;
   std::shared_ptr<ninshiki_cpp::detector::ColorDetector>color_detector = nullptr;
@@ -55,7 +56,8 @@ int main(int argc, char ** argv)
     "--GPU {0,1}          if we chose the computation using GPU\n"
     "--MYRIAD {0,1}       if we chose the computation using Compute Stick\n"
     "--frequency          specify publisher frequency\n"
-    "--nms-free {0,1}     enable or disable NMS mode";
+    "--nms-free {0,1}     enable or disable NMS mode\n"
+    "--profile  {0,1}     enable profiling (latency)\n";
 
   // Handle arguments
   try {
@@ -96,6 +98,14 @@ int main(int argc, char ** argv)
             RCLCPP_ERROR_STREAM(rclcpp::get_logger("ninshiki_cpp"), "No value provided for `--nms-free`!\n\n" << help_message);
             return 1;
           }
+        } else if (arg == "--profile") {
+          int value = std::stoi(args[i++]);
+          if (value == 0 || value == 1) {
+            profile = value;
+          } else {
+            RCLCPP_ERROR_STREAM(rclcpp::get_logger("ninshiki_cpp"), "No value provided for `--profile`!\n\n" << help_message);
+            return 1;
+          }
         } else {
           RCLCPP_ERROR_STREAM(rclcpp::get_logger("ninshiki_cpp"), "Unknown argument `" << arg << "`!\n\n" << help_message);
           return 1;
@@ -124,6 +134,7 @@ int main(int argc, char ** argv)
     dnn_detector->load_configuration(path);
     dnn_detector->set_computation_method(gpu, myriad);
     dnn_detector->set_nms_free(nms_free);
+    dnn_detector->set_profiling(profile);
   }
 
   if (color_detector) {
