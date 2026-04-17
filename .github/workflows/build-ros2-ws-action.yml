@@ -1,0 +1,49 @@
+name: ros2-ws-action
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches: [master]  
+jobs:
+  build-and-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.1.1
+        with:
+          path: ninshiki_cpp
+
+      - name: Checkout Jitsuyo
+        uses: actions/checkout@v4.1.1
+        with:
+          repository: ichiro-its/jitsuyo
+          path: jitsuyo
+          token: ${{ secrets.GH_TOKEN }}
+ 
+      - name: Checkout Dependencies
+        run: |
+          git clone https://github.com/ichiro-its/shisen_interfaces.git
+          git clone https://github.com/ichiro-its/ninshiki_interfaces.git
+          git clone https://github.com/ichiro-its/shisen_cpp.git
+          git clone https://github.com/ichiro-its/keisan.git
+
+      - name: Install OpenVINO
+        run: |
+          wget https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
+          sudo apt-key add GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
+          echo "deb https://apt.repos.intel.com/openvino/2024 ubuntu$(lsb_release -rs | cut -d. -f1) main" | sudo tee /etc/apt/sources.list.d/intel-openvino-2024.list
+          sudo apt update
+          sudo apt install openvino
+
+      - name: Setup workspace
+        uses: ichiro-its/ros2-ws-action/setup@v1.0.1
+        with:
+          distro: jazzy
+
+      - name: Build workspace
+        uses: ichiro-its/ros2-ws-action/build@v1.0.1
+
+      - name: Test workspace
+        uses: ichiro-its/ros2-ws-action/test@v1.0.1
+        continue-on-error: true
