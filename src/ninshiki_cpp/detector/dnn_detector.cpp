@@ -184,7 +184,7 @@ void DnnDetector::detection(const cv::Mat & image, float conf_threshold, float n
   total_latency += latency.count();
   inference_count++;
 
-  std::cout << "[Frame " << inference_count << "] Total time: " << latency.count() << " ms" << std::endl;
+  std::cout << "[Frame " << inference_count << "] Total time: " << latency.count() << " ms | ";
   std::cout << "Average latency: " << (total_latency / inference_count) << " ms" << std::endl;
   std::cout << "--------------------------------" << std::endl;
 }
@@ -410,86 +410,95 @@ void DnnDetector::detect_ir(const cv::Mat & image, float conf_threshold, float n
     int num_cols = static_cast<int>(output_shape[2]);  // should be 6
     const cv::Mat det_output(num_detections, num_cols, CV_32F, const_cast<float*>(detections));
 
+    auto & out = detection_result.detected_objects;
+    out.reserve(num_detections);
+
     for (int i = 0; i < num_detections; ++i) {
-      float x1 = det_output.at<float>(i, 0);
-      float y1 = det_output.at<float>(i, 1);
-      float x2 = det_output.at<float>(i, 2);
-      float y2 = det_output.at<float>(i, 3);
-      float conf = det_output.at<float>(i, 4);
-      int class_id = static_cast<int>(det_output.at<float>(i, 5));
+      const float* row = det_output.ptr<float>(i);
 
-      if (conf < conf_threshold) {
-        continue;
-      }
+      float conf = row[4];
+      int class_id = static_cast<int>(row[5]);
 
-      if (class_id == 6) {
-        continue;
-      }
+      if (conf < conf_threshold || class_id == 6) continue;
 
-      ninshiki_interfaces::msg::DetectedObject detection_object;
-      detection_object.label = classes[class_id];
-      detection_object.score = conf;
+      float x1 = row[0];
+      float y1 = row[1];
+      float x2 = row[2];
+      float y2 = row[3];
 
-      int bx = static_cast<int>(x1);
-      int by = static_cast<int>(y1);
-      int bw = static_cast<int>(x2 - x1);
-      int bh = static_cast<int>(y2 - y1);
-
-      detection_object.left = static_cast<float>(bx) * rx;
-      detection_object.top = static_cast<float>(by) * ry;
-      detection_object.right = static_cast<float>(bw) * rx;
-      detection_object.bottom = static_cast<float>(bh) * ry;
-
-      detection_result.detected_objects.push_back(detection_object);
+      auto& obj = out.emplace_back();
+      obj.label = classes[class_id];
+      obj.score = conf;
+      obj.left = static_cast<int>(x1) * rx;
+      obj.top = static_cast<int>(y1) * ry;
+      obj.right = static_cast<int>(x2 - x1) * rx;
+      obj.bottom = static_cast<int>(y2 - y1) * ry;
     }
+  } else {
+    int out_rows = static_cast<int>(output_shape[1]);
+    int out_cols = static_cast<int>(output_shape[2]);
+    const cv::Mat det_output(out_rows, out_cols, CV_32F, const_cast<float*>(detections));
 
-    return;
-  }
+    std::vector<cv::Rect> boxes;
+    std::vector<int> class_ids;
+    std::vector<float> confidences;
 
-  std::vector<cv::Rect> boxes;
-  std::vector<int> class_ids;
-  std::vector<float> confidences;
-  int out_rows = static_cast<int>(output_shape[1]);
-  int out_cols = static_cast<int>(output_shape[2]);
-  const cv::Mat det_output(out_rows, out_cols, CV_32F, const_cast<float*>(detections));
+    boxes.reserve(out_cols);
+    class_ids.reserve(out_cols);
+    confidences.reserve(out_cols);
 
-  for (int i = 0; i < det_output.cols; ++i) {
-    const cv::Mat classes_scores = det_output.col(i).rowRange(4, classes.size() + 4);
-    cv::Point class_id_point;
-    double score;
-    cv::minMaxLoc(classes_scores, nullptr, &score, nullptr, &class_id_point);
+    const float* data = reinterpret_cast<const float*>(det_output.data);
 
-    if (score > conf_threshold) {
-      const float cx = det_output.at<float>(0, i);
-      const float cy = det_output.at<float>(1, i);
-      const float ow = det_output.at<float>(2, i);
-      const float oh = det_output.at<float>(3, i);
+    for (int i = 0; i < out_cols; ++i) {
+      float cx = data[0 * out_cols + i];
+      float cy = data[1 * out_cols + i];
+      float ow = data[2 * out_cols + i];
+      float oh = data[3 * out_cols + i];
+
+      int best_class = -1;
+      float best_score = -1.0f;
+
+      for (int c = 0; c < static_cast<int>(classes.size()); ++c) {
+        float score = data[(4 + c) * out_cols + i];
+        if (score > best_score) {
+          best_score = score;
+          best_class = c;
+        }
+      }
+
+      if (best_score < conf_threshold) continue;
+
       boxes.emplace_back(
-        static_cast<int>((cx - 0.5 * ow)),
-        static_cast<int>((cy - 0.5 * oh)),
+        static_cast<int>(cx - 0.5f * ow),
+        static_cast<int>(cy - 0.5f * oh),
         static_cast<int>(ow),
-        static_cast<int>(oh));
-      class_ids.push_back(class_id_point.y);
-      confidences.push_back(static_cast<float>(score));
+        static_cast<int>(oh)
+      );
+
+      class_ids.emplace_back(best_class);
+      confidences.emplace_back(best_score);
     }
-  }
 
-  std::vector<int> nms_result;
-  cv::dnn::NMSBoxes(boxes, confidences, conf_threshold, nms_threshold, nms_result);
+    std::vector<int> nms_result;
+    cv::dnn::NMSBoxes(boxes, confidences, conf_threshold, nms_threshold, nms_result);
 
-  for (int nms_idx : nms_result) {
-    if (class_ids[nms_idx] == 6) {
-      continue;
+    auto& out = detection_result.detected_objects;
+    out.reserve(nms_result.size());
+
+    for (int idx : nms_result) {
+      int class_id = class_ids[idx];
+      if (class_id == 6) continue;
+
+      const auto& box = boxes[idx];
+
+      auto& obj = out.emplace_back();
+      obj.label = classes[class_id];
+      obj.score = confidences[idx];
+      obj.left = box.x * rx;
+      obj.top = box.y * ry;
+      obj.right = box.width * rx;
+      obj.bottom = box.height * ry;
     }
-    ninshiki_interfaces::msg::DetectedObject detection_object;
-    detection_object.label = classes[class_ids[nms_idx]];
-    detection_object.score = confidences[nms_idx];
-    detection_object.left = static_cast<float>(boxes[nms_idx].x) * rx;
-    detection_object.top = static_cast<float>(boxes[nms_idx].y) * ry;
-    detection_object.right = static_cast<float>(boxes[nms_idx].width) * rx;
-    detection_object.bottom = static_cast<float>(boxes[nms_idx].height) * ry;
-
-    detection_result.detected_objects.push_back(detection_object);
   }
 
   postprocess_end_time = std::chrono::high_resolution_clock::now();
