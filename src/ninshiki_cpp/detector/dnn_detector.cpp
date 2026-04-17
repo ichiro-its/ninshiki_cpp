@@ -120,11 +120,6 @@ void DnnDetector::set_computation_method(bool gpu, bool myriad)
   }
 }
 
-void DnnDetector::set_nms_free(bool nms_free)
-{
-  this->nms_free = nms_free;
-}
-
 void DnnDetector::initialize_openvino(const std::string & device)
 {
   printf("[initialize_openvino] device=%s, model_path=%s\n", device.c_str(), model_path.c_str());
@@ -141,18 +136,12 @@ void DnnDetector::initialize_openvino(const std::string & device)
 
   ov::AnyMap device_config;
   if (device == "GPU") {
-    // Intel Iris Xe / integrated GPU — throughput mode + high priority host tasks
+    // Intel Iris Xe / integrated GPU — latency mode + high priority host tasks
     device_config = {
       ov::hint::performance_mode(ov::hint::PerformanceMode::LATENCY),
       ov::intel_gpu::hint::host_task_priority(ov::hint::Priority::HIGH),
       ov::intel_gpu::hint::queue_priority(ov::hint::Priority::HIGH),
       ov::intel_gpu::hint::queue_throttle(ov::intel_gpu::hint::ThrottleLevel::LOW),
-    };
-  } else if (device == "CPU") {
-    // x86 CPU — throughput mode with NUMA awareness
-    device_config = {
-      ov::hint::performance_mode(ov::hint::PerformanceMode::LATENCY),
-      ov::num_streams(1),
     };
   } else {
     device_config = {
@@ -168,7 +157,9 @@ void DnnDetector::initialize_openvino(const std::string & device)
 
 void DnnDetector::detection(const cv::Mat & image, float conf_threshold, float nms_threshold)
 {
-  auto start_time = std::chrono::high_resolution_clock::now();
+  std::chrono::steady_clock::time_point start_time, end_time;
+
+  if (profiling) start_time = std::chrono::steady_clock::now();
 
   if (model_suffix == "weights") {
     detect_darknet(image, conf_threshold, nms_threshold);
@@ -178,15 +169,17 @@ void DnnDetector::detection(const cv::Mat & image, float conf_threshold, float n
     detect_tensorflow(image, conf_threshold, nms_threshold);
   }
 
-  // Print Inference Time
-  auto end_time = std::chrono::high_resolution_clock::now();
-  std::chrono::duration<double, std::milli> latency = end_time - start_time;
-  total_latency += latency.count();
-  inference_count++;
+  if (profiling) {
+    end_time = std::chrono::steady_clock::now();
 
-  std::cout << "[Frame " << inference_count << "] Total time: " << latency.count() << " ms | ";
-  std::cout << "Average latency: " << (total_latency / inference_count) << " ms" << std::endl;
-  std::cout << "--------------------------------" << std::endl;
+    double latency = std::chrono::duration<double, std::milli>(end_time - start_time).count();
+    total_latency += latency;
+    inference_count++;
+
+    std::cout << "[Frame " << inference_count << "] Total time: " << latency << " ms | "
+              << "Average latency: " << (total_latency / inference_count) << " ms" << std::endl;
+    std::cout << "--------------------------------" << std::endl;
+  }
 }
 
 void DnnDetector::detect_darknet(const cv::Mat & image, float conf_threshold, float nms_threshold)
@@ -356,10 +349,9 @@ void DnnDetector::detect_ir(const cv::Mat & image, float conf_threshold, float n
   }
 
   // Preprocessing
-  auto start_time = std::chrono::high_resolution_clock::now();
-  std::chrono::time_point<std::chrono::high_resolution_clock> preprocess_end_time;
-  std::chrono::time_point<std::chrono::high_resolution_clock> inference_end_time;
-  std::chrono::time_point<std::chrono::high_resolution_clock> postprocess_end_time;
+  std::chrono::steady_clock::time_point t0, t1, t2, t3;
+
+  if (profiling) t0 = std::chrono::steady_clock::now();
 
   try {
     img_width = static_cast<double>(image.cols);
@@ -387,8 +379,6 @@ void DnnDetector::detect_ir(const cv::Mat & image, float conf_threshold, float n
     ov::Shape input_shape = compiled_model.input().get_shape();
     ov::Tensor input_tensor(ov::element::u8, input_shape, resized_320.data);
     infer_request.set_input_tensor(input_tensor);
-
-    preprocess_end_time = std::chrono::high_resolution_clock::now();
   } catch (const std::exception& e) {
     std::cerr << "exception: " << e.what() << std::endl;
   }
@@ -396,9 +386,12 @@ void DnnDetector::detect_ir(const cv::Mat & image, float conf_threshold, float n
     std::cerr << "unknown exception" << std::endl;
   }
 
+  if (profiling) t1 = std::chrono::steady_clock::now();
+
   // Inference
   infer_request.infer();
-  inference_end_time = std::chrono::high_resolution_clock::now();
+  if (profiling) t2 = std::chrono::steady_clock::now();
+
   const ov::Tensor & output_tensor = infer_request.get_output_tensor();
   ov::Shape output_shape = output_tensor.get_shape();
   auto detections = output_tensor.data<float>();
@@ -501,15 +494,18 @@ void DnnDetector::detect_ir(const cv::Mat & image, float conf_threshold, float n
     }
   }
 
-  postprocess_end_time = std::chrono::high_resolution_clock::now();
 
-  std::chrono::duration<double, std::milli> preprocess_duration = preprocess_end_time - start_time;
-  std::chrono::duration<double, std::milli> inference_duration = inference_end_time - preprocess_end_time;
-  std::chrono::duration<double, std::milli> postprocess_duration = postprocess_end_time - inference_end_time;
+  if (profiling) {
+    t3 = std::chrono::steady_clock::now();
 
-  std::cout << "Preprocessing time: " << preprocess_duration.count() << " ms" << std::endl;
-  std::cout << "Inference time: " << inference_duration.count() << " ms" << std::endl;
-  std::cout << "Postprocessing time: " << postprocess_duration.count() << " ms" << std::endl;
+    double preprocess_duration = std::chrono::duration<double, std::milli>(t1 - t0).count();
+    double inference_duration = std::chrono::duration<double, std::milli>(t2 - t1).count();
+    double postprocess_duration = std::chrono::duration<double, std::milli>(t3 - t2).count();
+
+    std::cout << "Preprocessing time: " << preprocess_duration << " ms" << std::endl;
+    std::cout << "Inference time: " << inference_duration << " ms" << std::endl;
+    std::cout << "Postprocessing time: " << postprocess_duration << " ms" << std::endl;
+  }
 }
 
 }  // namespace detector
